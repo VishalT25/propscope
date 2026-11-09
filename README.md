@@ -9,7 +9,7 @@ Built with Rails 8, Hotwire, Tailwind, PostgreSQL, Solid Queue. See `PROJECT_SPE
 brew install rbenv ruby-build postgresql@17   # macOS
 rbenv install 3.4.12
 bundle install
-bin/rails db:create db:migrate
+bin/rails db:create db:migrate db:seed   # sample slate, no API keys needed
 bin/dev
 ```
 Open http://localhost:3000 (design reference at `/styleguide` in development).
@@ -27,5 +27,8 @@ bin/brakeman --no-pager
 - `gems/odds_math`: BigDecimal odds conversions, devig, EV and Kelly (standalone gem).
 - `legacy-next/`: archived Next.js prototype (not part of the build, git-ignored).
 
+## Data
+Jobs fetch, pages read: a page request never calls an external API. Dev and test run on synthetic fixtures through the real adapters' parsers; live calls need `LIVE_DATA=true` and your own API keys (you are responsible for each provider's terms). See `docs/providers/`, `docs/data-model.md`, `docs/operations.md`.
+
 ## Status
-Phase 0 (odds_math) and Phase 1 (skeleton, auth, design tokens, American/decimal odds toggle) complete.
+Phase 0 (odds_math), Phase 1 (skeleton, auth, design tokens, American/decimal toggle) and Phase 2 (data layer: models, provider adapters, entity resolution, budget guard, ingestion jobs, fixtures) complete. Next: Phase 3 (hit rates + props explorer).

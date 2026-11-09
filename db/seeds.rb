@@ -1,9 +1,18 @@
-# This file should ensure the existence of records required to run the application in every environment (production,
-# development, test). The code here should be idempotent so that it can be executed at any point in every environment.
-# The data can then be loaded with the bin/rails db:seed command (or created alongside the database with db:setup).
-#
-# Example:
-#
-#   ["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
-#     MovieGenre.find_or_create_by!(name: genre_name)
-#   end
+# Fully populated local app with no API keys: bin/rails db:seed (or bin/setup).
+# Loads synthetic sample data through the same ingestion path as live data. Never seeds production.
+Bookmaker::KNOWN.each_key { |key| Bookmaker.for_key(key) }
+
+if Rails.env.production?
+  puts "Production: skipped sample data. Set LIVE_DATA=true and API keys to ingest real data."
+else
+  Ingest::SeedFixtures.call
+  puts "Seeded #{Game.count} games, #{Player.count} players, #{PlayerGameLog.count} logs, #{OddsSnapshot.count} odds snapshots."
+end
+
+if Rails.env.development?
+  User.find_or_create_by!(email_address: "admin@example.com") do |u|
+    u.password = "password123"
+    u.admin = true
+  end
+  puts "Dev admin: admin@example.com / password123"
+end
