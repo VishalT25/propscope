@@ -11,7 +11,10 @@ All times UTC. `slate_date` is the game's date in US Eastern. Odds are integer A
 | `markets` | One row per `(game, player?, market_type, period, line, is_alternate)` (unique, `NULLS NOT DISTINCT`). A moved line is a new market, so line movement is a query across sibling markets. |
 | `odds_snapshots` | **Append-only.** A row is inserted only if price or line changed for `(market, outcome, bookmaker)`. Only `is_closing` may be updated: set on the last snapshot at or before tip-off. |
 | `player_game_logs` | One row per player-game. `minutes = 0` is a DNP and never counts in hit rates (`played` scope). `stats` jsonb holds extra provider fields. |
-| `prop_hit_rates`, `defense_ranks`, `insights` | Precomputed (Phase 3+), each with `computed_at`. |
+| `prop_hit_rates` | One row per `(market, side)`. `lN`/`h2h`/`season`/`prev_season` are percentages 0-100 over *decided* games; `*_n` is that count (pushes excluded, DNPs excluded). `closing_line_hit_rate` scores the last 10 games against each game's own closing line (nil when none on file). |
+| `defense_ranks` | Average allowed per game by a position group (G/F/C, from BallDontLie positions) per stat per team. **Rank 1 = allows the least** (toughest). Top third (max 10) = `unfavorable`, bottom third = `favorable` for an Over; the UI flips them for an Under. |
+| `insights` | Phase 5. |
+| `users.enabled_bookmaker_keys` | jsonb. `null` = every book counts toward best price; otherwise the keys the user enabled. Guests use the `enabled_books` cookie. |
 | `saved_filters`, `picks` | Per-user features (Phase 3, 5). `picks.price_at_add` is American odds. |
 | `raw_payloads` | Every external response, stored before parsing; 14-day retention; enables `data:renormalize`. |
 | `api_usages` | Units used per provider per `YYYY-MM`; `units_limit` null means rate-limited only. |

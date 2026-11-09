@@ -1,0 +1,60 @@
+<div class="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-muted">
+  <p><span class="font-semibold text-fg"><%= number_with_delimiter(result.total) %></span> props · <%= updated_ago(result.updated_at) %></p>
+  <details class="relative">
+    <summary class="cursor-pointer select-none font-medium hover:text-fg">Legend</summary>
+    <div class="absolute right-0 z-20 mt-2 w-80 space-y-1.5 rounded-xl border border-line bg-surface p-3 text-xs shadow-xl">
+      <p><b class="text-fg">Best price</b>: highest price across your enabled books, with the book's code.</p>
+      <p><b class="text-fg">IP</b>: implied probability of that price (it includes the book's margin).</p>
+      <p><b class="text-fg">Opp</b>: opponent's rank against this position for this stat (1 = toughest). <span class="text-hit">Favorable</span> / <span class="text-miss">Unfavorable</span> are from this bet's side.</p>
+      <p><b class="text-fg">L5 / L10 / L20</b>: share of the last N games that cleared the line. <b class="text-fg">H2H</b>: vs this opponent, this and last season. <b class="text-fg">Prev</b>: last season.</p>
+      <p><span class="text-hit font-bold">Green</span> hit more than 60%, <span class="text-push font-bold">amber</span> 41 to 60%, <span class="text-miss font-bold">red</span> 40% or less. Muted numbers are based on fewer than 5 games; <span class="font-bold">n/a</span> means no games. DNPs and pushes are excluded.</p>
+    </div>
+  </details>
+</div>
+
+<% if result.rows.empty? %>
+  <div class="card mt-3 grid place-items-center px-6 py-14 text-center">
+    <h2 class="text-lg font-bold">No props match</h2>
+    <p class="mt-1 max-w-md text-sm text-muted">
+      <% if filters.active_count.positive? %>Loosen a filter or <%= link_to "reset them all", league_props_path(current_league), class: "text-accent underline", data: { turbo_frame: "_top" } %>.
+      <% else %>No upcoming games have odds yet. In development run <code class="rounded bg-surface-2 px-1">bin/rails db:seed</code> on a game day.<% end %>
+    </p>
+  </div>
+<% else %>
+  <div class="card mt-3 hidden overflow-x-auto md:block">
+    <table class="w-full min-w-[56rem] text-sm">
+      <thead class="border-b border-line text-left text-xs uppercase tracking-wide text-muted">
+        <tr>
+          <th class="px-3 py-2.5">Player</th>
+          <th class="px-3 py-2.5">Matchup</th>
+          <th class="px-3 py-2.5"><%= link_to "Pick#{sort_arrow(filters, 'line')}", league_props_path(current_league, sort_link_params(filters, "line")), title: "Sort by line" %></th>
+          <th class="px-3 py-2.5"><%= link_to "Best price#{sort_arrow(filters, 'best_odds')}", league_props_path(current_league, sort_link_params(filters, "best_odds")), title: "Sort by best price" %></th>
+          <th class="px-3 py-2.5 text-right"><%= link_to "IP#{sort_arrow(filters, 'ip')}", league_props_path(current_league, sort_link_params(filters, "ip")), title: "Implied probability of the best price" %></th>
+          <th class="px-3 py-2.5 text-center"><%= link_to "Opp#{sort_arrow(filters, 'opp_rank')}", league_props_path(current_league, sort_link_params(filters, "opp_rank")), title: "Opponent rank vs this position (1 = toughest)" %></th>
+          <% PropsHelper::HIT_COLUMNS.each do |key, label, tip| %>
+            <th class="px-1 py-2.5 text-center"><%= link_to "#{label}#{sort_arrow(filters, key)}", league_props_path(current_league, sort_link_params(filters, key)), title: "#{tip}. Click to sort." %></th>
+          <% end %>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-line">
+        <% result.rows.each do |row| %>
+          <%= render "props/row", row: row %>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <ul class="mt-3 space-y-3 md:hidden">
+    <% result.rows.each do |row| %>
+      <%= render "props/card", row: row %>
+    <% end %>
+  </ul>
+
+  <% if result.pages > 1 %>
+    <nav class="mt-4 flex items-center justify-center gap-3 text-sm" aria-label="Pages">
+      <% if result.page > 1 %><%= link_to "← Previous", league_props_path(current_league, filters.to_query(page: result.page - 1)), class: "chip" %><% end %>
+      <span class="text-muted">Page <%= result.page %> of <%= result.pages %></span>
+      <% if result.page < result.pages %><%= link_to "Next →", league_props_path(current_league, filters.to_query(page: result.page + 1)), class: "chip" %><% end %>
+    </nav>
+  <% end %>
+<% end %>

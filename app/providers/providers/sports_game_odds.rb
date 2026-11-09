@@ -51,6 +51,24 @@ module Providers
 
     private
 
+    # One real event is ~1.3MB (1,000+ markets, deep links, colours). Store only what parse_event reads
+    # (modeled markets, modeled fields) so 14 days of payloads stay small. replay() parses this slimmed body identically.
+    def storage_body(body)
+      data = body.fetch("data").map do |event|
+        players = event["players"] || {}
+        odds = (event["odds"] || {}).select { |odd_id, odd| classify(odd_id, odd, players) }.transform_values do |odd|
+          odd.slice("oddID").merge("byBookmaker" => (odd["byBookmaker"] || {}).transform_values { |b| b.slice("odds", "overUnder", "spread", "available", "lastUpdatedAt") })
+        end
+        event.slice("eventID", "sportID", "leagueID", "type", "status", "players")
+             .merge("teams" => slim_teams(event["teams"]), "odds" => odds)
+      end
+      body.slice("success", "nextCursor", "notice").merge("data" => data)
+    end
+
+    def slim_teams(teams)
+      (teams || {}).transform_values { |t| t.slice("teamID", "names") }
+    end
+
     def parse_event(event, fetched_at)
       home = team_ref(event.dig("teams", "home"))
       away = team_ref(event.dig("teams", "away"))

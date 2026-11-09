@@ -1,6 +1,8 @@
 # Fully populated local app with no API keys: bin/rails db:seed (or bin/setup).
 # Loads synthetic sample data through the same ingestion path as live data. Never seeds production.
-Bookmaker::KNOWN.each_key { |key| Bookmaker.for_key(key) }
+Bookmaker::KNOWN.each do |key, (name, code)|
+  Bookmaker.find_or_initialize_by(key: key).update!(name: name, code: code) # also refreshes older rows
+end
 
 if Rails.env.production?
   puts "Production: skipped sample data. Set LIVE_DATA=true and API keys to ingest real data."

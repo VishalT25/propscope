@@ -8,6 +8,8 @@ class IngestGameLogsJob < ApplicationJob
     date = date ? Date.parse(date.to_s) : Time.current.in_time_zone(Game::SLATE_ZONE).to_date - 1
     with_budget_handling do
       Ingest::GameLogs.call(logs: provider.fetch_game_logs(sport: "nba", date: date))
+      ComputeDefenseRanksJob.perform_later
+      PrecomputeHitRatesJob.perform_later
     end
   end
 end

@@ -1,0 +1,24 @@
+<tr class="hover:bg-surface-2/60">
+  <td class="px-3 py-2.5">
+    <div class="font-semibold"><%= row.player.full_name %></div>
+    <div class="text-xs text-muted" title="Team and position"><%= row.team.abbreviation %> · <%= row.player.position %></div>
+  </td>
+  <td class="px-3 py-2.5 text-xs text-muted">
+    <div><%= row.home? ? "vs" : "@" %> <b class="text-fg"><%= row.opponent.abbreviation %></b></div>
+    <div><%= local_day(row.game.starts_at) %>, <%= local_time(row.game.starts_at) %></div>
+  </td>
+  <td class="px-3 py-2.5 font-semibold"><%= pick_title(row) %></td>
+  <td class="px-3 py-2.5"><%= render "shared/price_chip", american: row.price.american_odds, book: row.price.bookmaker.code, book_name: "#{row.price.bookmaker.name} (#{pluralize(row.price.books_count, 'book')} offering this line)" %></td>
+  <td class="px-3 py-2.5 text-right tabular-nums text-muted" title="Implied probability of the best price"><%= number_with_precision(row.implied * 100, precision: 1) %>%</td>
+  <td class="px-3 py-2.5 text-center">
+    <% if row.opp_rank %>
+      <span class="inline-flex min-w-9 justify-center rounded-full px-2 py-0.5 text-xs font-bold tabular-nums <%= PropsHelper::TIER_STYLES[row.tier] %>" title="<%= tier_tooltip(row) %>"><%= row.opp_rank.rank %></span>
+    <% else %><span class="text-muted" title="No defence data yet">–</span><% end %>
+  </td>
+  <% PropsHelper::HIT_COLUMNS.each do |key, label, _| %>
+    <% rate, n = row.rate(key), row.sample(key) %>
+    <td class="p-0.5 text-center">
+      <div class="rounded-lg px-1 py-2 font-bold tabular-nums <%= hit_rate_text_class(rate, n) %>" style="<%= hit_rate_cell_style(rate, n) %>" title="<%= hit_tooltip(label, rate, n) %>"><%= percent_label(rate, n) %></div>
+    </td>
+  <% end %>
+</tr>

@@ -13,6 +13,8 @@ module Ingest
         Ingest::GameLogs.call(logs: provider.fetch_game_logs(sport: "nba", date: date))
       end
       Ingest::OddsSnapshots.call(quotes: provider.fetch_odds(sport: "nba", from: Time.current, to: Time.current + 36.hours), sport: sport)
+      DefenseRanker.call(season: Game.maximum(:season))
+      HitRates::Precompute.call
     end
   end
 end

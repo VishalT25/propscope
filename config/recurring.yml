@@ -21,6 +21,12 @@ production:
   mark_closing_lines:
     class: MarkClosingLinesJob
     schedule: "5-55/10 * * * *"
+  compute_defense_ranks:
+    class: ComputeDefenseRanksJob
+    schedule: 30 4 * * * America/New_York
+  precompute_hit_rates:
+    class: PrecomputeHitRatesJob
+    schedule: 45 4 * * * America/New_York
   purge_raw_payloads:
     class: PurgeRawPayloadsJob
     schedule: 30 5 * * *

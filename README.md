@@ -31,4 +31,4 @@ bin/brakeman --no-pager
 Jobs fetch, pages read: a page request never calls an external API. Dev and test run on synthetic fixtures through the real adapters' parsers; live calls need `LIVE_DATA=true` and your own API keys (you are responsible for each provider's terms). See `docs/providers/`, `docs/data-model.md`, `docs/operations.md`.
 
 ## Status
-Phase 0 (odds_math), Phase 1 (skeleton, auth, design tokens, American/decimal toggle) and Phase 2 (data layer: models, provider adapters, entity resolution, budget guard, ingestion jobs, fixtures) complete. Next: Phase 3 (hit rates + props explorer).
+Phase 0 (odds_math), Phase 1 (skeleton, auth, design tokens, American/decimal toggle) Phase 2 (data layer: models, provider adapters, entity resolution, budget guard, ingestion jobs, fixtures) and Phase 3 (hit rates, defence ranks, best price, props explorer with filters, live count, sort, pagination, saved filters, book selector) complete. Next: Phase 4 (prop detail). 

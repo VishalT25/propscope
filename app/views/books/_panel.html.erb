@@ -1,0 +1,31 @@
+<div data-sheet-target="backdrop" data-action="click->sheet#close" class="fixed inset-0 z-40 bg-black/60" hidden></div>
+<aside data-sheet-target="panel" role="dialog" aria-label="Sportsbooks" hidden
+       class="fixed inset-x-0 bottom-0 z-50 flex max-h-[85dvh] flex-col rounded-t-2xl border border-line bg-surface shadow-2xl md:inset-y-0 md:left-auto md:right-0 md:max-h-none md:w-[24rem] md:rounded-none md:rounded-l-2xl">
+  <div class="border-b border-line px-4 py-3">
+    <h2 class="font-bold">Books</h2>
+    <p class="text-xs text-muted">Best price is calculated only from the books you switch on.</p>
+    <div class="mt-2 flex flex-wrap gap-1.5">
+      <% kinds = all_bookmakers.map(&:kind).uniq %>
+      <button type="button" class="chip chip-active" data-sheet-target="tab" data-sheet-kind-param="any" data-action="sheet#filterKind">Any</button>
+      <% { "sportsbook" => "Sportsbooks", "dfs" => "DFS", "prediction" => "Predictions" }.each do |kind, label| %>
+        <button type="button" class="chip <%= 'chip-disabled' unless kinds.include?(kind) %>" data-sheet-target="tab" data-sheet-kind-param="<%= kind %>" data-action="sheet#filterKind" <%= "disabled" unless kinds.include?(kind) %>><%= label %></button>
+      <% end %>
+    </div>
+  </div>
+  <%= form_with url: books_path, method: :patch, class: "flex min-h-0 flex-1 flex-col" do %>
+    <ul class="min-h-0 flex-1 divide-y divide-line overflow-y-auto px-4">
+      <% all_bookmakers.each do |b| %>
+        <li data-sheet-target="item" data-kind="<%= b.kind %>">
+          <label class="flex cursor-pointer items-center justify-between py-3">
+            <span class="flex items-center gap-2.5">
+              <span class="grid h-7 min-w-9 place-items-center rounded-md bg-surface-2 px-1 text-[10px] font-extrabold tracking-wide text-muted"><%= b.code %></span>
+              <span class="font-medium"><%= b.name %></span>
+            </span>
+            <%= check_box_tag "keys[]", b.key, enabled_book_keys.nil? || enabled_book_keys.include?(b.key), id: nil, class: "size-5 accent-[var(--accent)]" %>
+          </label>
+        </li>
+      <% end %>
+    </ul>
+    <div class="border-t border-line px-4 py-3"><button type="submit" class="btn w-full">Done</button></div>
+  <% end %>
+</aside>

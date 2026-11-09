@@ -39,8 +39,9 @@ module Providers
       end
     end
 
+    # /teams also returns ~59 defunct franchises (blank conference, some reusing abbreviations like WAS). Keep the 30 real ones.
     def parse_teams(body)
-      body.fetch("data").map do |t|
+      body.fetch("data").select { |t| t["conference"].to_s.strip.present? }.map do |t|
         Dto::Team.new(provider: provider_key, external_id: t["id"].to_s, abbreviation: t["abbreviation"], name: t["full_name"],
                       city: t["city"], conference: t["conference"], division: t["division"])
       end

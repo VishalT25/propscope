@@ -1,0 +1,7 @@
+<% codes, extra = book_chip_codes %>
+  <button type="button" class="chip" data-action="sheet#open" aria-haspopup="dialog" title="Which books count toward best price">
+    <span class="flex -space-x-2">
+      <% codes.each do |code| %><span class="grid h-6 min-w-6 place-items-center rounded-full border-2 border-surface bg-surface-2 px-1 text-[9px] font-extrabold leading-none text-muted"><%= code %></span><% end %>
+    </span>
+    <% if extra.positive? %><span class="text-xs font-semibold text-muted">+<%= extra %></span><% end %>
+  </button>

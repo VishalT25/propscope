@@ -1,3 +1,23 @@
 <% content_for :title, "Props explorer" %>
-<%= render "shared/page_header", title: "Props explorer", subtitle: "Every available prop, ranked by hit rate and price, with filters and saved views." %>
-<%= render "shared/coming_soon", title: "Props explorer coming soon", body: "The data layer comes first. This page will read only from precomputed tables.", phase: "Phase 3" %>
+<%= render "shared/page_header", title: "Props explorer", subtitle: "Every available prop, ranked by how often it has cleared the line and by price. Best price uses the books you picked." %>
+
+<div data-controller="sheet" class="mt-4">
+  <div class="flex flex-wrap items-center gap-2">
+    <button type="button" class="chip" data-action="sheet#open" aria-haspopup="dialog">
+      <%= icon :bars, css: "size-4" %> Filters
+      <% if @filters.active_count.positive? %>
+        <span class="rounded-full bg-accent px-1.5 text-xs font-bold text-white" title="Current filters"><%= @filters.active_count %></span>
+      <% end %>
+    </button>
+    <button type="button" class="chip" data-action="sheet#open" data-sheet-tab-param="templates">Saved filters</button>
+    <% if @filters.active_count.positive? %>
+      <%= link_to "Reset", league_props_path(current_league), class: "text-sm font-medium text-muted hover:text-fg" %>
+    <% end %>
+  </div>
+
+  <%= render "props/filter_drawer" %>
+</div>
+
+<%= turbo_frame_tag "props_results", data: { turbo_action: "advance" } do %>
+  <%= render "props/results", result: @result, filters: @filters %>
+<% end %>

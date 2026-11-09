@@ -29,7 +29,8 @@ RSpec.describe ApplicationHelper do
     it "stays neutral for small samples or missing data" do
       expect(helper.hit_rate_tone(100, 3)).to eq(:muted)
       expect(helper.hit_rate_tone(nil)).to eq(:muted)
-      expect(helper.percent_label(100, 3)).to eq("n/a")
+      expect(helper.percent_label(100, 3)).to eq("100%")
+      expect(helper.percent_label(nil, 0)).to eq("n/a")
       expect(helper.percent_label(70.4, 10)).to eq("70%")
       expect(helper.hit_rate_cell_style(100, 3)).to eq("")
     end

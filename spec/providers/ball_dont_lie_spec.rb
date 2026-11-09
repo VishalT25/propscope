@@ -9,6 +9,15 @@ RSpec.describe Providers::BallDontLie do
     expect(team).to have_attributes(provider: "balldontlie", name: "Boston Celtics", conference: "East", division: "Atlantic")
   end
 
+  it "drops the defunct franchises the real /teams endpoint also returns (blank conference, reused abbreviations)" do
+    body = { "data" => [
+      { "id" => 30, "conference" => "West", "division" => "Southeast", "city" => "Washington", "name" => "Wizards", "full_name" => "Washington Wizards", "abbreviation" => "WAS" },
+      { "id" => 42, "conference" => "    ", "division" => "    ", "city" => "Washington", "name" => "Capitols", "full_name" => "Washington Capitols", "abbreviation" => "WAS" },
+      { "id" => 37, "conference" => nil, "division" => nil, "city" => "Chicago", "name" => "Stags", "full_name" => "Chicago Stags", "abbreviation" => "CHS" }
+    ] }
+    expect(provider.parse_teams(body).map(&:name)).to eq([ "Washington Wizards" ])
+  end
+
   it "maps players with their team ref" do
     players = provider.fetch_players(sport: "nba")
     expect(players.size).to eq(96)

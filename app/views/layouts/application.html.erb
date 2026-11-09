@@ -21,7 +21,12 @@
   </head>
 
   <body class="min-h-dvh antialiased">
-    <%= render "shared/header" %>
+    <%# One sheet controller wraps the header chip and the panel. The panel must NOT live inside the header:
+        its backdrop-blur would become the containing block for the panel's position: fixed. %>
+    <div data-controller="sheet">
+      <%= render "shared/header" %>
+      <%= render "books/panel" %>
+    </div>
     <%= render "shared/flash" %>
     <main class="mx-auto w-full max-w-screen-2xl px-4 pb-24 pt-4">
       <%= yield %>

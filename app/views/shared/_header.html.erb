@@ -10,9 +10,7 @@
     <% end %>
 
     <div class="ml-auto flex items-center gap-2">
-      <button type="button" class="chip" title="Choose which books count toward best price (coming soon)" disabled>
-        <span class="text-xs font-semibold uppercase tracking-wide text-muted">Books</span> All
-      </button>
+      <%= render "books/chip" %>
       <button type="button" class="rounded-lg p-2 text-muted hover:bg-surface-2" aria-label="My picks" title="My picks (coming soon)" disabled>
         <%= icon :ticket %>
       </button>

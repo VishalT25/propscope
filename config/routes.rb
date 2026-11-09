@@ -3,11 +3,15 @@ Rails.application.routes.draw do
   resources :passwords, param: :token
   resource :registration, only: %i[new create]
   resource :preferences, only: :update
+  patch "books", to: "books#update", as: :books
+  resources :saved_filters, only: %i[create destroy]
 
   root to: redirect("/nba/props")
 
   scope "/:league", constraints: { league: Regexp.union(League.keys) }, as: :league do
-    resources :props, only: :index
+    resources :props, only: :index do
+      get :count, on: :collection
+    end
     resources :games, only: :index
     resources :insights, only: :index
   end

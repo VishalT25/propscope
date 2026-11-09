@@ -19,11 +19,18 @@ Researched 2026-11-09 from sportsgameodds.com (pricing, docs, terms). Re-check b
 - `odds[oddID].byBookmaker[bookKey] = { odds: "-110", overUnder: "24.5", spread: "-3.5", available: true }`. Prices and lines are strings.
 - `players[playerID] = { teamID, name, firstName, lastName }`, `teams.{home,away} = { teamID, names: { long, medium, short } }`, `status.startsAt`.
 
-## Unverified assumptions (confirm on the first live capture)
-- Exact `statID` names for threes and PRA (`threePointersMade`, `points+rebounds+assists`): see `STAT_TO_MARKET` in `app/providers/providers/sports_game_odds.rb`.
-- Whether spread lines live in `byBookmaker[...].spread` (we also fall back to `overUnder`).
-- `lastUpdatedAt` per bookmaker (we fall back to fetch time).
-- `limit` maximum, and `names.short` being the team abbreviation (resolver falls back to full name).
+## Verified against a real response (2026-11-09, free key)
+Confirmed by capturing two real NBA events (`spec/fixtures/providers/sports_game_odds/real_shape_sample.json` is a ~9KB hand-trimmed copy used by the contract spec):
+- statIDs `points`, `rebounds`, `assists`, `threePointersMade`, `points+rebounds+assists` are exactly right. The feed also has `blocks`, `steals`, `turnovers`, `points+rebounds`, `points+assists`, `rebounds+assists`, `doubleDouble`, `firstBasket`, etc. (not modeled yet).
+- Prices, `overUnder` and `spread` are strings. Spread lines are in `byBookmaker[...].spread`, totals and props in `.overUnder`.
+- `byBookmaker[...].lastUpdatedAt` exists (we store it as `captured_at`), as do `available` and a `deeplink` (we drop deep links).
+- `teams.*.names.short` is the abbreviation; `players[id]` has `name`, `teamID`. Names keep accents ("Luka Dončić").
+- Period vocabulary: `game`, `1h`, `2h`, `1q`..`4q`, `reg`. Bet types: `ml`, `sp`, `ou`, `yn`, `eo`, `ml3way`. We model only `game` + `ml`/`sp`/`ou`.
+
+## Things the real response taught us
+- **Responses are big**: ~1.3MB per event (1,000+ markets). The adapter stores a slimmed payload (modeled markets and fields only) so 14 days of raw payloads stay small.
+- **The free key hides some bookmaker odds**: the response carries a `notice` ("Response is missing N bookmaker odds. Upgrade your API key..."). Six to nine books still came back per market, which is enough for best-price.
+- Still unconfirmed: the `limit` maximum.
 
 ## Terms (summary, not legal advice)
 - No reselling, redistribution, data dumps, bulk exports, downloadable files or RSS of the data.

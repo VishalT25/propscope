@@ -34,9 +34,12 @@ module Providers
       else
         transport.get(path, params)
       end
-      RawPayloadStore.capture(provider: provider_key, endpoint: path, params: params, status: 200, body: body, fetched_at: clock.call)
+      RawPayloadStore.capture(provider: provider_key, endpoint: path, params: params, status: 200, body: storage_body(body), fetched_at: clock.call)
       body
     end
+
+    # What gets persisted in raw_payloads. Adapters may trim bulk the parser never reads.
+    def storage_body(body) = body
 
     def parse_time(value) = value.present? ? Time.zone.parse(value.to_s)&.utc : nil
   end

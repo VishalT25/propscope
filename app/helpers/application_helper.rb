@@ -40,11 +40,27 @@ module ApplicationHelper
     "background-color: color-mix(in oklab, #{color} #{strength}%, transparent)"
   end
 
-  def percent_label(pct, n = nil)
-    return "n/a" if pct.nil? || (n && n < MIN_SAMPLE)
+  # "n/a" only when there is nothing to show. Small samples still show the rate, in a muted, untinted style
+  # (see hit_rate_tone); the tooltip says how many games it is based on.
+  def percent_label(pct, _n = nil)
+    return "n/a" if pct.nil?
 
     "#{pct.round}%"
   end
+
+  DISPLAY_ZONE = "America/Toronto".freeze
+
+  # Everything is stored in UTC; convert only here.
+  def local_time(time) = time.in_time_zone(DISPLAY_ZONE).strftime("%-I:%M %p")
+  def local_day(time) = time.in_time_zone(DISPLAY_ZONE).strftime("%a %b %-d")
+
+  def updated_ago(time)
+    return "not computed yet" unless time
+
+    "updated #{time_ago_in_words(time)} ago"
+  end
+
+  def props_count_label(total) = "Show #{number_with_delimiter(total)} #{'prop'.pluralize(total)}"
 
   def league_nav_items
     [

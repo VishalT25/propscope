@@ -23,6 +23,7 @@ class SnapshotOddsJob < ApplicationJob
 
     with_budget_handling do
       Ingest::OddsSnapshots.call(quotes: fetch(provider, games, now))
+      PrecomputeHitRatesJob.perform_later
     end
   end
 
