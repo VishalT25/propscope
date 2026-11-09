@@ -1,0 +1,7 @@
+<%# locals: american:, book: nil (short code) %>
+<span class="inline-flex items-center gap-2 rounded-xl border border-line bg-surface-2 px-2.5 py-1.5 text-sm font-bold tabular-nums">
+  <%= format_price(american) %>
+  <% if local_assigns[:book] %>
+    <span class="rounded-md bg-surface px-1.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-muted" title="<%= local_assigns[:book_name] || book %>"><%= book %></span>
+  <% end %>
+</span>

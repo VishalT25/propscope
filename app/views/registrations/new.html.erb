@@ -1,0 +1,17 @@
+<% content_for :title, "Create account" %>
+<div class="card mx-auto mt-10 w-full max-w-md p-6">
+  <h1 class="text-2xl font-extrabold tracking-tight">Create your account</h1>
+  <p class="mt-1 text-sm text-muted">Save filters, build a picks slip and keep your book and odds settings.</p>
+  <%= form_with model: @user, url: registration_path, class: "mt-5 space-y-3" do |form| %>
+    <% if @user.errors.any? %>
+      <ul class="rounded-xl border border-miss/40 bg-miss/10 px-4 py-2.5 text-sm text-miss">
+        <% @user.errors.full_messages.each do |m| %><li><%= m %></li><% end %>
+      </ul>
+    <% end %>
+    <%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "username", placeholder: "Email address", class: "field" %>
+    <%= form.password_field :password, required: true, autocomplete: "new-password", placeholder: "Password (8+ characters)", minlength: 8, maxlength: 72, class: "field" %>
+    <%= form.password_field :password_confirmation, required: true, autocomplete: "new-password", placeholder: "Repeat password", maxlength: 72, class: "field" %>
+    <%= form.submit "Create account", class: "btn w-full cursor-pointer" %>
+  <% end %>
+  <p class="mt-4 text-sm text-muted">Already have an account? <%= link_to "Sign in", new_session_path, class: "text-fg underline" %></p>
+</div>

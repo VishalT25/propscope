@@ -1,0 +1,44 @@
+<% content_for :title, "Styleguide" %>
+<%= render "shared/page_header", title: "Styleguide", subtitle: "Design tokens and the shared components. Dev only.", chips: false %>
+
+<div class="mt-4 grid gap-4 lg:grid-cols-2">
+  <section class="card space-y-4 p-5">
+    <h2 class="font-bold">Hit-rate bar</h2>
+    <%= render "shared/hit_rate_bar", results: [true, true, false, true, true, true, nil, true, true, false] %>
+    <%= render "shared/hit_rate_bar", results: [false, false, true, false, false, true, false, false, true, false] %>
+    <%= render "shared/hit_rate_bar", results: [true, false, true, false, true, false, true, false, true, false] %>
+    <%= render "shared/hit_rate_bar", results: [true, true] %>
+    <%= render "shared/hit_rate_bar", results: [] %>
+  </section>
+
+  <section class="card space-y-4 p-5">
+    <h2 class="font-bold">Price chips <span class="text-sm font-normal text-muted">(follow the odds toggle)</span></h2>
+    <div class="flex flex-wrap gap-2">
+      <%= render "shared/price_chip", american: -110, book: "BK1", book_name: "Example Book 1" %>
+      <%= render "shared/price_chip", american: 150, book: "BK2", book_name: "Example Book 2" %>
+      <%= render "shared/price_chip", american: 100, book: "BK3" %>
+      <%= render "shared/price_chip", american: -250 %>
+    </div>
+    <h2 class="pt-2 font-bold">Heat-tinted cells</h2>
+    <div class="grid grid-cols-6 gap-1 text-center text-sm font-bold tabular-nums">
+      <% [["L5", 80, 5], ["L10", 70, 10], ["L20", 55, 20], ["H2H", 33, 3], ["2026", 45, 40], ["2025", 20, 60]].each do |label, pct, n| %>
+        <div class="rounded-lg px-1 py-2" style="<%= hit_rate_cell_style(pct, n) %>">
+          <div class="text-[10px] font-semibold text-muted"><%= label %></div>
+          <span class="<%= hit_rate_text_class(pct, n) %>"><%= percent_label(pct, n) %></span>
+        </div>
+      <% end %>
+    </div>
+  </section>
+
+  <section class="card space-y-3 p-5">
+    <h2 class="font-bold">Tiers and accents</h2>
+    <div class="flex flex-wrap gap-2 text-sm font-semibold">
+      <span class="rounded-full bg-hit/15 px-3 py-1 text-hit">Favorable</span>
+      <span class="rounded-full bg-surface-2 px-3 py-1 text-muted">Neutral</span>
+      <span class="rounded-full bg-miss/15 px-3 py-1 text-miss">Unfavorable</span>
+      <span class="rounded-full bg-ev/15 px-3 py-1 text-ev">+EV 4.2%</span>
+      <span class="rounded-full bg-push/15 px-3 py-1 text-push">Push</span>
+    </div>
+    <div class="flex gap-2"><button class="btn">Primary</button><button class="btn-ghost">Secondary</button></div>
+  </section>
+</div>
