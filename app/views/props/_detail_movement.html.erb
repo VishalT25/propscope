@@ -1,0 +1,25 @@
+<section class="card p-4" data-controller="chart" data-chart-config-value="<%= movement_chart_config(d.movement).to_json %>">
+  <h2 class="font-bold">Line movement</h2>
+  <% pts = d.movement.points %>
+  <% if pts.size < 2 %>
+    <p class="mt-3 rounded-xl bg-surface-2 py-8 text-center text-sm text-muted">
+      <%= pts.empty? ? "No snapshots yet." : "Only one snapshot so far (#{number_with_precision(pts.first.line, precision: 1)}). Movement appears as we collect more." %>
+    </p>
+  <% else %>
+    <div class="relative mt-3 h-40" data-testid="movement-chart"><canvas data-chart-target="canvas" role="img" aria-label="Consensus line over time"></canvas></div>
+  <% end %>
+  <% if pts.any? %>
+    <div class="mt-3 max-h-60 overflow-y-auto">
+      <table class="w-full text-sm">
+        <thead class="sticky top-0 bg-surface text-left text-xs uppercase tracking-wide text-muted"><tr><th class="py-1.5">Updated</th><th class="text-right">Best</th><th class="text-right">Line</th></tr></thead>
+        <tbody class="divide-y divide-line">
+          <% pts.reverse.each do |p| %>
+            <tr><td class="py-1.5 text-xs text-muted"><%= local_day(p.at) %> <%= local_time(p.at) %></td>
+              <td class="text-right tabular-nums"><%= format_price(p.best_odds) %> <%= change_arrow(p.odds_change) %></td>
+              <td class="text-right font-semibold tabular-nums"><%= number_with_precision(p.line, precision: 1) %> <%= change_arrow(p.line_change) %></td></tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+</section>

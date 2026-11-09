@@ -1,0 +1,52 @@
+<section class="card p-4" data-controller="chart" data-chart-config-value="<%= bars_chart_config(d).to_json %>">
+  <div class="flex flex-wrap items-center justify-between gap-2">
+    <div class="flex flex-wrap gap-1.5" role="group" aria-label="Time window">
+      <% PropsHelper::HIT_COLUMNS.each do |key, label, tip| %>
+        <%= link_to label, detail_path(d, window: key), class: "chip #{'chip-active' if key == d.window}", title: tip, "aria-current": (key == d.window ? "true" : nil) %>
+      <% end %>
+    </div>
+    <label class="flex cursor-pointer items-center gap-2 text-sm font-medium" title="Draw the line each game actually closed at, so a hit is judged against the line that was available then">
+      <input type="checkbox" class="accent-[var(--accent)]" data-action="chart#toggleClosing"> Closing lines
+      <span class="rounded bg-ev/15 px-1.5 text-[10px] font-bold uppercase text-ev">new</span>
+    </label>
+  </div>
+
+  <% s = d.summary %>
+  <dl class="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+    <div title="Games that cleared the current line, out of games decided (pushes and DNPs excluded)">
+      <dt class="text-xs font-semibold uppercase tracking-wide text-muted">Hit rate · line <%= number_with_precision(d.market.line, precision: 1) %></dt>
+      <dd class="text-2xl font-extrabold tabular-nums <%= hit_rate_text_class(s.rate, s.hits + s.misses) %>"><%= percent_label(s.rate) %>
+        <span class="text-xs font-medium text-muted"><%= s.hits %> of <%= s.hits + s.misses %></span></dd>
+    </div>
+    <div title="Games that cleared the line that game actually closed at (only games where we saved a closing line)">
+      <dt class="text-xs font-semibold uppercase tracking-wide text-muted">Hit rate · closing</dt>
+      <dd class="text-2xl font-extrabold tabular-nums <%= hit_rate_text_class(s.closing_rate, s.closing_n) %>"><%= percent_label(s.closing_rate) %>
+        <% if s.closing_n.positive? %><span class="text-xs font-medium text-muted"><%= s.closing_hits %> of <%= s.closing_n %></span><% end %></dd>
+    </div>
+    <div><dt class="text-xs font-semibold uppercase tracking-wide text-muted">Mean · median</dt>
+      <dd class="text-2xl font-extrabold tabular-nums"><%= s.mean ? number_with_precision(s.mean, precision: 1) : "–" %> <span class="text-base font-semibold text-muted">· <%= s.median ? number_with_precision(s.median, precision: 1) : "–" %></span></dd></div>
+    <div><dt class="text-xs font-semibold uppercase tracking-wide text-muted">Avg closing line</dt>
+      <dd class="text-2xl font-extrabold tabular-nums"><%= s.avg_closing_line ? number_with_precision(s.avg_closing_line, precision: 1) : "–" %></dd></div>
+  </dl>
+
+  <% if d.bars.empty? %>
+    <div class="mt-4 grid place-items-center rounded-xl bg-surface-2 py-14 text-center text-sm text-muted">
+      <p class="font-semibold text-fg">No games in this window yet</p>
+      <p class="mt-1">
+        <%= d.window == "prev_season" ? "No previous-season games are loaded." : "Nothing to chart for #{window_label(d.window)}. Try a wider window." %>
+      </p>
+    </div>
+  <% else %>
+    <% if d.bars.size < ApplicationHelper::MIN_SAMPLE %>
+      <p class="mt-3 text-xs font-medium text-push">Small sample: only <%= pluralize(d.bars.size, "game") %> in this window.</p>
+    <% end %>
+    <div class="relative mt-3 h-64" data-testid="bars-chart"><canvas data-chart-target="canvas" role="img" aria-label="<%= "#{detail_pick_title(d)}: hit #{d.summary.hits} of #{d.summary.hits + d.summary.misses} games in #{window_label(d.window)}" %>"></canvas></div>
+    <p class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
+      <span><span class="inline-block size-2 rounded-sm bg-hit"></span> Hit</span><span><span class="inline-block size-2 rounded-sm bg-miss"></span> Miss</span>
+      <span><span class="inline-block size-2 rounded-sm bg-push"></span> Push</span><span>Dashed line = current line</span>
+    </p>
+    <table class="sr-only"><caption>Game-by-game values for <%= window_label(d.window) %></caption>
+      <thead><tr><th>Date</th><th>Game</th><th>Value</th><th>Result</th></tr></thead>
+      <tbody><% d.bars.each do |b| %><tr><td><%= b.date %></td><td><%= b.label %></td><td><%= b.value %></td><td><%= b.outcome.nil? ? "push" : (b.outcome ? "hit" : "miss") %></td></tr><% end %></tbody></table>
+  <% end %>
+</section>

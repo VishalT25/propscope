@@ -1,0 +1,19 @@
+<section class="card p-4">
+  <h2 class="font-bold">Opponent defence</h2>
+  <% if d.defense %>
+    <div class="mt-3 flex items-center gap-3">
+      <%= team_badge(d.opponent, size: :lg) %>
+      <div>
+        <div class="font-semibold"><%= d.opponent.name %></div>
+        <div class="text-sm text-muted">vs <%= d.defense.position %> players · <%= StatCatalog.for_market(d.market.market_type).label %></div>
+      </div>
+    </div>
+    <dl class="mt-4 grid grid-cols-3 gap-2 text-center">
+      <div class="rounded-xl bg-surface-2 p-2.5" title="Average allowed per game to this position group"><dt class="text-[10px] font-semibold uppercase tracking-wide text-muted">Allowed</dt><dd class="text-xl font-extrabold tabular-nums"><%= number_with_precision(d.defense.avg_allowed, precision: 1) %></dd></div>
+      <div class="rounded-xl bg-surface-2 p-2.5" title="1 = toughest defence in the league"><dt class="text-[10px] font-semibold uppercase tracking-wide text-muted">Rank</dt><dd class="text-xl font-extrabold tabular-nums"><%= d.defense.rank %></dd></div>
+      <div class="rounded-xl p-2.5 <%= PropsHelper::TIER_STYLES[d.tier] %>" title="From this <%= d.side %>'s side: <%= d.side == 'over' ? 'a defence that allows a lot is favorable' : 'a defence that allows little is favorable' %>"><dt class="text-[10px] font-semibold uppercase tracking-wide opacity-80">Matchup</dt><dd class="text-sm font-extrabold capitalize"><%= d.tier %></dd></div>
+    </dl>
+  <% else %>
+    <p class="mt-3 rounded-xl bg-surface-2 py-8 text-center text-sm text-muted">Not enough games to rank this defence yet.</p>
+  <% end %>
+</section>

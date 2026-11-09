@@ -18,7 +18,7 @@
         <li data-sheet-target="item" data-kind="<%= b.kind %>">
           <label class="flex cursor-pointer items-center justify-between py-3">
             <span class="flex items-center gap-2.5">
-              <span class="grid h-7 min-w-9 place-items-center rounded-md bg-surface-2 px-1 text-[10px] font-extrabold tracking-wide text-muted"><%= b.code %></span>
+              <%= book_badge(b) %>
               <span class="font-medium"><%= b.name %></span>
             </span>
             <%= check_box_tag "keys[]", b.key, enabled_book_keys.nil? || enabled_book_keys.include?(b.key), id: nil, class: "size-5 accent-[var(--accent)]" %>

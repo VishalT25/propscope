@@ -1,5 +1,5 @@
 class PropsController < PublicController
-  before_action :load_filters
+  before_action :load_filters, only: %i[index count]
 
   def index
     @result = PropsQuery.call(filters: @filters, bookmaker_ids: enabled_bookmaker_ids)
@@ -10,6 +10,12 @@ class PropsController < PublicController
   def count
     total = PropsQuery.call(filters: @filters, bookmaker_ids: enabled_bookmaker_ids, paginate: false).total
     render turbo_stream: turbo_stream.update("apply_label", helpers.props_count_label(total))
+  end
+
+  def show
+    market = Market.where.not(player_id: nil).where(market_type: StatCatalog::BY_MARKET.keys).includes(:game, player: :team).find(params[:market_id])
+    @detail = PropDetail.call(market: market, side: params[:side], window: params[:window], support: params[:support], position: params[:pos],
+                              bookmaker_ids: enabled_bookmaker_ids)
   end
 
   private

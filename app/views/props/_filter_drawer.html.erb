@@ -76,7 +76,7 @@
           <legend class="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted">Books <span class="font-normal normal-case">(within your enabled books)</span></legend>
           <div class="grid grid-cols-2 gap-1">
             <% all_bookmakers.each do |b| %>
-              <label class="flex items-center gap-2"><%= check_box_tag "book_keys[]", b.key, @filters.book_keys.include?(b.key), id: nil, class: "accent-[var(--accent)]" %> <span class="rounded bg-surface-2 px-1 text-[10px] font-extrabold text-muted"><%= b.code %></span> <%= b.name %></label>
+              <label class="flex items-center gap-2"><%= check_box_tag "book_keys[]", b.key, @filters.book_keys.include?(b.key), id: nil, class: "accent-[var(--accent)]" %> <%= book_badge(b) %> <%= b.name %></label>
             <% end %>
           </div>
         </fieldset>

@@ -5,7 +5,9 @@ module PropsHelper
 
   TIER_STYLES = { "favorable" => "bg-hit/15 text-hit", "neutral" => "bg-surface-2 text-muted", "unfavorable" => "bg-miss/15 text-miss" }.freeze
 
-  def pick_title(row) = "#{row.side.capitalize} #{number_with_precision(row.line, precision: 1)} #{row.stat.label}"
+  def pick_label(side, line, stat) = "#{side.capitalize} #{number_with_precision(line, precision: 1)} #{stat.label}"
+  def pick_title(row) = pick_label(row.side, row.line, row.stat)
+  def detail_pick_title(detail) = pick_label(detail.side, detail.market.line, StatCatalog.for_market(detail.market.market_type))
 
   def hits_in(rate, n) = rate && n ? (rate * n / 100).round : nil
 
@@ -42,8 +44,16 @@ module PropsHelper
     end)
   end
 
-  def book_chip_codes
+  def book_chip_books
     books = enabled_book_keys ? all_bookmakers.select { |b| enabled_book_keys.include?(b.key) } : all_bookmakers
-    [ books.first(2).map(&:code), [ books.size - 2, 0 ].max ]
+    [ books.first(2), [ books.size - 2, 0 ].max ]
   end
+
+  # Link to the detail page keeping the window / supporting stat / position tab the viewer picked.
+  def detail_path(detail, **overrides)
+    keep = { window: params[:window], support: params[:support], pos: params[:pos] }.compact_blank
+    league_prop_path(current_league, detail.market, overrides.delete(:side) || detail.side, **keep.merge(overrides).compact_blank)
+  end
+
+  def window_label(key) = HIT_COLUMNS.find { |k, _, _| k == key }&.second || key.upcase
 end

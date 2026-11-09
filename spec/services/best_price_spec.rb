@@ -63,4 +63,53 @@ RSpec.describe BestPrice do
     snap(fd, -110, 1.hour.ago)
     expect(described_class.for(market_ids: [ market.id ])[[ market.id, "over" ]].bookmaker).to eq(fd)
   end
+
+  describe "line moves (a superseded line is not a live offer)" do
+    let(:game) { market.game }
+    let(:old_line) { market }
+    let(:new_line) { create(:market, game: game, player: market.player, market_type: market.market_type, line: market.line + 1) }
+
+    it "ignores a book's snapshot on the old line once it has posted the new line" do
+      snap(dk, -110, 3.hours.ago, m: old_line)
+      snap(dk, -115, 1.hour.ago, m: new_line)
+      snap(fd, -105, 2.hours.ago, m: old_line) # fanduel never moved
+      result = described_class.for(market_ids: [ old_line.id, new_line.id ])
+      expect(result[[ old_line.id, "over" ]]).to have_attributes(american_odds: -105, books_count: 1)
+      expect(result[[ new_line.id, "over" ]]).to have_attributes(american_odds: -115, books_count: 1)
+    end
+
+    it "drops the old line entirely when every book has moved" do
+      snap(dk, -110, 3.hours.ago, m: old_line)
+      snap(dk, -115, 1.hour.ago, m: new_line)
+      expect(described_class.for(market_ids: [ old_line.id, new_line.id ]).keys).to eq([ [ new_line.id, "over" ] ])
+    end
+
+    it "still works when only the old line's market is asked about" do
+      snap(dk, -110, 3.hours.ago, m: old_line)
+      snap(dk, -115, 1.hour.ago, m: new_line)
+      expect(described_class.for(market_ids: [ old_line.id ])).to be_empty
+    end
+
+    it "lets a book move back to the old line" do
+      snap(dk, -110, 3.hours.ago, m: old_line)
+      snap(dk, -115, 2.hours.ago, m: new_line)
+      snap(dk, -120, 1.hour.ago, m: old_line)
+      result = described_class.for(market_ids: [ old_line.id, new_line.id ])
+      expect(result.keys).to eq([ [ old_line.id, "over" ] ])
+      expect(result[[ old_line.id, "over" ]].american_odds).to eq(-120)
+    end
+
+    it "keeps alternate lines side by side" do
+      alt = create(:market, game: game, player: market.player, market_type: market.market_type, line: market.line + 5, is_alternate: true)
+      snap(dk, -110, 2.hours.ago, m: old_line)
+      snap(dk, +250, 1.hour.ago, m: alt)
+      expect(described_class.for(market_ids: [ old_line.id, alt.id ]).keys).to contain_exactly([ old_line.id, "over" ], [ alt.id, "over" ])
+    end
+
+    it "handles game-level markets with no player" do
+      ml = create(:market, game: game, player: nil, market_type: "moneyline", line: nil)
+      snap(dk, -150, 1.hour.ago, outcome: "over", m: ml)
+      expect(described_class.for(market_ids: [ ml.id ]).keys).to eq([ [ ml.id, "over" ] ])
+    end
+  end
 end

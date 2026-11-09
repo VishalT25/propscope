@@ -12,6 +12,7 @@ Rails.application.routes.draw do
     resources :props, only: :index do
       get :count, on: :collection
     end
+    get "props/:market_id/:side", to: "props#show", as: :prop, constraints: { market_id: /\d+/, side: /over|under/ }
     resources :games, only: :index
     resources :insights, only: :index
   end

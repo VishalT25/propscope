@@ -47,12 +47,22 @@ class HitRateCalculator
     raise ArgumentError, "side must be over or under" unless %w[over under].include?(@side)
   end
 
+  # The played games that fall in a window, newest first. Shared with the prop detail page so the chart
+  # always shows exactly the games the hit rate was computed from.
+  def self.window_games(games, window, current_season:, opponent_id: nil)
+    played = played(games)
+    case window.to_sym
+    when :l5, :l10, :l20 then played.first(RECENT.fetch(window.to_sym))
+    when :season then played.select { |g| g.season == current_season }
+    when :prev_season then played.select { |g| g.season == current_season - 1 }
+    when :h2h then opponent_id ? played.select { |g| g.opponent_id == opponent_id && [ current_season, current_season - 1 ].include?(g.season) } : []
+    else raise ArgumentError, "unknown window #{window}"
+    end
+  end
+
   def call
-    groups = RECENT.transform_values { |n| @games.first(n) }
-    groups[:season] = @games.select { |g| g.season == @season }
-    groups[:prev_season] = @games.select { |g| g.season == @season - 1 }
-    groups[:h2h] = @opponent_id ? @games.select { |g| g.opponent_id == @opponent_id && [ @season, @season - 1 ].include?(g.season) } : []
-    windows = WINDOWS.index_with { |w| tally(groups.fetch(w)) }
+    groups = WINDOWS.index_with { |w| self.class.window_games(@games, w, current_season: @season, opponent_id: @opponent_id) }
+    windows = groups.transform_values { |g| tally(g) }
     values = groups[:l10].map(&:value).sort
     Result.new(line: @line, side: @side, windows: windows, mean: mean(values), median: median(values))
   end

@@ -16,7 +16,7 @@ module HitRates
       return 0 if markets.empty?
 
       logs = PlayerGameLog.played.where(player_id: markets.map(&:player_id).uniq).to_a.group_by(&:player_id)
-      closing = closing_lines(markets.map(&:player_id).uniq)
+      closing = ClosingLines.call(player_ids: markets.map(&:player_id).uniq)
       rows = markets.flat_map { |market| SIDES.filter_map { |side| row_for(market, side, logs[market.player_id] || [], closing) } }
       PropHitRate.upsert_all(rows, unique_by: %i[market_id side]) if rows.any?
       rows.size
@@ -50,13 +50,6 @@ module HitRates
         line && HitRateCalculator.outcome(gv.value, line, side)
       end.compact
       outcomes.empty? ? nil : (BigDecimal(outcomes.count(true)) * 100 / outcomes.size).round(2)
-    end
-
-    # { [player_id, market_type, game_id] => closing line (the line most books closed on) }
-    def closing_lines(player_ids)
-      rows = OddsSnapshot.where(is_closing: true).joins(:market).where(markets: { player_id: player_ids })
-                         .pluck("markets.player_id", "markets.market_type", "markets.game_id", "markets.line")
-      rows.group_by { |p, t, g, _| [ p, t, g ] }.transform_values { |v| v.map(&:last).tally.max_by { |line, count| [ count, -line ] }.first }
     end
   end
 end
