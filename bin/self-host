@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# One command to run your own copy:  bin/self-host            (sample data, no API keys needed)
+#                                    bin/self-host --live      (real data: put your keys in .env first)
+#                                    bin/self-host --model     (also start the optional model service)
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+command -v docker >/dev/null || { echo "Docker is required: https://docs.docker.com/get-docker/"; exit 1; }
+
+if [ ! -f .env ]; then
+  cp .env.example .env
+  echo "Created .env"
+fi
+set_var() { # set_var NAME VALUE: fill NAME if it is blank, add it if the line is missing, never overwrite a value you set
+  if grep -qE "^$1=$" .env; then sed -i.bak "s|^$1=$|$1=$2|" .env && rm -f .env.bak
+  elif ! grep -qE "^$1=" .env; then printf '\n%s=%s\n' "$1" "$2" >> .env; fi
+}
+set_var SECRET_KEY_BASE "$(openssl rand -hex 64)"
+set_var PROPSCOPE_DATABASE_PASSWORD "$(openssl rand -hex 16)"
+
+profiles=()
+for arg in "$@"; do
+  if [ "$arg" = "--model" ]; then
+    profiles=(--profile model)
+    set_var MODEL_SERVICE_URL "http://model:8000"   # the web container reaches the model container by name
+    set_var MODEL_API_KEY "$(openssl rand -hex 16)"
+  fi
+done
+
+docker compose "${profiles[@]}" up -d --build
+echo "Waiting for the app..."
+for _ in $(seq 1 60); do
+  curl -fsS "http://localhost:${PORT:-3000}/up" >/dev/null 2>&1 && break
+  sleep 2
+done
+
+if [[ " $* " == *" --live "* ]]; then
+  sed -i.bak "s|^LIVE_DATA=.*|LIVE_DATA=true|" .env && rm -f .env.bak
+  docker compose up -d web
+  echo "Live mode on. Load data with:"
+  echo "  docker compose exec web bin/rails runner 'SyncReferenceDataJob.perform_now'"
+  echo "  docker compose exec web bin/rails data:backfill_logs SEASONS=2"
+else
+  docker compose exec web bin/rails data:seed_fixtures
+fi
+echo "Open http://localhost:${PORT:-3000}"

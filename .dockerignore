@@ -49,3 +49,12 @@
 # Ignore Docker-related files
 /.dockerignore
 /Dockerfile*
+
+# Not part of the Rails image (spec/fixtures IS needed: it holds the bundled sample data)
+/legacy-next/
+/model_service/
+/docs/
+/node_modules/
+/tmp/model/
+/gems/*/Gemfile.lock
+/gems/*/spec/

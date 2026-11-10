@@ -4,7 +4,7 @@ import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
 
 from . import model
@@ -33,13 +33,20 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Propscope model service", lifespan=lifespan)
 
 
+def require_api_key(x_api_key: str | None = Header(default=None)):
+    """If MODEL_API_KEY is set, callers must send it. Recommended whenever the service is reachable from the internet."""
+    expected = os.environ.get("MODEL_API_KEY")
+    if expected and x_api_key != expected:
+        raise HTTPException(401, "invalid or missing API key")
+
+
 @app.get("/health")
 def health():
     bundle = app.state.bundle
     return {"status": "ok" if bundle else "no_model", "model_loaded": bundle is not None, "model_version": bundle.version if bundle else None}
 
 
-@app.get("/model")
+@app.get("/model", dependencies=[Depends(require_api_key)])
 def describe():
     bundle = app.state.bundle
     if bundle is None:
@@ -47,7 +54,7 @@ def describe():
     return {"version": bundle.version, "features": bundle.features, "metrics": bundle.meta.get("metrics", {}), "trained_at": bundle.meta.get("trained_at")}
 
 
-@app.post("/predict")
+@app.post("/predict", dependencies=[Depends(require_api_key)])
 def predict(req: PredictRequest):
     bundle = app.state.bundle
     if bundle is None:

@@ -103,3 +103,30 @@ def test_training_reports_metrics_against_baselines(model_dir):
 def test_training_refuses_tiny_datasets(tmp_path):
     with pytest.raises(ValueError, match="at least 300"):
         fit(synthetic_frame(100), tmp_path)
+
+
+def test_api_key_is_enforced_when_configured(client, monkeypatch):
+    monkeypatch.setenv("MODEL_API_KEY", "s3cret")
+    body = {"rows": [row()]}
+    assert client.post("/predict", json=body).status_code == 401
+    assert client.post("/predict", json=body, headers={"x-api-key": "wrong"}).status_code == 401
+    assert client.post("/predict", json=body, headers={"x-api-key": "s3cret"}).status_code == 200
+    assert client.get("/model").status_code == 401
+    assert client.get("/health").status_code == 200  # health stays open for uptime checks
+
+
+def test_no_api_key_configured_means_open(client, monkeypatch):
+    monkeypatch.delenv("MODEL_API_KEY", raising=False)
+    assert client.post("/predict", json={"rows": [row()]}).status_code == 200
+
+
+def test_native_booster_predictions_match_the_training_wrapper(model_dir):
+    import xgboost as xgb
+    from app import model as serving
+
+    df = synthetic_frame(50, seed=11)
+    wrapper = xgb.XGBRegressor()
+    wrapper.load_model(str(model_dir / "model.json"))
+    expected = wrapper.predict(df[FEATURES])
+    got = serving.load(model_dir).predict(df[FEATURES].to_dict("records"))
+    assert [round(m, 4) for m, _ in got] == [round(float(v), 4) for v in expected]

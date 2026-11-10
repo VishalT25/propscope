@@ -12,7 +12,7 @@ class ModelClient
 
   def initialize(url: self.class.url, store: Rails.cache, clock: -> { Time.current })
     @url, @store, @clock = url, store, clock
-    @conn = Faraday.new(url: url) do |f|
+    @conn = Faraday.new(url: url, headers: ENV["MODEL_API_KEY"].present? ? { "X-Api-Key" => ENV["MODEL_API_KEY"] } : {}) do |f|
       f.request :json
       f.response :json
       f.response :raise_error

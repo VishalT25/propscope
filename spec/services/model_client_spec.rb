@@ -26,6 +26,13 @@ RSpec.describe ModelClient do
     expect(stub.with { |req| JSON.parse(req.body)["rows"].first["id"] == "1" }).to have_been_requested
   end
 
+  it "sends the shared API key when one is configured" do
+    stub_const("ENV", ENV.to_h.merge("MODEL_API_KEY" => "s3cret"))
+    stub = stub_request(:post, "#{url}/predict").with(headers: { "X-Api-Key" => "s3cret" }).to_return(status: 200, body: ok_body, headers: { "Content-Type" => "application/json" })
+    described_class.new(url: url, store: store, clock: clock).predict(rows)
+    expect(stub).to have_been_requested
+  end
+
   it "sends big requests in batches" do
     stub_ok
     many = Array.new(450) { |i| { id: i.to_s, line: 1.5, features: {} } }

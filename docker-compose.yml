@@ -1,0 +1,46 @@
+# Self-host Propscope:  bin/self-host
+#   web    the Rails app (also runs the background jobs inside the web process)
+#   db     PostgreSQL
+#   model  the optional Python model service:  docker compose --profile model up -d
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: propscope
+      POSTGRES_PASSWORD: ${PROPSCOPE_DATABASE_PASSWORD:?run bin/self-host (it creates .env)}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U propscope"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  web:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      DB_HOST: db
+      SOLID_QUEUE_IN_PUMA: "true"          # run scheduled jobs in the web process: no separate worker needed
+      MODEL_SERVICE_URL: ${MODEL_SERVICE_URL:-}
+    ports:
+      - "${PORT:-3000}:80"
+
+  model:
+    profiles: ["model"]
+    build: ./model_service
+    restart: unless-stopped
+    environment:
+      MODEL_API_KEY: ${MODEL_API_KEY:-}
+    volumes:
+      - ./model_service/models:/app/models:ro   # trained model files (see model_service/README.md)
+    ports:
+      - "8000:8000"
+
+volumes:
+  pgdata:
