@@ -54,7 +54,7 @@ module Insights
       stat = StatCatalog.for_market(market.market_type)
       opponent_id = game.home_team_id == team_id ? game.away_team_id : game.home_team_id
       values = HitRateCalculator.played(HitRateCalculator.game_values(player_logs, stat))
-      team_ranks = ranks[[ stat.defense_stat, StatCatalog.position_bucket(player.position) ]] || {}
+      team_ranks = ranks[[ stat.defense_stat, "all" ]] || {} # overall (team-level) rank, consistent with the explorer
       pct = ->(tid, date) { records.pct_before(tid, date) }
       edge = lambda do |gv|
         mine = pct.call(team_id, gv.date)

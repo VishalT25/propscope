@@ -85,10 +85,15 @@ RSpec.describe PropsQuery do
       expect(thin).to be_present
     end
 
+    it "lets head-to-head filter on a single game, unlike the other windows" do
+      prop(name: "One Meeting", rates: { over: { h2h: 100, h2h_n: 1 } })
+      expect(run(min_hit_rate: 90, hit_window: "h2h").rows.map { |r| r.player.last_name }).to include("Meeting")
+    end
+
     it "by opponent tier from the bet's side (an under flips the tier)" do
       player = Player.find_by(last_name: "Smith")
       opponent = game.away_team
-      DefenseRank.create!(team: opponent, stat: "points", position: "G", avg_allowed: 30, rank: 15, tier: "favorable", season: 2026, computed_at: Time.current)
+      DefenseRank.create!(team: opponent, stat: "points", position: "all", avg_allowed: 30, rank: 15, tier: "favorable", season: 2026, computed_at: Time.current)
       fav = run(tier: "favorable").rows
       expect(fav.map { |r| [ r.player, r.side ] }).to eq([ [ player, "over" ] ])
       expect(run(tier: "unfavorable").rows.map { |r| [ r.player, r.side ] }).to eq([ [ player, "under" ] ])

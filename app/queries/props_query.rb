@@ -82,6 +82,7 @@ class PropsQuery
     Result.new(rows: rows, total: total, page: page, pages: pages, updated_at: PropHitRate.where(market_id: ids).maximum(:computed_at), prices_at: prices.values.map(&:captured_at).max)
   end
 
+  # NB: "Opp" is the opponent's overall rank for this stat (all positions), not a position-specific one.
   # Games on the slate that can still be bet (for the filter drawer).
   def self.upcoming_games(now: Time.current)
     Game.where(starts_at: now..).includes(:home_team, :away_team).order(:starts_at)
@@ -126,7 +127,7 @@ class PropsQuery
 
     opponent_id = game.home_team_id == player.team_id ? game.away_team_id : game.home_team_id
     stat = StatCatalog.for_market(market.market_type)
-    rank = ranks[[ opponent_id, stat.defense_stat, StatCatalog.position_bucket(player.position) ]]
+    rank = ranks[[ opponent_id, stat.defense_stat, "all" ]] # team-level rank (what the headline "Opp" number means); position splits live on the prop page
     tier = rank && (side == "under" ? INVERT.fetch(rank.tier) : rank.tier)
     Row.new(market: market, side: side, player: player, game: game, line: market.line, price: price,
             implied: OddsMath.american_to_implied(price.american_odds), hit: hits[[ market.id, side ]], opp_rank: rank, tier: tier,
@@ -136,10 +137,13 @@ class PropsQuery
   def filter(rows)
     rows = rows.select { |r| r.price.decimal_odds >= decimal_bound(@f.odds_min) } if @f.odds_min
     rows = rows.select { |r| r.price.decimal_odds <= decimal_bound(@f.odds_max) } if @f.odds_max
-    rows = rows.select { |r| (rate = r.rate(@f.hit_window)) && r.sample(@f.hit_window).to_i >= ApplicationHelper::MIN_SAMPLE && rate >= @f.min_hit_rate } if @f.min_hit_rate
+    rows = rows.select { |r| (rate = r.rate(@f.hit_window)) && r.sample(@f.hit_window).to_i >= min_games(@f.hit_window) && rate >= @f.min_hit_rate } if @f.min_hit_rate
     rows = rows.select { |r| r.tier == @f.tier } if @f.tier
     rows
   end
+
+  # Games a window needs before it can filter or sort. Head-to-head is allowed to rest on a single game (it is small by nature).
+  def min_games(window) = window == "h2h" ? 1 : ApplicationHelper::MIN_SAMPLE
 
   # American odds bound (e.g. -150) as a decimal price. Values in (-100, 100) are not valid American odds: ignore them.
   def decimal_bound(american)
@@ -160,7 +164,7 @@ class PropsQuery
     when "ip" then ->(r) { r.implied }
     when "opp_rank" then ->(r) { r.opp_rank&.rank }
     when "model" then ->(r) { r.prediction&.probability }
-    else ->(r) { r.sample(name).to_i >= ApplicationHelper::MIN_SAMPLE ? r.rate(name) : nil }
+    else ->(r) { r.sample(name).to_i >= min_games(name) ? r.rate(name) : nil }
     end
   end
 end

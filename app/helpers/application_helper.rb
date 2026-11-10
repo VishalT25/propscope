@@ -16,9 +16,10 @@ module ApplicationHelper
     end
   end
 
-  # Semantic colour for a hit-rate percentage (0-100). Small samples stay neutral.
-  def hit_rate_tone(pct, n = nil)
-    return :muted if pct.nil? || (n && n < MIN_SAMPLE)
+  # Semantic colour for a hit-rate percentage (0-100). Small samples keep their colour (2 of 2 against an opponent is still
+  # information); the game count is shown next to them instead (see small_sample?). Only "no games" is neutral.
+  def hit_rate_tone(pct, _n = nil)
+    return :muted if pct.nil?
 
     if pct >= HIT_GOOD then :hit
     elsif pct <= HIT_BAD then :miss
@@ -40,8 +41,11 @@ module ApplicationHelper
     "background-color: color-mix(in oklab, #{color} #{strength}%, transparent)"
   end
 
-  # "n/a" only when there is nothing to show. Small samples still show the rate, in a muted, untinted style
-  # (see hit_rate_tone); the tooltip says how many games it is based on.
+  # True when a rate rests on fewer than MIN_SAMPLE games (and at least one).
+  def small_sample?(n) = n.to_i.positive? && n.to_i < MIN_SAMPLE
+
+  # "n/a" only when there is nothing to show. Small samples still show the rate, coloured like any other
+  # (see hit_rate_tone), with the game count beside it (see small_sample?).
   def percent_label(pct, _n = nil)
     return "n/a" if pct.nil?
 
