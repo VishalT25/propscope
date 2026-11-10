@@ -21,6 +21,15 @@ OddsMath::Ev.expected_value(fair_probability: "0.55".to_d, decimal_odds: "2.0".t
 OddsMath::Ev.kelly(fair_probability: "0.55".to_d, decimal_odds: "2.0".to_d, multiplier: "0.25".to_d)
 ```
 
+## Arbitrage
+```ruby
+odds = [BigDecimal("2.10"), BigDecimal("2.05")]
+OddsMath::Arbitrage.arbitrage?(odds)               # => true
+OddsMath::Arbitrage.profit(odds).round(4)          # => 0.0373 (3.7% guaranteed)
+OddsMath::Arbitrage.split(total: "100", decimal_odds: odds)
+# => [{stake: 49.40, payout: 103.74}, {stake: 50.60, payout: 103.73}]  (whole cents, stakes sum to the total; payouts match within a cent at typical odds)
+```
+
 ## Rules
 - Decimal odds round to 4 places, probabilities to 6.
 - American odds must be an integer with `|odds| >= 100`; otherwise `OddsMath::InvalidOdds`.

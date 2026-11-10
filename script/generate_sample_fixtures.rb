@@ -189,6 +189,12 @@ events = games.reject { |g| g[:final] }.map do |g|
           over[b] = { odds: american(fair_over + 0.0225).to_s, overUnder: line, available: true }
           under[b] = { odds: american(1 - fair_over + 0.0225).to_s, overUnder: line, available: true }
         end
+        # a handful of deliberate arbitrages (over at one book, under at another, both above even money) for the demo
+        if g[:slot] < 3 && stat == "points" && p[:slot].zero?
+          over["draftkings"][:odds] = "115"
+          under["fanduel"][:odds] = "108"
+          under["fanduel"][:overUnder] = over["draftkings"][:overUnder]
+        end
         add.("#{stat}-#{pid_sgo}-game-ou-over", over)
         add.("#{stat}-#{pid_sgo}-game-ou-under", under)
       end

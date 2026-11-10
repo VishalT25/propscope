@@ -67,8 +67,8 @@ module ApplicationHelper
       [ "Insights", league_insights_path(current_league), true ],
       [ "Games", league_games_path(current_league), true ],
       [ "Props", league_props_path(current_league), true ],
-      [ "EV+", nil, false ],
-      [ "Arbitrage", nil, false ]
+      [ "EV+", league_ev_path(current_league), true ],
+      [ "Arbitrage", league_arbitrage_path(current_league), true ]
     ]
   end
 end

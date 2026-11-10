@@ -1,0 +1,77 @@
+<% content_for :title, "EV+" %>
+<%= render "shared/page_header", title: "EV+", subtitle: "Prices that beat the fair price. Fair price is the no-vig average across books, or a sharp book when one is configured. An edge on paper, not a promise of profit.", chips: false %>
+
+<%= form_with url: league_ev_path(current_league), method: :get, class: "mt-4 grid items-end gap-3 sm:grid-cols-3 lg:grid-cols-6", data: { turbo_action: "advance" } do %>
+  <label class="text-sm font-medium">Min EV %<%= number_field_tag :min_ev, @filters.min_ev.to_s("F"), step: "0.5", min: 0, class: "field mt-1" %></label>
+  <label class="text-sm font-medium">Devig method
+    <%= select_tag :method, options_for_select([ [ "Multiplicative (fast)", "multiplicative" ], [ "Power (slower, first load cached)", "power" ] ], @filters.method), class: "field mt-1" %></label>
+  <label class="text-sm font-medium">Kelly
+    <%= select_tag :kelly, options_for_select([ [ "Quarter", "0.25" ], [ "Half", "0.5" ], [ "Full", "1" ] ], @filters.kelly.to_s("F").sub(/\.0\z/, "")), class: "field mt-1" %></label>
+  <label class="text-sm font-medium">Min books for fair price<%= number_field_tag :min_books, @filters.min_books, min: 2, max: 9, class: "field mt-1" %></label>
+  <label class="text-sm font-medium">Side
+    <%= select_tag :side, options_for_select([ [ "Both", "" ], %w[Over over], %w[Under under] ], @filters.side), class: "field mt-1" %></label>
+  <button class="btn btn-primary" type="submit">Apply</button>
+<% end %>
+
+<p class="mt-4 text-sm text-muted"><span class="font-semibold text-fg"><%= number_with_delimiter(@result.total) %></span> opportunities, best first. Prices use the books you enabled.</p>
+
+<% if @result.rows.empty? %>
+  <div class="card mt-3 grid place-items-center px-6 py-14 text-center"><h2 class="text-lg font-bold">No +EV prices right now</h2>
+    <p class="mt-1 max-w-md text-sm text-muted">Lower the minimum EV or the books needed for a fair price, or check back after the next odds snapshot.</p></div>
+<% else %>
+  <div class="mt-3 grid gap-4 lg:grid-cols-2">
+    <% @result.rows.each do |row| %>
+      <% pair = row.pair %>
+      <article class="card p-4">
+        <header class="flex items-start justify-between gap-3">
+          <div class="min-w-0">
+            <%= link_to pair_label(pair, row.side), pair_path(pair, row.side), class: "font-display text-lg font-bold leading-tight hover:text-accent" %>
+            <p class="mt-0.5 text-sm text-muted"><%= pair.game.away_team.abbreviation %> @ <%= pair.game.home_team.abbreviation %> · <%= local_day(pair.game.starts_at) %>, <%= local_time(pair.game.starts_at) %></p>
+          </div>
+          <span class="shrink-0 rounded-md bg-ev/15 px-2 py-0.5 text-xs font-bold text-ev">EV+</span>
+        </header>
+
+        <div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+          <%= render "shared/price_chip", american: row.snap.american_odds, bookmaker: row.bookmaker %>
+          <span class="text-muted">vs fair</span>
+          <b class="tabular-nums"><%= format_price(row.fair_american) %></b>
+          <span class="text-muted">(<%= percent_of(row.fair_probability) %>)</span>
+        </div>
+
+        <dl class="mt-3 grid grid-cols-3 gap-3 text-sm">
+          <div><dt class="text-muted">EV</dt><dd class="font-display text-2xl font-extrabold tabular-nums text-ev"><%= percent_of(row.ev, precision: 2) %></dd></div>
+          <div title="Fraction of your bankroll to stake, scaled by your Kelly setting"><dt class="text-muted">Kelly</dt><dd class="font-display text-2xl font-extrabold tabular-nums"><%= percent_of(row.kelly, precision: 2) %></dd></div>
+          <div title="How many books the fair price is built from"><dt class="text-muted">Books</dt><dd class="font-display text-2xl font-extrabold tabular-nums"><%= row.books_used %></dd></div>
+        </dl>
+
+        <details class="mt-3 border-t border-line pt-3">
+          <summary class="cursor-pointer text-sm font-semibold text-muted hover:text-fg">Odds details</summary>
+          <p class="mt-2 text-xs text-muted"><%= fair_note(row, @books) %></p>
+          <table class="mt-2 w-full text-sm">
+            <thead class="text-left text-xs text-muted"><tr><th class="py-1">Book</th><th class="text-right"><%= pair.left.outcome.capitalize %></th><th class="text-right"><%= pair.right.outcome.capitalize %></th><th class="text-right">Fair <%= pair.side_of(row.side).outcome %></th></tr></thead>
+            <tbody class="divide-y divide-line">
+              <% ids = (pair.left_snaps.map(&:bookmaker_id) | pair.right_snaps.map(&:bookmaker_id)) %>
+              <% ids.each do |id| %>
+                <% l = pair.left_snaps.find { |s| s.bookmaker_id == id } %><% r = pair.right_snaps.find { |s| s.bookmaker_id == id } %>
+                <% fair_left = row.per_book[id] %>
+                <tr class="<%= 'font-semibold' if id == row.snap.bookmaker_id %>">
+                  <td class="py-1.5"><span class="inline-flex items-center gap-2"><%= book_badge(@books[id]) %><%= tag.span("fair", class: "rounded bg-surface-2 px-1 text-[10px] text-muted", title: "Used for the fair price") if row.per_book.key?(id) && row.books_used > 0 && id.in?(row.per_book.keys) %></span></td>
+                  <td class="text-right tabular-nums"><%= l ? format_price(l.american_odds) : "–" %></td>
+                  <td class="text-right tabular-nums"><%= r ? format_price(r.american_odds) : "–" %></td>
+                  <td class="text-right tabular-nums text-muted"><%= fair_left ? format_price(OddsMath.implied_to_american(row.side == :left ? fair_left : BigDecimal(1) - fair_left)) : "–" %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </details>
+      </article>
+    <% end %>
+  </div>
+  <% if @result.pages > 1 %>
+    <nav class="mt-4 flex items-center justify-center gap-3 text-sm" aria-label="Pages">
+      <% if @result.page > 1 %><%= link_to "← Previous", league_ev_path(current_league, @filters.to_query(page: @result.page - 1)), class: "chip" %><% end %>
+      <span class="text-muted">Page <%= @result.page %> of <%= @result.pages %></span>
+      <% if @result.page < @result.pages %><%= link_to "Next →", league_ev_path(current_league, @filters.to_query(page: @result.page + 1)), class: "chip" %><% end %>
+    </nav>
+  <% end %>
+<% end %>

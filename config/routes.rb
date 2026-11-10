@@ -16,6 +16,8 @@ Rails.application.routes.draw do
     get "props/:market_id/:side", to: "props#show", as: :prop, constraints: { market_id: /\d+/, side: /over|under/ }
     resources :games, only: %i[index show]
     resources :insights, only: :index
+    get "ev", to: "ev#index", as: :ev
+    get "arbitrage", to: "arbitrage#index", as: :arbitrage
   end
 
   get "styleguide" => "styleguide#show" unless Rails.env.production?

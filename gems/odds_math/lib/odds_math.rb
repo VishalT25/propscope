@@ -7,6 +7,7 @@ require_relative "odds_math/errors"
 require_relative "odds_math/conversions"
 require_relative "odds_math/devig"
 require_relative "odds_math/ev"
+require_relative "odds_math/arbitrage"
 
 # Betting-odds math. All results are BigDecimal (or Integer for American odds).
 module OddsMath

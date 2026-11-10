@@ -22,7 +22,7 @@ Hit rates, defense ranks and insights need per-game player stats, so **live data
 - A free key returned 200 for `/teams`, `/games`, `/players` and **401 for `/players/active` and `/stats`**. Live stats and the active-players list need the ALL-STAR plan.
 - `/teams` returns **89 teams**: the 30 real ones plus ~59 defunct franchises with a blank conference (two reuse `WAS`). The adapter keeps only teams with a conference.
 - Game `date` is the US Eastern date; `datetime` is UTC. Scheduled games have `status` = ISO start time, finished ones `"Final"` (plus `status_state`).
-- Not yet verified against a real response: the `/stats` shape (needs the paid key). The parser follows the docs.
+- **Verified with an ALL-STAR key (same day):** `/stats` and `/players/active` return 200 and match the parser exactly (`min` is "MM:SS", stats are `pts reb ast fg3m stl blk turnover pf ...`, nested `player`/`team`/`game` with `home_team_id` and `visitor_team_id`). Contract specs: `spec/providers/real_shape_bdl_spec.rb`.
 
 ## Backfill cost
 `data:backfill_logs SEASONS=2` makes ~one call per day with games (more when a day has over 100 rows) at 5 req/min on free or 60 on ALL-STAR. On ALL-STAR it takes roughly 10 to 20 minutes. It is resumable (skips days already loaded).

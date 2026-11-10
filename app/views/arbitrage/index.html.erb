@@ -1,0 +1,44 @@
+<% content_for :title, "Arbitrage" %>
+<%= render "shared/page_header", title: "Arbitrage", subtitle: "The best price on each side, at different books, adds up to less than 100%: back both and one of them pays more than you staked. Margins are small and prices move, so check them before you act.", chips: false %>
+
+<%= form_with url: league_arbitrage_path(current_league), method: :get, class: "mt-4 flex flex-wrap items-end gap-3", data: { turbo_action: "advance" } do %>
+  <label class="text-sm font-medium">Minimum arbitrage %<%= number_field_tag :min_profit, @min_profit.to_s("F"), step: "0.1", min: 0, class: "field mt-1 w-40" %></label>
+  <label class="text-sm font-medium">Total stake ($)<%= number_field_tag :stake, @stake.to_s("F"), step: "1", min: 1, class: "field mt-1 w-40" %></label>
+  <button class="btn btn-primary" type="submit">Apply</button>
+<% end %>
+
+<p class="mt-4 text-sm text-muted"><span class="font-semibold text-fg"><%= @rows.size %></span> opportunities, widest first. Stakes are split in whole cents so both outcomes pay the same, within a cent or two.</p>
+
+<% if @rows.empty? %>
+  <div class="card mt-3 grid place-items-center px-6 py-14 text-center"><h2 class="text-lg font-bold">No arbitrage right now</h2>
+    <p class="mt-1 max-w-md text-sm text-muted">Books price in their margin, so these are rare and short-lived. Try lowering the minimum or enabling more books.</p></div>
+<% else %>
+  <div class="mt-3 grid gap-4 lg:grid-cols-2">
+    <% @rows.each do |row| %>
+      <% pair = row.pair %>
+      <% split = row.split(@stake) %>
+      <article class="card p-4">
+        <header class="flex items-start justify-between gap-3">
+          <div class="min-w-0">
+            <p class="font-display text-lg font-bold leading-tight"><%= pair.player ? "#{pair.player.full_name} #{StatCatalog.for_market(pair.market_type).label}" : pair.market_type.humanize %></p>
+            <p class="mt-0.5 text-sm text-muted"><%= pair.game.away_team.abbreviation %> @ <%= pair.game.home_team.abbreviation %> · <%= local_day(pair.game.starts_at) %>, <%= local_time(pair.game.starts_at) %></p>
+          </div>
+          <span class="shrink-0 font-display text-2xl font-extrabold tabular-nums text-hit" title="Guaranteed return on the total stake"><%= percent_of(row.profit, precision: 2) %></span>
+        </header>
+        <div class="mt-3 grid grid-cols-2 divide-x divide-line">
+          <% [ [ :left, row.left_snap, split[0] ], [ :right, row.right_snap, split[1] ] ].each do |side, snap, part| %>
+            <div class="px-3 first:pl-0 last:pr-0">
+              <%= link_to pair_label(pair, side), pair_path(pair, side), class: "text-sm font-semibold hover:text-accent" %>
+              <div class="mt-1.5"><%= render "shared/price_chip", american: snap.american_odds, bookmaker: @books[snap.bookmaker_id] %></div>
+              <dl class="mt-2 text-sm">
+                <div class="flex justify-between"><dt class="text-muted">Stake</dt><dd class="font-bold tabular-nums"><%= number_to_currency(part[:stake]) %></dd></div>
+                <div class="flex justify-between"><dt class="text-muted">To win</dt><dd class="font-bold tabular-nums"><%= number_to_currency(part[:payout]) %></dd></div>
+              </dl>
+            </div>
+          <% end %>
+        </div>
+        <p class="mt-3 border-t border-line pt-3 text-sm text-muted">Stake <b class="text-fg"><%= number_to_currency(@stake) %></b> in total, get back at least <b class="text-fg"><%= number_to_currency(split.map { |s| s[:payout] }.min) %></b>.</p>
+      </article>
+    <% end %>
+  </div>
+<% end %>
