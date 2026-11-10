@@ -14,10 +14,10 @@
     <p class="mt-1 max-w-md text-sm text-muted">Books price in their margin, so these are rare and short-lived. Try lowering the minimum or enabling more books.</p></div>
 <% else %>
   <div class="mt-3 grid gap-4 lg:grid-cols-2">
-    <% @rows.each do |row| %>
+    <% @rows.each_with_index do |row, i| %>
       <% pair = row.pair %>
       <% split = row.split(@stake) %>
-      <article class="card p-4">
+      <article class="card card-hover reveal p-4" style="--i: <%= i %>">
         <header class="flex items-start justify-between gap-3">
           <div class="min-w-0">
             <p class="font-display text-lg font-bold leading-tight"><%= pair.player ? "#{pair.player.full_name} #{StatCatalog.for_market(pair.market_type).label}" : pair.market_type.humanize %></p>

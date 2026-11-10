@@ -20,9 +20,9 @@
     <p class="mt-1 max-w-md text-sm text-muted">Lower the minimum EV or the books needed for a fair price, or check back after the next odds snapshot.</p></div>
 <% else %>
   <div class="mt-3 grid gap-4 lg:grid-cols-2">
-    <% @result.rows.each do |row| %>
+    <% @result.rows.each_with_index do |row, i| %>
       <% pair = row.pair %>
-      <article class="card p-4">
+      <article class="card card-hover reveal p-4" style="--i: <%= i %>">
         <header class="flex items-start justify-between gap-3">
           <div class="min-w-0">
             <%= link_to pair_label(pair, row.side), pair_path(pair, row.side), class: "font-display text-lg font-bold leading-tight hover:text-accent" %>

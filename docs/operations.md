@@ -21,6 +21,19 @@ Nothing touches the network unless `LIVE_DATA=true`. In development and test, ev
 
 Jobs are idempotent: running any twice creates no duplicates (covered by specs).
 
+## How often odds refresh, and what it costs
+SportsGameOdds bills **one event per game per fetch**, whatever the number of markets, books or alternate lines. The free tier gives 2,500 events a month and only refreshes its own data every 10 minutes, so the 10-minute tick is the useful floor.
+
+Rough monthly cost, at about 7 games a day (an NBA regular season month is about 205 games):
+
+| Setting | Events/day | Per month | Share of 2,500 |
+|---|---|---|---|
+| Base: morning + afternoon (whole slate) + T-90, T-20, tip | ~35 | ~1,050 | 42% |
+| `ODDS_EXTRA_HOURS=3` (default): also T-60, T-120, T-180 | ~56 | ~1,700 | 68% |
+| `ODDS_EXTRA_HOURS=6` | ~77 | ~2,300 | 92% (the budget guard stops the optional ones at 80%) |
+
+Heavy nights (12+ games) cost more. You cannot overrun the quota: at 80% the optional snapshots (morning, afternoon, T-90 and the extra hourly ones) stop, T-20 and tip are kept, and at 100% calls are refused. `bin/rails data:quota` shows usage and the month-end projection. In development the scheduler does not run, so refresh by hand with `LIVE_DATA=true bin/rails data:refresh_odds`. For faster data than 10 minutes you need a paid SportsGameOdds plan.
+
 ## Budget
 `api_usages` tracks units per provider per month. SportsGameOdds: 2,500 objects/month; warn and drop optional snapshots at 80%; refuse (`BudgetGuard::BudgetExceeded`, handled in jobs) at 100%. A `budget_warning.propscope` notification fires when crossing 80%.
 
@@ -29,6 +42,8 @@ Jobs are idempotent: running any twice creates no duplicates (covered by specs).
 |---|---|
 | `data:seed_fixtures` | Loads the synthetic sample slate. Also run by `db:seed` outside production. |
 | `data:backfill_logs SEASONS=2` | Needs `LIVE_DATA=true` and a BallDontLie ALL-STAR key. Resumable. |
+| `data:refresh_odds` | Needs `LIVE_DATA=true`. Fetches odds for the next 36 hours now (development has no scheduler). |
+| `data:quota` | API usage this month and where it is heading. |
 | `data:capture_fixtures` | Needs `LIVE_DATA=true`. Records a small real sample over the synthetic one. Review before committing (provider terms forbid bulk data). |
 | `data:renormalize PROVIDER=... SINCE=...` | Re-parses stored raw payloads. No API calls, no budget. |
 

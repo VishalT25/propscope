@@ -14,7 +14,7 @@
       <button type="button" class="relative rounded-lg p-2 text-muted transition-colors duration-150 hover:bg-surface-2 hover:text-fg" aria-label="My picks" title="My picks"
               data-controller="dialog" data-action="dialog#open" data-dialog-id-param="picks_slip">
         <%= icon :ticket %>
-        <% if current_user && (n = current_user.picks.size).positive? %><span class="absolute -right-0.5 -top-0.5 grid size-4 place-items-center rounded-full bg-accent text-[10px] font-bold text-on-accent"><%= n %></span><% end %>
+        <span id="picks_count"><%= render "picks/count", count: current_user ? current_user.picks.size : 0 %></span>
       </button>
       <%= render "shared/account_menu" %>
     </div>

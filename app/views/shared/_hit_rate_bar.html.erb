@@ -4,8 +4,8 @@
 <% pct = rated.empty? ? nil : (rated.count(true) * 100.0 / rated.size) %>
 <div class="flex items-center gap-3" role="img" aria-label="Hit <%= rated.count(true) %> of <%= rated.size %> games">
   <div class="flex h-2 flex-1 gap-0.5">
-    <% results.each do |r| %>
-      <span class="h-full flex-1 rounded-full <%= r.nil? ? 'bg-push' : (r ? 'bg-hit' : 'bg-miss') %>"></span>
+    <% results.each_with_index do |r, j| %>
+      <span style="--j: <%= j %>" class="hit-seg h-full flex-1 rounded-full <%= r.nil? ? 'bg-push' : (r ? 'bg-hit' : 'bg-miss') %>"></span>
     <% end %>
     <% if results.empty? %><span class="h-full flex-1 rounded-full bg-surface-2"></span><% end %>
   </div>

@@ -22,12 +22,15 @@ module Ingest
       latest = latest_snapshots(resolved.map { |_, m, _| m.id }.uniq)
       counts = { inserted: 0, unchanged: 0, stale: 0 }
       rows = []
+      deeplinks = {} # id => link, for unchanged prices whose latest snapshot has no betslip link yet
 
       resolved.each do |q, market, book|
         key = [ market.id, q.outcome, book.id ]
         last = latest[key]
         if last && q.captured_at <= last[:captured_at] then counts[:stale] += 1
-        elsif last && last[:american_odds] == q.american_odds && last[:line] == q.line then counts[:unchanged] += 1
+        elsif last && last[:american_odds] == q.american_odds && last[:line] == q.line
+          counts[:unchanged] += 1
+          deeplinks[last[:id]] = q.deeplink if last[:id] && q.deeplink.present? && last[:deeplink] != q.deeplink
         else
           row = build_row(q, market, book)
           rows << row
@@ -37,6 +40,7 @@ module Ingest
       end
 
       OddsSnapshot.insert_all(rows) if rows.any?
+      deeplinks.each { |id, link| OddsSnapshot.where(id: id).update_all(deeplink: link) } # metadata only: the price did not change
       Result.new(**counts, unresolved: @quotes.size - resolved.size)
     end
 
@@ -73,14 +77,14 @@ module Ingest
 
     def latest_snapshots(market_ids)
       OddsSnapshot.where(market_id: market_ids).latest_per_outcome.each_with_object({}) do |s, h|
-        h[[ s.market_id, s.outcome, s.bookmaker_id ]] = { american_odds: s.american_odds, line: s.line, captured_at: s.captured_at }
+        h[[ s.market_id, s.outcome, s.bookmaker_id ]] = { id: s.id, american_odds: s.american_odds, line: s.line, captured_at: s.captured_at, deeplink: s.deeplink }
       end
     end
 
     def build_row(q, market, book)
       { market_id: market.id, bookmaker_id: book.id, outcome: q.outcome, american_odds: q.american_odds,
         decimal_odds: OddsMath.american_to_decimal(q.american_odds), line: q.line, captured_at: q.captured_at,
-        source_provider: q.provider, is_closing: false }
+        source_provider: q.provider, is_closing: false, deeplink: q.deeplink }
     end
   end
 end

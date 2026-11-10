@@ -1,4 +1,4 @@
-# Append-only: rows are never updated, except flipping is_closing on the last pre-tip row.
+# Append-only: prices and lines are never updated. Only metadata may change: is_closing (last pre-tip row) and the book's deeplink.
 class OddsSnapshot < ApplicationRecord
   OUTCOMES = %w[over under home away].freeze
 
@@ -9,7 +9,7 @@ class OddsSnapshot < ApplicationRecord
   validates :american_odds, :decimal_odds, :captured_at, :source_provider, presence: true
 
   before_update do
-    illegal = changed - %w[is_closing updated_at]
+    illegal = changed - %w[is_closing deeplink updated_at]
     raise ActiveRecord::ReadOnlyRecord, "odds_snapshots are append-only (tried to change #{illegal.join(', ')})" if illegal.any?
   end
 

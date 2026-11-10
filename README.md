@@ -12,8 +12,8 @@ It is a research and analytics tool. It never takes bets, never handles money an
 - **Games and game pages:** the slate with lines and hit strips; per game, odds, insights, and a matchup tab.
 - **Insights:** plain-English streaks and splits attached to a pick, ranked by strength.
 - **EV+ and Arbitrage:** devigged fair price (sharp book if configured, otherwise a market consensus), EV and Kelly; two-book arbitrage with whole-cent stake splits.
-- **My Picks:** a slip grouped by book, with price when added versus now.
-- **American or decimal odds**, dark and light themes.
+- **My Picks slip (parlay builder):** add legs with the +, choose a book, and see every leg at that book's price with the combined odds and payout for your stake. See which single book pays most for the whole slip. Copy it, or open a leg at the book where the provider gives a betslip link. Alternate lines included.
+- **American or decimal odds**, dark and light themes, and no accounts needed: self-hosted copies are single-user by default.
 - **Optional model:** a small XGBoost projection service, honestly evaluated (see `model_service/README.md`).
 
 | | |

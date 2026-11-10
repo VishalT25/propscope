@@ -81,4 +81,23 @@ module PropsHelper
   def window_label(key) = HIT_COLUMNS.find { |k, _, _| k == key }&.second || key.upcase
 
   def picks_path_for(pick) = pick_path(pick)
+
+  # Which legs are on the slip, loaded once per request instead of once per row.
+  def picked_leg?(market, side)
+    @picked_legs ||= current_user ? current_user.picks.pluck(:market_id, :side).to_set : Set.new
+    @picked_legs.include?([ market.id, side ])
+  end
+
+  # Plain-text slip for sharing or pasting next to a book's betslip.
+  def slip_text(slip)
+    return "" if slip.nil? || slip.legs.empty?
+
+    lines = slip.legs.map do |l|
+      price = l.chosen ? "#{format_price(l.chosen.american_odds)} #{l.chosen.bookmaker.code}" : "not offered"
+      "- #{l.player.full_name} #{l.pick.side} #{number_with_precision(l.market.line, precision: 1)} #{l.stat.short} (#{price})"
+    end
+    header = slip.book ? "Slip at #{slip.book.name}" : "Slip (best price per leg)"
+    footer = slip.parlay ? "#{slip.parlay.legs == 1 ? 'Single' : "#{slip.parlay.legs}-leg parlay"}: #{format_price(slip.parlay.american)} | #{number_to_currency(slip.parlay.stake)} pays #{number_to_currency(slip.parlay.payout)}" : "No combined odds (some legs not offered)"
+    ([ header ] + lines + [ footer ]).join("\n")
+  end
 end

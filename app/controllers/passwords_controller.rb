@@ -1,4 +1,5 @@
 class PasswordsController < ApplicationController
+  before_action :accounts_are_off, if: :single_user?
   allow_unauthenticated_access
   before_action :set_user_by_token, only: %i[ edit update ]
   rate_limit to: 10, within: 3.minutes, only: :create, with: -> { redirect_to new_password_path, alert: "Try again later." }
@@ -32,4 +33,8 @@ class PasswordsController < ApplicationController
     rescue ActiveSupport::MessageVerifier::InvalidSignature
       redirect_to new_password_path, alert: "Password reset link is invalid or has expired."
     end
+
+  private
+
+  def accounts_are_off = redirect_to(root_path, notice: "Accounts are off: this copy is single-user, so there is nothing to sign in to.")
 end

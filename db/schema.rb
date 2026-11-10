@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_11_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_11_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -127,6 +127,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_11_000001) do
     t.boolean "is_closing", default: false, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.text "deeplink"
     t.index ["bookmaker_id"], name: "index_odds_snapshots_on_bookmaker_id"
     t.index ["market_id", "is_closing"], name: "index_odds_snapshots_on_market_id_and_is_closing"
     t.index ["market_id", "outcome", "bookmaker_id", "captured_at"], name: "index_odds_snapshots_latest", order: { captured_at: :desc }
@@ -143,7 +144,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_11_000001) do
     t.datetime "updated_at", null: false
     t.index ["bookmaker_id"], name: "index_picks_on_bookmaker_id"
     t.index ["market_id"], name: "index_picks_on_market_id"
-    t.index ["user_id", "market_id", "side", "bookmaker_id"], name: "index_picks_natural_key", unique: true
+    t.index ["user_id", "market_id", "side"], name: "index_picks_leg", unique: true
     t.index ["user_id"], name: "index_picks_on_user_id"
   end
 

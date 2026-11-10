@@ -2,8 +2,8 @@
   <p class="py-10 text-center text-sm text-muted">No insights match yet. They are generated after odds and stats are loaded.</p>
 <% else %>
   <ul class="divide-y divide-line">
-    <% feed.rows.each do |row| %>
-      <li class="py-3.5">
+    <% feed.rows.each_with_index do |row, i| %>
+      <li class="reveal py-3.5" style="--i: <%= i %>">
         <div class="flex items-start gap-3">
           <%= player_avatar(row.player) %>
           <div class="min-w-0 flex-1">

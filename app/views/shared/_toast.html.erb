@@ -1,0 +1,4 @@
+<%# locals: message, kind %>
+<div class="toast-in pointer-events-auto rounded-xl border px-4 py-2.5 text-sm font-medium shadow-lg <%= kind == :error ? 'border-miss/40 bg-surface text-miss' : 'border-hit/40 bg-surface text-fg' %>" role="status" data-controller="autohide">
+  <%= message %>
+</div>

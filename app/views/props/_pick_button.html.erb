@@ -1,0 +1,6 @@
+<%# locals: market, side, picked %>
+<% if picked %>
+  <%= button_to pick_path(current_user.picks.find_by!(market: market, side: side)), method: :delete, class: "btn btn-circle btn-primary btn-sm leg-added", title: "On your slip. Click to remove.", "aria-label": "Remove from slip", form: { class: "contents" } do %><%= icon :check, css: "size-4" %><% end %>
+<% else %>
+  <%= button_to picks_path(market_id: market.id, side: side), method: :post, class: "btn btn-circle btn-outline btn-sm", title: "Add to your slip", "aria-label": "Add to your slip", form: { class: "contents" } do %>+<% end %>
+<% end %>

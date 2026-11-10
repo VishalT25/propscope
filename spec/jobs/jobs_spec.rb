@@ -163,3 +163,70 @@ RSpec.describe "Ingestion jobs" do
     classes.each { |c| expect { c.constantize }.not_to raise_error }
   end
 end
+
+RSpec.describe "Odds cadence and quota" do
+  describe SnapshotOddsJob do
+    it "adds an optional hourly snapshot per ODDS_EXTRA_HOURS, clamped to 0..6" do
+      expect(described_class.tick_windows.size).to eq(3 + 3) # default 3 extra hours
+      stub_const("ENV", ENV.to_h.merge("ODDS_EXTRA_HOURS" => "0"))
+      expect(described_class.tick_windows.size).to eq(3)
+      stub_const("ENV", ENV.to_h.merge("ODDS_EXTRA_HOURS" => "99"))
+      expect(described_class.tick_windows.size).to eq(3 + 6)
+      stub_const("ENV", ENV.to_h.merge("ODDS_EXTRA_HOURS" => "abc"))
+      expect(described_class.tick_windows.size).to eq(3)
+    end
+
+    it "never overlaps windows (so a game is fetched once per tick, not twice) and marks the extras optional" do
+      windows = described_class.tick_windows
+      ranges = windows.map(&:first)
+      expect(ranges.combination(2).none? { |a, b| a.cover?(b.begin) || b.cover?(a.begin) }).to be(true)
+      required = windows.reject(&:last).map(&:first)
+      expect(required).to contain_exactly(15...25, -5...5) # T-20 and tip stay required
+    end
+
+    context "with a spy provider" do
+      let(:provider) { instance_double(Providers::Fixture, live?: false, fetch_odds: []) }
+
+      before { allow(Providers::Registry).to receive(:for).and_return(provider) }
+
+      it "fetches at T-60, T-120 and T-180 and nowhere in between" do
+        [ 60, 120, 180 ].each do |m|
+          Game.delete_all
+          create(:game, starts_at: m.minutes.from_now)
+          described_class.perform_now("tick")
+        end
+        expect(provider).to have_received(:fetch_odds).exactly(3).times
+        Game.delete_all
+        create(:game, starts_at: 150.minutes.from_now)
+        described_class.perform_now("tick")
+        expect(provider).to have_received(:fetch_odds).exactly(3).times
+      end
+
+      it "drops the extra hourly snapshots at 80% of the budget but keeps T-20" do
+        ApiUsage.create!(provider: "sports_game_odds", period: ApiUsage.period_for, units_used: 2000, units_limit: 2500)
+        Game.delete_all
+        create(:game, starts_at: 60.minutes.from_now)
+        described_class.perform_now("tick")
+        expect(provider).not_to have_received(:fetch_odds)
+        Game.delete_all
+        create(:game, starts_at: 20.minutes.from_now)
+        described_class.perform_now("tick")
+        expect(provider).to have_received(:fetch_odds).once
+      end
+    end
+  end
+
+  describe BudgetGuard do
+    it "reports usage and where the month is heading" do
+      now = Time.utc(2026, 11, 10, 12)
+      BudgetGuard.usage_for("sports_game_odds", now).update!(units_used: 300)
+      r = BudgetGuard.report("sports_game_odds", now: now)
+      expect(r).to have_attributes(used: 300, limit: 2500, projected: 900, days_left: 20)
+      expect(r.percent).to eq(12)
+    end
+
+    it "handles providers with no monthly cap" do
+      expect(BudgetGuard.report("balldontlie").limit).to be_nil
+    end
+  end
+end

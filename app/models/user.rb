@@ -11,4 +11,14 @@ class User < ApplicationRecord
   validates :odds_format, inclusion: { in: ->(_) { Rails.configuration.x.odds_formats } }
 
   def initial = email_address.first.upcase
+
+  # The one user of a single-user (self-hosted) install. Created on first use; nobody ever signs in as it.
+  LOCAL_EMAIL = "local@propscope.local".freeze
+
+  def self.local
+    find_or_create_by!(email_address: LOCAL_EMAIL) do |u|
+      u.password = SecureRandom.hex(24)
+      u.admin = true
+    end
+  end
 end

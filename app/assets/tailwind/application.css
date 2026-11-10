@@ -132,3 +132,48 @@
   .no-scrollbar { scrollbar-width: none; }
   .no-scrollbar::-webkit-scrollbar { display: none; }
 }
+
+/* ---- Motion: short, smooth, purposeful. Colour/opacity/transform only (never `transition: all`), no bounce. ---- */
+@layer base {
+  @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes grow-x { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  @keyframes pop { from { opacity: 0; transform: scale(0.75); } to { opacity: 1; transform: none; } }
+  @keyframes sheet-up { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+  @keyframes sheet-in { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
+  @keyframes drop { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+
+  /* every page fades in; Turbo visits replace <main>, so navigation feels continuous */
+  main { animation: fade 0.24s ease-out both; }
+  turbo-frame { transition: opacity 0.18s ease-out; }
+  turbo-frame[busy] { opacity: 0.5; }
+  .turbo-progress-bar { background: var(--color-primary); height: 2px; }
+
+  /* panels */
+  [data-sheet-target="backdrop"]:not([hidden]) { animation: fade 0.2s ease-out both; }
+  [data-sheet-target="panel"]:not([hidden]) { animation: sheet-up 0.24s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+  @media (min-width: 768px) { [data-sheet-target="panel"]:not([hidden]) { animation-name: sheet-in; } }
+  [data-toggle-target="panel"]:not([hidden]) { animation: drop 0.18s ease-out both; }
+  dialog[open] .modal-box { animation: sheet-up 0.24s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+}
+
+@layer components {
+  /* content rises in, staggered by --i (capped so long lists never feel slow) */
+  .reveal { animation: rise 0.34s cubic-bezier(0.2, 0.7, 0.2, 1) both; animation-delay: calc(min(var(--i, 0), 10) * 32ms); }
+  .fade-row { animation: fade 0.3s ease-out both; animation-delay: calc(min(var(--i, 0), 12) * 18ms); }
+  /* hit/miss segments draw in left to right */
+  .hit-seg { transform-origin: left center; animation: grow-x 0.42s cubic-bezier(0.2, 0.7, 0.2, 1) both; animation-delay: calc(var(--j, 0) * 22ms + 60ms); }
+  .count-pop, .leg-added { animation: pop 0.22s ease-out both; }
+  .toast-in { animation: rise 0.25s ease-out both; }
+  .toast-out { opacity: 0; transition: opacity 0.3s ease-out; }
+  /* cards respond to the pointer with a small lift and a hint of accent */
+  .card-hover { transition: transform 0.18s ease-out, border-color 0.18s ease-out; }
+  .card-hover:hover { transform: translateY(-2px); border-color: color-mix(in oklab, var(--color-primary) 40%, var(--line)); }
+  .chip:active { transform: scale(0.97); }
+  .chip { transition: background-color 0.15s ease-out, border-color 0.15s ease-out, color 0.15s ease-out, transform 0.12s ease-out; }
+  tbody tr { transition: background-color 0.15s ease-out; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after { animation-duration: 0.001ms !important; animation-delay: 0ms !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+}

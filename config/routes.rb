@@ -5,7 +5,7 @@ Rails.application.routes.draw do
   resource :preferences, only: :update
   patch "books", to: "books#update", as: :books
   resources :saved_filters, only: %i[create destroy]
-  resources :picks, only: %i[create destroy]
+  resources :picks, only: %i[index create destroy]
 
   root to: redirect("/nba/props")
 

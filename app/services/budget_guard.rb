@@ -35,6 +35,17 @@ class BudgetGuard
       retry
     end
 
+    # How the month is going: units used, and where it lands at the current pace.
+    Report = Data.define(:provider, :used, :limit, :percent, :projected, :days_left)
+
+    def report(provider, now: Time.current)
+      usage = usage_for(provider, now)
+      day = now.utc.day
+      days_in_month = now.utc.end_of_month.day
+      projected = day.zero? ? usage.units_used : (usage.units_used * days_in_month.to_f / day).round
+      Report.new(provider: provider.to_s, used: usage.units_used, limit: usage.units_limit, percent: usage.percent_used, projected: projected, days_left: days_in_month - day)
+    end
+
     private
 
     def ceiling(provider) = Providers::Registry.budget_config(provider).fetch(:ceiling, 0.8)

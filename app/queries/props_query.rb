@@ -53,7 +53,7 @@ class PropsQuery
     def stat = StatCatalog.for_market(market.market_type)
   end
 
-  Result = Data.define(:rows, :total, :page, :pages, :updated_at)
+  Result = Data.define(:rows, :total, :page, :pages, :updated_at, :prices_at)
 
   def self.call(**) = new(**).call
 
@@ -79,7 +79,7 @@ class PropsQuery
     pages = [ (total.to_f / PER_PAGE).ceil, 1 ].max
     page = [ @f.page, pages ].min
     rows = rows.slice((page - 1) * PER_PAGE, PER_PAGE) || [] if @paginate
-    Result.new(rows: rows, total: total, page: page, pages: pages, updated_at: PropHitRate.where(market_id: ids).maximum(:computed_at))
+    Result.new(rows: rows, total: total, page: page, pages: pages, updated_at: PropHitRate.where(market_id: ids).maximum(:computed_at), prices_at: prices.values.map(&:captured_at).max)
   end
 
   # Games on the slate that can still be bet (for the filter drawer).

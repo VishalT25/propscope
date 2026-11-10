@@ -2,6 +2,8 @@
 
 Propscope is built to be run by you, with your own API keys. Nothing here takes bets or handles money.
 
+Single-user by default: there is no sign-in. One built-in local user holds your slip, saved filters and preferences. If you share a deployment, set `SINGLE_USER=false` to turn accounts back on.
+
 ## 1. Run it with sample data (no keys, about 5 minutes)
 ```
 git clone <this repo> && cd propscope

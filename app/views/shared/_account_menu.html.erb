@@ -1,9 +1,9 @@
 <div class="relative" data-controller="toggle" data-action="keydown.esc->toggle#hide click@window->toggle#clickOutside">
   <button type="button" class="grid size-9 place-items-center rounded-full border border-line bg-surface-2 text-sm font-bold hover:border-accent" aria-label="Account" data-action="toggle#toggle" data-toggle-target="button">
-    <%= current_user ? current_user.initial : icon(:user, css: "size-4") %>
+    <%= single_user? ? icon(:user, css: "size-4") : (current_user ? current_user.initial : icon(:user, css: "size-4")) %>
   </button>
   <div class="absolute right-0 mt-2 w-72 rounded-2xl border border-line bg-surface p-3 shadow-xl" data-toggle-target="panel" hidden>
-    <% if current_user %>
+    <% if current_user && !single_user? %>
       <p class="truncate px-2 pb-2 text-sm text-muted"><%= current_user.email_address %></p>
     <% end %>
 
@@ -24,14 +24,15 @@
       </div>
     </div>
 
+    <% unless single_user? %>
     <div class="mt-3 border-t border-line pt-2 text-sm font-medium">
       <% if current_user %>
-        <% if current_user.admin? %><p class="px-2 py-2 text-muted">Admin (coming soon)</p><% end %>
         <%= button_to "Log out", session_path, method: :delete, class: "w-full rounded-lg px-2 py-2 text-left hover:bg-surface-2", form: { class: "contents" } %>
       <% else %>
         <%= link_to "Sign in", new_session_path, class: "block rounded-lg px-2 py-2 hover:bg-surface-2" %>
         <%= link_to "Create account", new_registration_path, class: "block rounded-lg px-2 py-2 hover:bg-surface-2" %>
       <% end %>
     </div>
+    <% end %>
   </div>
 </div>

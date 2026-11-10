@@ -59,7 +59,7 @@ export default class extends Controller {
     this.chart = new Chart(this.canvasTarget, {
       data: { labels: cfg.labels, datasets },
       options: {
-        responsive: true, maintainAspectRatio: false, animation: false, layout: { padding: { top: 18 } },
+        responsive: true, maintainAspectRatio: false, animation: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? false : { duration: 500, easing: "easeOutQuart" }, layout: { padding: { top: 18 } },
         plugins: { legend: { display: datasets.length > 1, labels: { color: muted, usePointStyle: true, boxWidth: 8, filter: (item, data) => { const ds = data.datasets[item.datasetIndex]; return !ds.hidden && !(ds._meta.kind === "bars" && new Set(ds._meta.colors).size > 1) } } },
                    tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${Number(c.parsed.y).toFixed(decimals || (c.dataset._meta.kind === "line" ? 1 : 0))}` } } },
         scales: { x: { ticks: { color: muted, maxRotation: 60, autoSkip: true }, grid: { display: false } },

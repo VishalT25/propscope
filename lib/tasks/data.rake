@@ -33,6 +33,25 @@ namespace :data do
     puts "Done: #{PlayerGameLog.count} logs, #{skipped} rows skipped (players no longer active are not in /players/active)"
   end
 
+  desc "Fetch odds now for the next 36 hours (LIVE_DATA=true). Use this in development, where the scheduler does not run."
+  task refresh_odds: :environment do
+    abort "Set LIVE_DATA=true to call live APIs." unless LiveData.enabled?
+    before = BudgetGuard.report("sports_game_odds").used
+    SnapshotOddsJob.perform_now("morning")
+    after = BudgetGuard.report("sports_game_odds").used
+    puts "Fetched odds: #{after - before} events used. Month so far: #{after}."
+  end
+
+  desc "Show API usage for the month and where it is heading"
+  task quota: :environment do
+    %w[sports_game_odds balldontlie].each do |provider|
+      r = BudgetGuard.report(provider)
+      cap = r.limit ? "#{r.used}/#{r.limit} (#{r.percent.round(1)}%), heading for ~#{r.projected}" : "#{r.used} requests (no monthly cap)"
+      puts "#{provider.ljust(18)} #{cap}; #{r.days_left} days left"
+    end
+    puts "Extra pre-tip odds snapshots: ODDS_EXTRA_HOURS=#{SnapshotOddsJob.extra_hours} (0 to 6; optional ones stop at 80% of the budget)"
+  end
+
   desc "Record a small real sample as fixtures (LIVE_DATA=true; spends budget). Review before committing."
   task capture_fixtures: :environment do
     abort "Set LIVE_DATA=true to call live APIs." unless LiveData.enabled?

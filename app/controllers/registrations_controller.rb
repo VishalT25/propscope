@@ -1,4 +1,5 @@
 class RegistrationsController < PublicController
+  before_action :accounts_are_off, if: :single_user?
   rate_limit to: 10, within: 3.minutes, only: :create, with: -> { redirect_to new_registration_path, alert: "Try again later." }
 
   def new
@@ -15,4 +16,8 @@ class RegistrationsController < PublicController
       render :new, status: :unprocessable_entity
     end
   end
+
+  private
+
+  def accounts_are_off = redirect_to(root_path, notice: "Accounts are off: this copy is single-user, so there is nothing to sign in to.")
 end

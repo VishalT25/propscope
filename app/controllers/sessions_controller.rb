@@ -1,4 +1,5 @@
 class SessionsController < ApplicationController
+  before_action :accounts_are_off, if: :single_user?
   allow_unauthenticated_access only: %i[ new create ]
   rate_limit to: 10, within: 3.minutes, only: :create, with: -> { redirect_to new_session_path, alert: "Try again later." }
 
@@ -18,4 +19,8 @@ class SessionsController < ApplicationController
     terminate_session
     redirect_to new_session_path, status: :see_other
   end
+
+  private
+
+  def accounts_are_off = redirect_to(root_path, notice: "Accounts are off: this copy is single-user, so there is nothing to sign in to.")
 end

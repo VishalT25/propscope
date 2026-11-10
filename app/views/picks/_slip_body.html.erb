@@ -1,0 +1,66 @@
+<%# locals: slip (PickSlip::Slip or nil) %>
+<% if slip.nil? || slip.legs.empty? %>
+  <p class="py-10 text-center text-sm text-muted">Your slip is empty. Use the <b class="text-fg">+</b> on any prop to add a leg, then pick a book to price it.</p>
+<% else %>
+  <%= form_with url: picks_path, method: :get, class: "mt-3 grid gap-3 sm:grid-cols-[1fr_8rem]", data: { turbo_frame: "slip" } do %>
+    <label class="text-sm font-medium">Book
+      <select name="book" class="field mt-1" onchange="this.form.requestSubmit()">
+        <option value="" <%= "selected" if slip.book.nil? %>>Best price for each leg</option>
+        <% slip.options.each do |o| %>
+          <option value="<%= o.bookmaker.key %>" <%= "selected" if slip.book == o.bookmaker %>>
+            <%= o.bookmaker.name %> · <%= o.decimal ? format_price(o.american) : "#{o.legs_offered}/#{o.total} legs" %>
+          </option>
+        <% end %>
+      </select></label>
+    <label class="text-sm font-medium">Stake ($)
+      <input type="number" name="stake" value="<%= slip.stake.to_s("F").sub(/\.0\z/, "") %>" min="1" step="1" class="field mt-1" onchange="this.form.requestSubmit()"></label>
+  <% end %>
+
+  <ul class="mt-3 divide-y divide-line">
+    <% slip.legs.each do |l| %>
+      <li class="flex items-center gap-3 py-2.5">
+        <%= player_avatar(l.player, size: :sm, badge: false) %>
+        <div class="min-w-0 flex-1">
+          <%= link_to l.player.full_name, league_prop_path(League.default, l.market, l.pick.side), class: "block truncate font-semibold hover:text-accent", data: { turbo_frame: "_top" } %>
+          <span class="text-xs text-muted"><%= l.pick.side.capitalize %> <%= number_with_precision(l.market.line, precision: 1) %> <%= l.stat.short %> · <%= l.game.away_team.abbreviation %> @ <%= l.game.home_team.abbreviation %></span>
+        </div>
+        <div class="text-right text-sm tabular-nums">
+          <% if l.chosen %>
+            <% if slip.book.nil? %><span class="mr-1 text-xs text-muted"><%= l.chosen.bookmaker.code %></span><% end %>
+            <b class="<%= { 1 => 'text-hit', -1 => 'text-miss', 0 => '' }[l.moved] %>" title="You added it at <%= format_price(l.price_at_add) %>"><%= format_price(l.chosen.american_odds) %></b>
+            <% if l.chosen.deeplink.present? %><%= link_to "Open", l.chosen.deeplink, target: "_blank", rel: "noopener noreferrer", class: "ml-2 text-xs font-semibold text-accent hover:underline", title: "Open this leg in #{l.chosen.bookmaker.name} (opens the book's own betslip link)" %><% end %>
+          <% else %>
+            <span class="text-xs text-miss" title="This book is not offering this line right now">Not at <%= slip.book&.code || "any book" %></span>
+          <% end %>
+        </div>
+        <%= button_to pick_path(l.pick), method: :delete, class: "btn btn-ghost btn-xs btn-circle", "aria-label": "Remove leg", form: { class: "contents" } do %><%= icon :close, css: "size-3.5" %><% end %>
+      </li>
+    <% end %>
+  </ul>
+
+  <% if slip.parlay %>
+    <% pl = slip.parlay %>
+    <div class="mt-3 border-t border-line pt-3">
+      <p class="flex items-baseline justify-between"><span class="text-sm text-muted"><%= pl.legs == 1 ? "Single" : "#{pl.legs}-leg parlay" %><%= " at #{slip.book.name}" if slip.book %></span>
+        <span class="font-display text-3xl font-extrabold tabular-nums"><%= format_price(pl.american) %> <span class="text-sm font-medium text-muted">(<%= number_with_precision(pl.decimal, precision: 2) %>x)</span></span></p>
+      <p class="mt-1 flex justify-between text-sm"><span class="text-muted"><%= number_to_currency(pl.stake) %> stake pays</span><b class="tabular-nums"><%= number_to_currency(pl.payout) %> <span class="font-medium text-hit">(+<%= number_to_currency(pl.profit) %>)</span></b></p>
+      <p class="mt-1 text-xs text-muted">Combined chance implied by these prices: <%= number_with_precision(pl.implied * 100, precision: 1) %>%, margin included.</p>
+    </div>
+  <% elsif slip.missing.any? %>
+    <p class="mt-3 border-t border-line pt-3 text-sm text-miss">
+      <% if slip.book %><%= pluralize(slip.missing.size, "leg") %> not offered at <%= slip.book.name %> right now, so there are no combined odds. Pick another book above, or remove the leg.
+      <% else %><%= pluralize(slip.missing.size, "leg") %> <%= slip.missing.size == 1 ? "has" : "have" %> no current price at any book (the line was pulled or the game started). Remove <%= slip.missing.size == 1 ? "it" : "them" %> to see the combined odds.<% end %></p>
+  <% end %>
+
+  <% if slip.best_option && slip.book != slip.best_option.bookmaker && slip.legs.size > 1 %>
+    <p class="mt-2 text-sm text-muted">Best single book for all <%= slip.legs.size %> legs: <%= link_to "#{slip.best_option.bookmaker.name} #{format_price(slip.best_option.american)}", picks_path(book: slip.best_option.bookmaker.key), class: "font-semibold text-accent hover:underline" %></p>
+  <% end %>
+  <% if slip.same_game && slip.legs.size > 1 %>
+    <p class="mt-2 text-xs text-push">Some legs are from the same game. Books price same-game parlays differently (often lower than the product of the legs) or refuse some combinations, so confirm the final price at the book.</p>
+  <% end %>
+
+  <div class="mt-4 flex flex-wrap gap-2" data-controller="clipboard" data-clipboard-text-value="<%= slip_text(slip) %>">
+    <button type="button" class="btn btn-primary btn-sm" data-action="clipboard#copy"><span data-clipboard-target="label">Copy slip</span></button>
+    <p class="self-center text-xs text-muted">Copies the legs, the book's prices and the parlay math to paste or share.</p>
+  </div>
+<% end %>

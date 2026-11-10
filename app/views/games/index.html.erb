@@ -23,6 +23,6 @@
   </div>
 <% else %>
   <div class="mt-4 grid gap-4 lg:grid-cols-2">
-    <% @cards.each do |card| %><%= render "games/card", card: card %><% end %>
+    <% @cards.each_with_index do |card, i| %><%= render "games/card", card: card, i: i %><% end %>
   </div>
 <% end %>

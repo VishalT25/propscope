@@ -52,7 +52,7 @@ RSpec.describe "Props explorer" do
 
     it "paginates 50 per page" do
       get "/nba/props"
-      expect(response.body.scan("<tr class=\"hover:bg-surface-2/60\">").size).to eq(50)
+      expect(response.body.scan("<tr class=\"fade-row hover:bg-surface-2/60\"").size).to eq(50)
       expect(response.body).to include("Page 1 of")
       get "/nba/props", params: { page: 2 }
       expect(response.body).to include("Page 2 of")
