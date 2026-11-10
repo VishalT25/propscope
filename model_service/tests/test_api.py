@@ -95,7 +95,8 @@ def test_training_reports_metrics_against_baselines(model_dir):
     meta = json.loads((model_dir / "meta.json").read_text())
     m = meta["metrics"]
     assert m["mae"]["model"] < m["mae"]["season_mean"]
-    assert {"model", "baseline_l10_normal", "coin_flip"} <= set(m["over_vs_proxy_line"])
+    assert {"model", "baseline_l10_normal", "coin_flip", "train_base_rate"} <= set(m["over_vs_proxy_line"])
+    assert {"model", "l10_mean", "season_mean", "blend_l10_season"} <= set(m["mae"])
     assert meta["features"] == FEATURES
 
 

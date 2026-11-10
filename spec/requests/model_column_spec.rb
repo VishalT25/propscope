@@ -26,7 +26,7 @@ RSpec.describe "Model column (optional model service)" do
   end
 
   it "keeps working when the service is down (the prediction job fails soft)" do
-    down = instance_double(ModelClient, enabled?: true)
+    down = instance_double(ModelClient, enabled?: true, open?: false)
     allow(down).to receive(:predict).and_raise(ModelClient::Unavailable)
     expect { PredictPropsJob.perform_now(client: down) }.not_to raise_error
     get "/nba/props"

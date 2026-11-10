@@ -7,6 +7,7 @@ class PredictPropsJob < ApplicationJob
 
   def perform(client: ModelClient.new)
     return unless client.enabled?
+    return if client.open? # circuit breaker: do not even build features for a service that is known to be down
 
     markets = Market.joins(:game).where(games: { starts_at: Time.current.. }, market_type: STAT.market_type, is_alternate: false)
                     .where.not(player_id: nil).includes(:game, player: :team).to_a

@@ -58,8 +58,10 @@ def fit(df: pd.DataFrame, out_dir: str | Path, target: str = "target", seed: int
     train_end, valid_end = int(n * 0.70), int(n * 0.85)
     train, valid, test = df.iloc[:train_end], df.iloc[train_end:valid_end], df.iloc[valid_end:]
 
-    model = xgb.XGBRegressor(n_estimators=600, learning_rate=0.03, max_depth=4, subsample=0.8, colsample_bytree=0.8,
-                             min_child_weight=10, reg_lambda=2.0, early_stopping_rounds=40, tree_method="hist", random_state=seed)
+    # Pseudo-Huber: points are heavy-tailed (a 40-point night should not drag the fit); it held up far better than squared
+    # error once the data moved from the regular season into the playoffs and a new season.
+    model = xgb.XGBRegressor(n_estimators=1500, learning_rate=0.02, max_depth=3, subsample=0.8, colsample_bytree=0.8, min_child_weight=30,
+                             reg_lambda=5.0, objective="reg:pseudohubererror", early_stopping_rounds=60, tree_method="hist", random_state=seed)
     model.fit(train[FEATURES], train[target], eval_set=[(valid[FEATURES], valid[target])], verbose=False)
 
     # spread of the error depends on the level (a 30-point scorer is noisier than a 6-point one): std per prediction bin
@@ -74,13 +76,18 @@ def fit(df: pd.DataFrame, out_dir: str | Path, target: str = "target", seed: int
     y = test[target].to_numpy()
     lines = _proxy_lines(test)
     y_over = (y > lines).astype(float)
+    base_rate = float(((train[target].to_numpy() > _proxy_lines(train)).astype(float)).mean())
     p_model = _p_over(test_pred, test_std, lines)
     p_base = _p_over(test["mean_l10"].to_numpy(), np.maximum(test["std_l10"].fillna(5.0).to_numpy(), 1.0), lines)
 
     metrics = {
         "rows": {"train": len(train), "valid": len(valid), "test": len(test)},
-        "mae": {"model": float(np.mean(np.abs(y - test_pred))), "l10_mean": float(np.mean(np.abs(y - test["mean_l10"]))), "season_mean": float(np.mean(np.abs(y - test["mean_season"].fillna(test["mean_l10"]))))},
-        "over_vs_proxy_line": {"model": _scores(p_model, y_over), "baseline_l10_normal": _scores(p_base, y_over), "coin_flip": _scores(np.full_like(p_model, 0.5), y_over)},
+        "mae": {"model": float(np.mean(np.abs(y - test_pred))), "l10_mean": float(np.mean(np.abs(y - test["mean_l10"]))),
+                "season_mean": float(np.mean(np.abs(y - test["mean_season"].fillna(test["mean_l10"])))),
+                "blend_l10_season": float(np.mean(np.abs(y - (0.5 * test["mean_l10"] + 0.5 * test["mean_season"].fillna(test["mean_l10"])))))},
+        "valid_mae": {"model": float(np.mean(np.abs(valid[target] - valid_pred))), "l10_mean": float(np.mean(np.abs(valid[target] - valid["mean_l10"])))},
+        "over_vs_proxy_line": {"model": _scores(p_model, y_over), "baseline_l10_normal": _scores(p_base, y_over), "coin_flip": _scores(np.full_like(p_model, 0.5), y_over),
+                               "train_base_rate": _scores(np.full_like(p_model, base_rate), y_over)},
         "calibration": _calibration(p_model, y_over),
         "test_period": [str(test["game_date"].min()), str(test["game_date"].max())],
         "note": "Evaluated on lines synthesised from the L10 mean, because historical betting lines are not stored.",
@@ -103,7 +110,8 @@ def main():
     meta = fit(pd.read_csv(args.data), args.out)
     m = meta["metrics"]
     print(f"model {meta['version']}  rows {m['rows']}  test {m['test_period'][0]} .. {m['test_period'][1]}")
-    print("MAE   model %.3f | L10 mean %.3f | season mean %.3f" % (m["mae"]["model"], m["mae"]["l10_mean"], m["mae"]["season_mean"]))
+    print("test  MAE  model %.3f | L10 mean %.3f | season mean %.3f | 50/50 blend %.3f" % (m["mae"]["model"], m["mae"]["l10_mean"], m["mae"]["season_mean"], m["mae"]["blend_l10_season"]))
+    print("valid MAE  model %.3f | L10 mean %.3f" % (m["valid_mae"]["model"], m["valid_mae"]["l10_mean"]))
     for k, v in m["over_vs_proxy_line"].items():
         print(f"{k:22s} brier {v['brier']:.4f}  log-loss {v['log_loss']:.4f}  accuracy {v['accuracy']:.3f}")
     print("calibration (predicted -> observed):", ", ".join(f"{c['predicted']:.2f}->{c['observed']:.2f} (n={c['n']})" for c in m["calibration"]))

@@ -7,7 +7,7 @@ RSpec.describe PredictPropsJob do
   let(:game) { create(:game, sport: sport, home_team: home, away_team: away, starts_at: 6.hours.from_now, season: 2026) }
   let(:player) { create(:player, sport: sport, team: home) }
   let!(:market) { create(:market, game: game, player: player, market_type: "player_points", line: 24.5) }
-  let(:client) { instance_double(ModelClient, enabled?: true) }
+  let(:client) { instance_double(ModelClient, enabled?: true, open?: false) }
 
   def history(n = 8)
     n.times do |i|
@@ -44,6 +44,14 @@ RSpec.describe PredictPropsJob do
     allow(client).to receive(:predict) { response_for(market.id) }
     described_class.perform_now(client: client)
     expect { described_class.perform_now(client: client) }.not_to change(Prediction, :count)
+  end
+
+  it "skips straight away while the circuit is open, without building features or calling out" do
+    history
+    tripped = instance_double(ModelClient, enabled?: true, open?: true)
+    expect(tripped).not_to receive(:predict)
+    expect(ModelFeatures).not_to receive(:new)
+    described_class.perform_now(client: tripped)
   end
 
   it "does nothing when the service is not configured" do

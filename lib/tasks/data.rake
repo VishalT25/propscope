@@ -50,13 +50,13 @@ end
 namespace :model do
   desc "Write training rows for the model service: bin/rails model:export [OUT=tmp/model/points.csv]"
   task export: :environment do
-    require "csv"
     out = Rails.root.join(ENV.fetch("OUT", "tmp/model/points.csv"))
     FileUtils.mkdir_p(out.dirname)
     rows = ModelFeatures.new(stat: StatCatalog.for_market("player_points")).training_rows.sort_by(&:game_date)
-    CSV.open(out, "w") do |csv|
-      csv << %w[game_date player_id] + ModelFeatures::FEATURES + %w[target]
-      rows.each { |r| csv << [ r.game_date, r.player_id ] + ModelFeatures::FEATURES.map { |f| r.features[f] } + [ r.target ] }
+    # Plain numbers and dates only (no commas or quotes), so no CSV library is needed. Blank = missing.
+    File.open(out, "w") do |f|
+      f.puts((%w[game_date player_id] + ModelFeatures::FEATURES + %w[target]).join(","))
+      rows.each { |r| f.puts(([ r.game_date, r.player_id ] + ModelFeatures::FEATURES.map { |n| r.features[n] } + [ r.target ]).join(",")) }
     end
     puts "Wrote #{rows.size} rows to #{out}"
   end

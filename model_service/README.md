@@ -24,5 +24,18 @@ MODEL_SERVICE_URL=http://localhost:8000 bin/rails runner 'PredictPropsJob.perfor
 ## How Rails calls it
 `ModelClient` (Faraday): 1s connect / 5s read timeout, batches of 200, and a circuit breaker (3 failures in a row pause calls for 5 minutes, so jobs skip instantly instead of waiting on timeouts). `PredictPropsJob` stores `predictions(market_id, side, probability, projection, model_version)` and never raises when the service is unavailable; the last good predictions stay in place.
 
-## Honesty about the model
-`train.py` evaluates on a time-ordered holdout against baselines (L10 mean, a normal approximation from L10, a coin flip) and prints calibration. It is evaluated on lines synthesised from the L10 mean, not real lines, so it measures whether the projection is better than simple form, not whether it beats a sportsbook. Treat it as research, not advice.
+## How good is it? (measured, not hoped)
+First real run (2026-11-10): 2 seasons of NBA box scores, 26,582 training rows, time-ordered 70/15/15 split, points only.
+
+| | MAE (points) |
+|---|---|
+| Model (test: May to Nov 2026, playoffs plus a new season) | **4.75** |
+| Last-10 average | 4.85 |
+| 50/50 blend of L10 and season average | 4.75 |
+| Model on the validation window (regular season) vs L10 | 4.78 vs 4.96 |
+
+Over/under skill is measured on lines synthesised from the L10 mean (we store no historical lines): Brier 0.2427 for the model vs 0.2450 for the base rate and 0.2492 for a normal approximation from L10. Lower is better.
+
+**Reading it honestly:** a small, real improvement over naive form (about 2 to 4 percent on projection error), and no better than simply blending recent and season averages. It is **overconfident at the high end** (when it says 64 to 73 percent, the observed rate on the proxy lines was 50 to 55 percent), partly because the proxy lines are not real book lines. It has never been compared with a real sportsbook line. **Treat the Model column as research, not advice, and do not size bets from it.** The service stays off unless you set `MODEL_SERVICE_URL`.
+
+Things that would plausibly help, not yet done: real historical closing lines as features and as the evaluation target, injury and lineup data, a model per stat, and recalibration of the probabilities (isotonic or Platt) on held-out real lines.
