@@ -28,8 +28,8 @@ module PropsHelper
   def tier_tooltip(row)
     return "No defence data yet" unless row.opp_rank
 
-    "#{row.opponent.abbreviation} allow #{row.opp_rank.avg_allowed} #{row.stat.short} per game to #{row.opp_rank.position} players " \
-      "(rank #{row.opp_rank.rank}; 1 = toughest defence). #{row.tier.capitalize} for this #{row.side}."
+    "#{row.opponent.abbreviation} allow #{row.opp_rank.avg_allowed} #{row.stat.short} per game overall (rank #{row.opp_rank.rank}; 1 = toughest defence). " \
+      "#{row.tier.capitalize} for this #{row.side}. Position splits are on the prop page."
   end
 
   # Next sort direction when clicking a column: toggle if already sorted, else the column's natural default.

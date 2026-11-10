@@ -27,7 +27,7 @@
       <% rate, n = row.rate(key), row.sample(key) %>
       <div class="w-14 shrink-0 rounded-lg px-1 py-1.5" style="<%= hit_rate_cell_style(rate, n) %>" title="<%= hit_tooltip(label, rate, n) %>">
         <div class="text-[10px] font-semibold text-muted"><%= label.upcase %></div>
-        <div class="text-sm font-bold tabular-nums <%= hit_rate_text_class(rate, n) %>"><%= percent_label(rate, n) %></div>
+        <div class="text-sm font-bold tabular-nums <%= hit_rate_text_class(rate, n) %>"><%= percent_label(rate, n) %><% if small_sample?(n) %><sup class="ml-0.5 text-[9px] font-semibold opacity-70" title="Based on <%= n %> <%= 'game'.pluralize(n) %>"><%= n %>g</sup><% end %></div>
       </div>
     <% end %>
   </div>

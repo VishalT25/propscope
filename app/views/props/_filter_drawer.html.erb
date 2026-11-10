@@ -64,7 +64,7 @@
             <%= number_field_tag :min_hit_rate, @filters.min_hit_rate, id: nil, min: 0, max: 100, placeholder: "e.g. 70", class: "field", "aria-label": "Minimum hit rate percent" %>
             <%= select_tag :hit_window, options_for_select(PropsHelper::HIT_COLUMNS.map { |k, l, _| [ l, k ] }, @filters.hit_window), id: nil, class: "field", "aria-label": "Hit rate window" %>
           </div>
-          <p class="mt-1 text-xs text-muted">Needs at least <%= ApplicationHelper::MIN_SAMPLE %> games in that window.</p>
+          <p class="mt-1 text-xs text-muted">Needs at least <%= ApplicationHelper::MIN_SAMPLE %> games in that window (1 for H2H).</p>
         </fieldset>
 
         <div>

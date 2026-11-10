@@ -46,7 +46,7 @@ class PropDetail
     bars = bars_for(window_logs, stat, closing)
     bucket = StatCatalog.position_bucket(player.position)
     defense_tabs = DefenseRank.where(team_id: opponent.id, stat: stat.defense_stat, season: game.season).index_by(&:position)
-    defense = defense_tabs[bucket]
+    defense = defense_tabs["all"] # the headline matchup is the team-level rank; the position tabs show the splits
 
     Detail.new(
       market: @market, side: @side, player: player, game: game, team: team, opponent: opponent,

@@ -26,13 +26,19 @@ RSpec.describe ApplicationHelper do
       expect(helper.hit_rate_tone(50, 10)).to eq(:push)
     end
 
-    it "stays neutral for small samples or missing data" do
-      expect(helper.hit_rate_tone(100, 3)).to eq(:muted)
+    it "keeps the colour for small samples and is neutral only for missing data" do
+      expect(helper.hit_rate_tone(100, 3)).to eq(:hit)
       expect(helper.hit_rate_tone(nil)).to eq(:muted)
       expect(helper.percent_label(100, 3)).to eq("100%")
       expect(helper.percent_label(nil, 0)).to eq("n/a")
       expect(helper.percent_label(70.4, 10)).to eq("70%")
-      expect(helper.hit_rate_cell_style(100, 3)).to eq("")
+    end
+
+    it "flags rates that rest on fewer than the minimum games" do
+      expect(helper.small_sample?(2)).to be(true)
+      expect(helper.small_sample?(0)).to be(false)
+      expect(helper.small_sample?(nil)).to be(false)
+      expect(helper.small_sample?(ApplicationHelper::MIN_SAMPLE)).to be(false)
     end
 
     it "tints green above 50 and red below" do
