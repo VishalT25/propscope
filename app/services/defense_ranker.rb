@@ -34,6 +34,15 @@ class DefenseRanker
     PlayerGameLog.connection.select_all(PlayerGameLog.sanitize_sql_array([ sql, Integer(@season) ])).each do |r|
       StatCatalog::DEFENSE_STATS.each { |stat| per_game[[ r["team_id"], r["bucket"], stat ]] << r[stat].to_i }
     end
+    # "all" = everything a team allowed per game to every player (the Overall tab)
+    all_sql = <<~SQL.squish
+      SELECT l.opponent_team_id AS team_id, l.game_id, SUM(l.points) AS points, SUM(l.rebounds) AS rebounds, SUM(l.assists) AS assists,
+             SUM(l.threes_made) AS threes_made, SUM(l.points + l.rebounds + l.assists) AS pra
+      FROM player_game_logs l WHERE l.season = ? AND l.minutes > 0 GROUP BY l.opponent_team_id, l.game_id
+    SQL
+    PlayerGameLog.connection.select_all(PlayerGameLog.sanitize_sql_array([ all_sql, Integer(@season) ])).each do |r|
+      StatCatalog::DEFENSE_STATS.each { |stat| per_game[[ r["team_id"], "all", stat ]] << r[stat].to_i }
+    end
     per_game.transform_values { |v| (BigDecimal(v.sum) / v.size).round(2) }
   end
 

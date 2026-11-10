@@ -1,20 +1,22 @@
 <section class="card p-4" data-controller="chart" data-chart-config-value="<%= support_chart_config(d.support).to_json %>">
   <div class="flex flex-wrap items-center justify-between gap-2">
-    <h2 class="font-bold">Supporting stats <span class="text-xs font-medium text-muted">· <%= window_label(d.window) %></span></h2>
-    <div class="flex gap-1 rounded-xl bg-surface-2 p-1 text-xs font-semibold" role="group" aria-label="Average or median">
-      <button type="button" class="rounded-lg px-2.5 py-1 aria-pressed:bg-accent aria-pressed:text-white" aria-pressed="true" data-action="chart#show" data-chart-group-param="mean">Average</button>
-      <button type="button" class="rounded-lg px-2.5 py-1 aria-pressed:bg-accent aria-pressed:text-white" aria-pressed="false" data-action="chart#show" data-chart-group-param="median">Median</button>
+    <h2 class="text-lg font-bold">Supporting stats</h2>
+    <div class="flex gap-1 rounded-xl bg-surface-2 p-1 text-sm font-semibold" role="group" aria-label="Average or median">
+      <button type="button" class="rounded-lg px-3 py-1 aria-pressed:bg-fg aria-pressed:text-canvas" aria-pressed="true" data-action="chart#show" data-chart-group-param="mean">Average</button>
+      <button type="button" class="rounded-lg px-3 py-1 aria-pressed:bg-fg aria-pressed:text-canvas" aria-pressed="false" data-action="chart#show" data-chart-group-param="median">Median</button>
     </div>
   </div>
-  <div class="no-scrollbar -mx-1 mt-3 flex gap-1.5 overflow-x-auto px-1">
+  <div class="no-scrollbar -mx-1 mt-3 flex gap-5 overflow-x-auto px-1">
     <% PropDetail::SUPPORT.each do |key, (label, _)| %>
-      <%= link_to label, detail_path(d, support: key), class: "chip shrink-0 #{'chip-active' if key == d.support.key}" %>
+      <%= link_to detail_path(d, support: key), class: "relative shrink-0 pb-2 #{key == d.support.key ? 'text-fg after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:rounded after:bg-fg' : 'text-muted hover:text-fg'}" do %>
+        <span class="block text-base font-extrabold"><%= label %></span>
+        <span class="block text-sm tabular-nums"><%= d.support_averages[key] ? number_with_precision(d.support_averages[key], precision: 1) : "–" %> avg</span>
+      <% end %>
     <% end %>
   </div>
   <% if d.support.bars.empty? %>
     <p class="mt-4 rounded-xl bg-surface-2 py-10 text-center text-sm text-muted">No games in this window.</p>
   <% else %>
-    <p class="mt-3 text-sm text-muted">Average <b class="text-fg"><%= d.support.mean ? number_with_precision(d.support.mean, precision: 1) : "–" %></b> · median <b class="text-fg"><%= d.support.median ? number_with_precision(d.support.median, precision: 1) : "–" %></b></p>
-    <div class="relative mt-2 h-48" data-testid="support-chart"><canvas data-chart-target="canvas" role="img" aria-label="<%= d.support.label %> per game"></canvas></div>
+    <div class="relative mt-3 h-52" data-testid="support-chart"><canvas data-chart-target="canvas" role="img" aria-label="<%= d.support.label %> per game"></canvas></div>
   <% end %>
 </section>

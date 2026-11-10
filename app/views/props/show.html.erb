@@ -1,103 +1,99 @@
 <% d = @detail %>
 <% content_for :title, "#{d.player.full_name} #{detail_pick_title(d)}" %>
+<% stat = StatCatalog.for_market(d.market.market_type) %>
 
-<div class="mt-2">
-  <%= link_to league_props_path(current_league), class: "inline-flex items-center gap-1 text-sm font-medium text-muted hover:text-fg" do %>
-    <span aria-hidden="true">←</span> Props
-  <% end %>
-</div>
-
-<section class="hero-band card mt-2 overflow-hidden p-5">
-  <div class="flex flex-wrap items-center gap-4">
-    <%= player_avatar(d.player, size: :xl) %>
-    <div class="min-w-0 flex-1">
-      <h1 class="text-2xl font-extrabold tracking-tight sm:text-3xl"><%= d.player.full_name %></h1>
-      <p class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
-        <%= team_badge(d.team, size: :xs) %> <span><%= d.team.name %></span> · <span title="Position"><%= d.player.position %></span> ·
-        <span><%= d.game.home_team_id == d.team.id ? "vs" : "@" %></span> <%= team_badge(d.opponent, size: :xs) %> <b class="text-fg"><%= d.opponent.name %></b> ·
-        <span><%= local_day(d.game.starts_at) %>, <%= local_time(d.game.starts_at) %></span>
-      </p>
-      <p class="mt-2 text-lg font-bold"><%= d.side.capitalize %> <%= number_with_precision(d.market.line, precision: 1) %> <%= StatCatalog.for_market(d.market.market_type).label %></p>
-    </div>
+<section class="card relative mt-2 overflow-hidden" style="<%= hero_style(d.team, d.opponent) %>">
+  <div class="flex items-start justify-between px-4 pt-4">
+    <%= link_to league_props_path(current_league), class: "inline-flex items-center gap-2 rounded-xl px-2 py-1.5 text-sm font-semibold hover:bg-white/10" do %>
+      <span aria-hidden="true" class="text-lg">←</span> Back to props
+    <% end %>
+    <span class="chip cursor-not-allowed opacity-60" title="Game page arrives in the next phase">Matchup <span aria-hidden="true">›</span></span>
   </div>
-  <% if d.game.starts_at < Time.current %>
-    <p class="mt-3 rounded-lg bg-surface-2 px-3 py-2 text-sm text-muted">This game has started. Prices below are the last pregame snapshot.</p>
-  <% end %>
-</section>
 
-<%# Over / Under + best price + all books + custom lines %>
-<section class="card mt-4 p-4">
-  <div class="flex flex-wrap items-center gap-3">
-    <div class="grid grid-cols-2 gap-1 rounded-xl bg-surface-2 p-1" role="group" aria-label="Side">
-      <% %w[over under].each do |side| %>
-        <% price = side == d.side ? d.price : d.opposite_price %>
-        <%= link_to detail_path(d, side: side), class: "rounded-lg px-4 py-2 text-center text-sm font-bold #{side == d.side ? 'bg-accent text-white' : 'text-muted hover:text-fg'}", "aria-current": (side == d.side ? "page" : nil) do %>
-          <%= side.capitalize %> <span class="ml-1 tabular-nums font-semibold <%= side == d.side ? 'text-white/90' : '' %>"><%= price ? format_price(price.american_odds) : "–" %></span>
-        <% end %>
+  <div class="flex flex-col items-center px-4 pb-5 text-center">
+    <div class="flex items-center -space-x-3"><%= player_avatar(d.player, size: :xl, badge: false) %><%= team_badge(d.team, size: :xl) %></div>
+    <p class="mt-3 inline-flex items-center gap-2 rounded-full bg-black/30 px-3 py-1 text-sm font-semibold">
+      <span><%= d.game.home_team_id == d.team.id ? "#{d.opponent.abbreviation} @ #{d.team.abbreviation}" : "#{d.team.abbreviation} @ #{d.opponent.abbreviation}" %></span>
+      <span class="text-muted"><%= local_day(d.game.starts_at) %> <%= local_time(d.game.starts_at) %></span>
+    </p>
+    <h1 class="mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl"><%= d.player.full_name %>
+      <span class="ml-1 align-middle text-sm font-semibold text-muted"><span class="rounded-full bg-black/30 px-2 py-0.5"><%= d.team.abbreviation %></span> (<%= d.player.position %>)</span></h1>
+    <p class="mt-1 text-lg font-bold text-muted"><%= stat.label %> - <%= d.side.capitalize %> <%= number_with_precision(d.market.line, precision: 1) %></p>
+    <% if d.game.starts_at < Time.current %><p class="mt-2 rounded-lg bg-black/30 px-3 py-1.5 text-sm text-muted">This game has started. Prices are the last pregame snapshot.</p><% end %>
+  </div>
+
+  <div class="flex flex-wrap items-center gap-2 px-4 pb-4">
+    <% %w[over under].each do |side| %>
+      <% price = side == d.side ? d.price : d.opposite_price %>
+      <%= link_to detail_path(d, side: side), class: "inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-bold #{side == d.side ? 'border-hit/70 bg-black/30' : 'border-line bg-black/20 text-muted hover:text-fg'}", "aria-current": (side == d.side ? "page" : nil) do %>
+        <%= icon :bars, css: "size-4" %> <%= side.capitalize %> <%= number_with_precision(d.market.line, precision: 1) %>
+        <span class="tabular-nums <%= side == d.side ? 'text-muted' : '' %>"><%= price ? format_price(price.american_odds) : "–" %></span>
       <% end %>
-    </div>
-
-    <% if d.lines.size > 1 %>
-      <details class="relative">
-        <summary class="chip cursor-pointer list-none">Custom lines <%= icon :chevron, css: "size-4" %></summary>
-        <ul class="absolute z-20 mt-2 w-64 divide-y divide-line rounded-xl border border-line bg-surface p-1 text-sm shadow-xl">
-          <% d.lines.each do |market, price| %>
-            <li><%= link_to league_prop_path(current_league, market, d.side), class: "flex items-center justify-between rounded-lg px-3 py-2 hover:bg-surface-2 #{'font-bold text-accent' if market.id == d.market.id}", data: { turbo_frame: "_top" } do %>
-              <span><%= d.side.capitalize %> <%= number_with_precision(market.line, precision: 1) %></span><span class="tabular-nums text-muted"><%= format_price(price.american_odds) %> · <%= price.bookmaker.code %></span>
-            <% end %></li>
-          <% end %>
-        </ul>
-      </details>
     <% end %>
 
-    <div class="ml-auto">
-      <% if d.price %>
-        <div class="flex items-center gap-2 rounded-xl border border-accent/50 bg-accent/10 px-4 py-2" title="Best price across your enabled books (<%= pluralize(d.price.books_count, 'book') %> offering this line)">
-          <span class="text-xs font-semibold uppercase tracking-wide text-muted">Best</span>
-          <span class="text-xl font-extrabold tabular-nums"><%= format_price(d.price.american_odds) %></span>
-          <%= book_badge(d.price.bookmaker) %>
-        </div>
-      <% else %>
-        <span class="text-sm text-muted">No enabled book is offering this line.</span>
-      <% end %>
-    </div>
+    <details class="relative">
+      <summary class="inline-flex cursor-pointer list-none items-center gap-2 rounded-xl border border-line bg-black/20 px-4 py-2.5 text-sm font-bold">Alt lines <%= icon :chevron, css: "size-4" %></summary>
+      <ul class="absolute z-30 mt-2 w-64 divide-y divide-line rounded-xl border border-line bg-surface p-1 text-sm shadow-xl">
+        <% d.lines.each do |market, price| %>
+          <li><%= link_to league_prop_path(current_league, market, d.side), class: "flex items-center justify-between rounded-lg px-3 py-2 hover:bg-surface-2 #{'font-bold text-accent' if market.id == d.market.id}", data: { turbo_frame: "_top" } do %>
+            <span><%= d.side.capitalize %> <%= number_with_precision(market.line, precision: 1) %></span><span class="tabular-nums text-muted"><%= format_price(price.american_odds) %> · <%= price.bookmaker.code %></span>
+          <% end %></li>
+        <% end %>
+      </ul>
+    </details>
+
+    <details class="relative ml-auto">
+      <summary class="flex cursor-pointer list-none items-center gap-3 rounded-xl bg-fg px-4 py-2.5 text-canvas" title="Best price across your enabled books">
+        <% if d.price %>
+          <span class="text-lg font-extrabold">⊕</span><span class="font-extrabold"><%= d.side.capitalize %> <%= number_with_precision(d.market.line, precision: 1) %></span>
+          <span class="text-lg font-extrabold tabular-nums"><%= format_price(d.price.american_odds) %></span><%= book_badge(d.price.bookmaker) %>
+        <% else %><span class="text-sm font-semibold">No enabled book offers this</span><% end %>
+        <%= icon :chevron, css: "size-4" %>
+      </summary>
+      <div class="absolute right-0 z-30 mt-2 w-80 rounded-xl border border-line bg-surface p-3 text-fg shadow-xl">
+        <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">All books (<%= d.books.size %>)</p>
+        <table class="w-full text-sm">
+          <thead class="text-left text-xs uppercase tracking-wide text-muted"><tr><th class="py-1">Book</th><th class="text-right">Over</th><th class="text-right">Under</th></tr></thead>
+          <tbody class="divide-y divide-line">
+            <% d.books.each do |row| %>
+              <tr class="<%= 'opacity-45' unless row.enabled %>" title="<%= 'Not counted: switched off in your book selector' unless row.enabled %>">
+                <td class="py-1.5"><span class="inline-flex items-center gap-2"><%= book_badge(row.bookmaker) %><%= tag.span("best", class: "rounded bg-hit/15 px-1 text-[10px] font-bold uppercase text-hit") if row.best %></span></td>
+                <td class="text-right tabular-nums"><%= row.over ? format_price(row.over.american_odds) : "–" %></td>
+                <td class="text-right tabular-nums"><%= row.under ? format_price(row.under.american_odds) : "–" %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </details>
   </div>
 
-  <details class="mt-3 border-t border-line pt-3">
-    <summary class="cursor-pointer select-none text-sm font-semibold text-muted hover:text-fg">All books (<%= d.books.size %>)</summary>
-    <div class="mt-2 overflow-x-auto">
-      <table class="w-full text-sm">
-        <thead class="text-left text-xs uppercase tracking-wide text-muted"><tr><th class="py-1.5">Book</th><th class="text-right">Over</th><th class="text-right">Under</th></tr></thead>
-        <tbody class="divide-y divide-line">
-          <% d.books.each do |row| %>
-            <tr class="<%= 'opacity-45' unless row.enabled %>" title="<%= 'Not counted: this book is switched off in your book selector' unless row.enabled %>">
-              <td class="py-2"><span class="inline-flex items-center gap-2"><%= book_badge(row.bookmaker) %> <%= row.bookmaker.name %> <%= tag.span("best", class: "rounded bg-hit/15 px-1.5 text-[10px] font-bold uppercase text-hit") if row.best %></span></td>
-              <td class="text-right tabular-nums"><%= row.over ? format_price(row.over.american_odds) : "–" %></td>
-              <td class="text-right tabular-nums"><%= row.under ? format_price(row.under.american_odds) : "–" %></td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-    </div>
-  </details>
+  <nav class="no-scrollbar flex gap-1 overflow-x-auto border-t border-white/10 px-3" aria-label="Stat">
+    <% d.stat_tabs.each do |tab_stat, tab_market| %>
+      <% active = tab_stat.market_type == d.market.market_type %>
+      <% if tab_market %>
+        <%= link_to tab_stat.short, league_prop_path(current_league, tab_market, d.side), class: "relative shrink-0 px-3 py-3 text-base font-extrabold #{active ? 'text-fg after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded after:bg-fg' : 'text-muted hover:text-fg'}", title: tab_stat.label, data: { turbo_frame: "_top" } %>
+      <% else %>
+        <span class="shrink-0 px-3 py-3 text-base font-extrabold text-muted/40" title="No line offered for <%= tab_stat.label %>"><%= tab_stat.short %></span>
+      <% end %>
+    <% end %>
+  </nav>
 </section>
+
+<% if d.streak %>
+  <section class="card mt-4 p-4"><h2 class="font-bold">Insights</h2>
+    <p class="mt-2 rounded-xl border border-line px-4 py-3 font-semibold"><%= streak_statement(d) %></p></section>
+<% end %>
 
 <div class="mt-4 grid gap-4 lg:grid-cols-3">
   <div class="space-y-4 lg:col-span-2">
-    <%= turbo_frame_tag "prop_chart", data: { turbo_action: "advance" } do %>
-      <%= render "props/detail_chart", d: d %>
-    <% end %>
-    <%= turbo_frame_tag "prop_support", data: { turbo_action: "advance" } do %>
-      <%= render "props/detail_support", d: d %>
-    <% end %>
+    <%= turbo_frame_tag "prop_chart", data: { turbo_action: "advance" } do %><%= render "props/detail_chart", d: d %><% end %>
+    <%= turbo_frame_tag "prop_support", data: { turbo_action: "advance" } do %><%= render "props/detail_support", d: d %><% end %>
   </div>
-
   <div class="space-y-4">
-    <%= render "props/detail_defense", d: d %>
-    <%= render "props/detail_movement", d: d %>
+    <%= turbo_frame_tag "prop_defense", data: { turbo_action: "advance" } do %><%= render "props/detail_defense", d: d %><% end %>
+    <%= turbo_frame_tag "prop_movement", data: { turbo_action: "advance" } do %><%= render "props/detail_movement", d: d %><% end %>
   </div>
 </div>
 
-<%= turbo_frame_tag "prop_history", class: "mt-4 block", data: { turbo_action: "advance" } do %>
-  <%= render "props/detail_history", d: d %>
-<% end %>
+<%= turbo_frame_tag "prop_history", class: "mt-4 block", data: { turbo_action: "advance" } do %><%= render "props/detail_history", d: d %><% end %>

@@ -1,30 +1,35 @@
+<% stat = StatCatalog.for_market(d.market.market_type) %>
 <section class="card p-4">
-  <div class="flex flex-wrap items-center justify-between gap-2">
-    <h2 class="font-bold">Vs <%= d.opponent.name %> · <%= d.history_position == "all" ? "all positions" : "#{d.history_position} players" %></h2>
-    <div class="flex gap-1.5" role="group" aria-label="Position">
-      <% %w[all G F C].each do |pos| %>
-        <%= link_to (pos == "all" ? "All" : pos), detail_path(d, pos: pos), class: "chip #{'chip-active' if pos == d.history_position}" %>
-      <% end %>
-    </div>
+  <h2 class="text-lg font-bold"><%= stat.label %> vs <%= d.opponent.abbreviation %></h2>
+  <div class="mt-3 flex gap-5 text-base font-extrabold" role="group" aria-label="Position">
+    <% [ [ "all", "All" ], [ "G", "G" ], [ "F", "F" ], [ "C", "C" ] ].each do |pos, label| %>
+      <%= link_to label, detail_path(d, pos: pos, all: nil), class: "relative pb-2 #{pos == d.history_position ? 'text-fg after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:rounded after:bg-fg' : 'text-muted hover:text-fg'}" %>
+    <% end %>
   </div>
   <% if d.history.empty? %>
     <p class="mt-3 rounded-xl bg-surface-2 py-8 text-center text-sm text-muted">No games by this position against <%= d.opponent.name %> yet.</p>
   <% else %>
-    <div class="mt-3 overflow-x-auto">
-      <table class="w-full text-sm">
-        <thead class="text-left text-xs uppercase tracking-wide text-muted"><tr><th class="py-1.5">Player</th><th class="text-right">Result</th><th class="text-right" title="The line that game closed at. A star means we have no closing line, so the current line is used.">Line</th><th class="w-10 text-center"></th></tr></thead>
+    <div class="mt-2 overflow-x-auto rounded-xl border border-line">
+      <table class="w-full min-w-[28rem] text-sm">
+        <thead class="bg-surface-2 text-left text-xs text-muted"><tr><th class="px-3 py-2">Player &amp; Date</th><th class="px-3 text-right">Result</th><th class="border-l border-line px-3" title="The line that game closed at. A star means we have no closing line, so the current line is used.">Line</th><th class="px-3 text-right">Odds</th></tr></thead>
         <tbody class="divide-y divide-line">
           <% d.history.each do |h| %>
+            <% won = h.outcome.nil? ? nil : (h.outcome == (d.side == "over")) %>
             <tr>
-              <td class="py-2"><span class="inline-flex items-center gap-2"><%= player_avatar(h.player, size: :sm, badge: false) %><span><span class="font-medium"><%= h.player.full_name %></span> <span class="block text-xs text-muted"><%= h.date.strftime("%b %-d") %></span></span></span></td>
-              <td class="text-right font-bold tabular-nums"><%= h.value %></td>
-              <td class="text-right tabular-nums text-muted"><%= number_with_precision(h.line, precision: 1) %><%= "*" if h.line_kind == :current %></td>
-              <td class="text-center"><% if h.outcome.nil? %><span class="text-push" title="Push">–</span><% elsif h.outcome == (d.side == "over") %><span class="text-hit" title="Cleared" aria-label="Hit"><%= icon :check, css: "inline size-4" %></span><% else %><span class="text-miss" title="Missed" aria-label="Miss"><%= icon :close, css: "inline size-4" %></span><% end %></td>
+              <td class="px-3 py-2.5"><span class="inline-flex items-center gap-2.5"><%= player_avatar(h.player, size: :sm, badge: false) %>
+                <span><span class="font-bold"><%= h.player.full_name %></span> <span class="text-muted"><%= h.player.position %></span><span class="block text-xs text-muted"><%= h.matchup %> · <%= h.date.strftime("%m/%d") %></span></span></span></td>
+              <td class="px-3 text-right"><span class="inline-flex items-center gap-2"><span class="tabular-nums text-muted"><%= h.value %></span>
+                <% if won.nil? %><span class="text-push" title="Push">–</span><% elsif won %><span class="text-hit" title="A <%= d.side %> bet would have won" aria-label="Hit"><%= icon :check, css: "inline size-5" %></span><% else %><span class="text-miss" title="A <%= d.side %> bet would have lost" aria-label="Miss"><%= icon :close, css: "inline size-5" %></span><% end %></span></td>
+              <td class="border-l border-line px-3 font-bold tabular-nums"><%= d.side.first.upcase %> <%= number_with_precision(h.line, precision: 1) %><%= "*" if h.line_kind == :current %></td>
+              <td class="px-3 text-right tabular-nums text-muted"><%= h.odds ? format_price(h.odds) : "–" %></td>
             </tr>
           <% end %>
         </tbody>
       </table>
     </div>
-    <p class="mt-2 text-xs text-muted">* current line used because no closing line was saved for that game. Tick = a <%= d.side %> bet would have won.</p>
+    <% if !d.history_all && d.history.size >= PropDetail::History::LIMIT %>
+      <p class="mt-3 text-center"><%= link_to "SEE ALL", detail_path(d, all: 1), class: "text-sm font-extrabold tracking-wide text-muted hover:text-fg" %></p>
+    <% end %>
+    <p class="mt-2 text-xs text-muted">* current line used (no closing line saved for that game).</p>
   <% end %>
 </section>

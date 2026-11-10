@@ -15,7 +15,7 @@ class PropsController < PublicController
   def show
     market = Market.where.not(player_id: nil).where(market_type: StatCatalog::BY_MARKET.keys).includes(:game, player: :team).find(params[:market_id])
     @detail = PropDetail.call(market: market, side: params[:side], window: params[:window], support: params[:support], position: params[:pos],
-                              bookmaker_ids: enabled_bookmaker_ids)
+                              dpos: params[:dpos], all: params[:all] == "1", move: params[:move], bookmaker_ids: enabled_bookmaker_ids)
   end
 
   private

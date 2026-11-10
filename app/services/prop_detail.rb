@@ -15,16 +15,21 @@ class PropDetail
   Summary = Data.define(:window, :hits, :misses, :pushes, :rate, :closing_hits, :closing_n, :closing_rate, :mean, :median, :avg_closing_line)
   SupportSeries = Data.define(:key, :label, :bars, :mean, :median)
   BookRow = Data.define(:bookmaker, :over, :under, :enabled, :best)
+  Streak = Data.define(:hits, :count, :average)
   Detail = Data.define(:market, :side, :player, :game, :team, :opponent, :price, :opposite_price, :books, :lines, :window, :bars, :summary,
-                       :support, :defense, :tier, :history, :history_position, :movement)
+                       :support, :support_averages, :defense, :defense_dpos, :defense_tabs, :tier, :history, :history_position, :history_all, :movement,
+                       :movement_side, :stat_tabs, :streak, :rates)
 
   def self.call(**) = new(**).call
 
-  def initialize(market:, side:, window: DEFAULT_WINDOW, support: "minutes", position: nil, bookmaker_ids: nil, now: Time.current)
+  def initialize(market:, side:, window: DEFAULT_WINDOW, support: "minutes", position: nil, dpos: nil, all: false, move: nil, bookmaker_ids: nil, now: Time.current)
     @market, @side = market, side
     @window = WINDOWS.include?(window.to_s) ? window.to_s : DEFAULT_WINDOW
     @support = SUPPORT.key?(support.to_s) ? support.to_s : "minutes"
     @position = position
+    @dpos = %w[all G F C].include?(dpos.to_s) ? dpos.to_s : "all"
+    @all = all
+    @move_side = %w[over under].include?(move.to_s) ? move.to_s : side
     @bookmaker_ids = bookmaker_ids
     @now = now
   end
@@ -39,19 +44,50 @@ class PropDetail
     closing = ClosingLines.call(player_ids: [ player.id ])
     window_logs = window_logs(logs, stat, opponent)
     bars = bars_for(window_logs, stat, closing)
-    defense = DefenseRank.find_by(team_id: opponent.id, stat: stat.defense_stat, position: StatCatalog.position_bucket(player.position), season: game.season)
+    bucket = StatCatalog.position_bucket(player.position)
+    defense_tabs = DefenseRank.where(team_id: opponent.id, stat: stat.defense_stat, season: game.season).index_by(&:position)
+    defense = defense_tabs[bucket]
 
     Detail.new(
       market: @market, side: @side, player: player, game: game, team: team, opponent: opponent,
       price: prices[[ @market.id, @side ]], opposite_price: prices[[ @market.id, opposite ]],
       books: book_rows, lines: sibling_lines, window: @window, bars: bars, summary: summarize(bars),
-      support: support_series(window_logs), defense: defense, tier: defense && (@side == "under" ? PropsQuery::INVERT.fetch(defense.tier) : defense.tier),
-      history: History.call(market: @market, opponent: opponent, position: history_position(player), closing_for: ClosingLines),
-      history_position: history_position(player), movement: LineMovement.call(market: @market, side: @side, bookmaker_ids: @bookmaker_ids)
+      support: support_series(window_logs), support_averages: support_averages(window_logs), defense: defense, defense_dpos: @dpos, defense_tabs: defense_tabs, tier: defense && (@side == "under" ? PropsQuery::INVERT.fetch(defense.tier) : defense.tier),
+      history: History.call(market: @market, opponent: opponent, position: history_position(player), closing_for: ClosingLines, side: @side, all: @all),
+      history_position: history_position(player), history_all: @all, movement: LineMovement.call(market: @market, side: @move_side, bookmaker_ids: @bookmaker_ids),
+      movement_side: @move_side, stat_tabs: stat_tabs, streak: streak(logs, stat), rates: PropHitRate.find_by(market_id: @market.id, side: @side)
     )
   end
 
   private
+
+  # One tab per stat the player has a prop for in this game (PTS, REB, AST, 3PM, PRA).
+  def stat_tabs
+    markets = Market.where(game_id: @market.game_id, player_id: @market.player_id, is_alternate: false).to_a.group_by(&:market_type)
+    StatCatalog::ALL.map do |stat|
+      candidates = markets[stat.market_type].to_a
+      best = BestPrice.for(market_ids: candidates.map(&:id), bookmaker_ids: @bookmaker_ids)
+      live = candidates.select { |m| best[[ m.id, @side ]] }
+      chosen = live.find { |m| m.id == @market.id } || live.min_by { |m| (m.line - @market.line).abs }
+      [ stat, chosen ]
+    end
+  end
+
+  # Consecutive most recent games (all played games, newest first) that cleared this line on this side.
+  def streak(logs, stat)
+    values = HitRateCalculator.played(HitRateCalculator.game_values(logs, stat))
+    run = values.take_while { |gv| HitRateCalculator.outcome(gv.value, @market.line, @side) == true }
+    return nil if run.size < 3
+
+    Streak.new(hits: true, count: run.size, average: (run.sum { |gv| gv.value.to_d } / run.size).round(1))
+  end
+
+  def support_averages(window_logs)
+    SUPPORT.transform_values do |(_, extractor)|
+      values = window_logs.map { |log, _| extractor.call(log).to_d }
+      values.empty? ? nil : (values.sum / values.size).round(1)
+    end
+  end
 
   def opposite = @side == "over" ? "under" : "over"
 

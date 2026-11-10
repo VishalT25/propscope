@@ -9,7 +9,7 @@ RSpec.describe "Prop detail" do
     %w[over under].each do |side|
       get "/nba/props/#{market.id}/#{side}"
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include(market.player.full_name, "Opponent defence", "Line movement", "data-testid=\"bars-chart\"", "All books")
+      expect(response.body).to include(market.player.full_name, "defense", "Consensus line movement", "data-testid=\"bars-chart\"", "All books")
     end
   end
 

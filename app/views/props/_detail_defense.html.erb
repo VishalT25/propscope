@@ -1,19 +1,30 @@
+<% stat = StatCatalog.for_market(d.market.market_type) %>
+<% rank = d.defense_tabs[d.defense_dpos] %>
+<% tier = rank && (d.side == "under" ? PropsQuery::INVERT.fetch(rank.tier) : rank.tier) %>
 <section class="card p-4">
-  <h2 class="font-bold">Opponent defence</h2>
-  <% if d.defense %>
-    <div class="mt-3 flex items-center gap-3">
-      <%= team_badge(d.opponent, size: :lg) %>
-      <div>
-        <div class="font-semibold"><%= d.opponent.name %></div>
-        <div class="text-sm text-muted">vs <%= d.defense.position %> players · <%= StatCatalog.for_market(d.market.market_type).label %></div>
-      </div>
+  <div class="flex items-center justify-between gap-2"><h2 class="text-lg font-bold">Key <%= d.opponent.abbreviation %> <%= stat.label.downcase %> defense</h2>
+    <span class="text-muted" title="Average allowed per game, ranked across the league (1 = toughest). Favorable / unfavorable are from this <%= d.side %>'s side."><%= icon :user, css: "size-5" %></span></div>
+  <div class="mt-3 flex gap-4 overflow-x-auto text-sm font-bold" role="group" aria-label="Position">
+    <% [ [ "all", "Overall" ], [ "G", "vs G" ], [ "F", "vs F" ], [ "C", "vs C" ] ].each do |key, label| %>
+      <%= link_to label, detail_path(d, dpos: key), class: "relative shrink-0 pb-2 #{key == d.defense_dpos ? 'text-fg after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:rounded after:bg-fg' : 'text-muted hover:text-fg'}" %>
+    <% end %>
+  </div>
+  <div class="mt-2 overflow-hidden rounded-xl border border-line">
+    <div class="grid grid-cols-[1fr_auto_auto] gap-x-6 bg-surface-2 px-3 py-2 text-xs font-semibold text-muted"><span>Stats</span><span>Avg</span><span>Rank</span></div>
+    <p class="border-b border-line px-3 py-1.5 text-xs font-extrabold uppercase tracking-wide text-muted">Full game</p>
+    <div class="grid grid-cols-[1fr_auto_auto] items-center gap-x-6 px-3 py-3">
+      <span class="font-semibold"><%= stat.label %> allowed</span>
+      <span class="tabular-nums"><%= rank ? number_with_precision(rank.avg_allowed, precision: 1) : "–" %></span>
+      <span class="inline-flex items-center gap-1.5 tabular-nums font-bold" title="<%= tier ? "#{tier.capitalize} for this #{d.side}" : 'Not enough games' %>">
+        <%= rank ? rank.rank : "–" %>
+        <% if tier %><span class="inline-block size-2.5 rounded-sm <%= { 'favorable' => 'bg-hit', 'neutral' => 'bg-push', 'unfavorable' => 'bg-miss' }[tier] %>"></span><% end %>
+      </span>
     </div>
-    <dl class="mt-4 grid grid-cols-3 gap-2 text-center">
-      <div class="rounded-xl bg-surface-2 p-2.5" title="Average allowed per game to this position group"><dt class="text-[10px] font-semibold uppercase tracking-wide text-muted">Allowed</dt><dd class="text-xl font-extrabold tabular-nums"><%= number_with_precision(d.defense.avg_allowed, precision: 1) %></dd></div>
-      <div class="rounded-xl bg-surface-2 p-2.5" title="1 = toughest defence in the league"><dt class="text-[10px] font-semibold uppercase tracking-wide text-muted">Rank</dt><dd class="text-xl font-extrabold tabular-nums"><%= d.defense.rank %></dd></div>
-      <div class="rounded-xl p-2.5 <%= PropsHelper::TIER_STYLES[d.tier] %>" title="From this <%= d.side %>'s side: <%= d.side == 'over' ? 'a defence that allows a lot is favorable' : 'a defence that allows little is favorable' %>"><dt class="text-[10px] font-semibold uppercase tracking-wide opacity-80">Matchup</dt><dd class="text-sm font-extrabold capitalize"><%= d.tier %></dd></div>
-    </dl>
-  <% else %>
-    <p class="mt-3 rounded-xl bg-surface-2 py-8 text-center text-sm text-muted">Not enough games to rank this defence yet.</p>
-  <% end %>
+    <div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-line px-3 py-2 text-xs text-muted">
+      <span>Opp. matchup</span>
+      <span class="inline-flex items-center gap-1"><span class="size-2.5 rounded-sm bg-hit"></span> Favorable</span>
+      <span class="inline-flex items-center gap-1"><span class="size-2.5 rounded-sm bg-push"></span> Neutral</span>
+      <span class="inline-flex items-center gap-1"><span class="size-2.5 rounded-sm bg-miss"></span> Unfavorable</span>
+    </div>
+  </div>
 </section>

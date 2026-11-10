@@ -5,11 +5,11 @@ module ChartsHelper
   def bars_chart_config(detail)
     bars = detail.bars
     {
-      type: "bar", decimals: 0, labels: bars.map { |b| "#{b.date.strftime('%-m/%-d')} #{b.label}" },
+      type: "bar", decimals: 0, labels: bars.map { |b| [ b.date.strftime("%-m/%-d"), b.label ] },
       datasets: [
         { kind: "bars", label: detail.market.market_type.then { StatCatalog.for_market(_1).label }, data: bars.map { |b| b.value.to_f }, colors: bars.map { |b| OUTCOME_COLOR.call(b.outcome) } },
         { kind: "line", label: "Line #{number_with_precision(detail.market.line, precision: 1)}", data: bars.map { detail.market.line.to_f }, color: "fg", dash: true },
-        { kind: "closing", label: "Closing line", data: bars.map { |b| b.closing_line&.to_f }, color: "ev", step: true, hidden: true }
+        { kind: "closing", label: "Closing line", data: bars.map { |b| b.closing_line&.to_f }, color: "accent", hidden: false }
       ]
     }
   end
@@ -17,7 +17,7 @@ module ChartsHelper
   def support_chart_config(series)
     bars = series.bars
     {
-      type: "bar", decimals: 1, labels: bars.map { |b| "#{b.date.strftime('%-m/%-d')} #{b.label}" },
+      type: "bar", decimals: 1, labels: bars.map { |b| [ b.date.strftime("%-m/%-d"), b.label ] },
       datasets: [
         { kind: "bars", label: series.label, data: bars.map { |b| b.value.to_f }, colors: bars.map { "muted" } },
         { kind: "avg", group: "mean", label: "Average", data: bars.map { series.mean&.to_f }, color: "accent", dash: true },

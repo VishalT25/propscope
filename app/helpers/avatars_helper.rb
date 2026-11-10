@@ -36,6 +36,11 @@ module AvatarsHelper
     end
   end
 
+  # Hero background: a wash of the player's team tint into the opponent's, over the dark canvas.
+  def hero_style(team, opponent)
+    "background: linear-gradient(115deg, hsl(#{hue_for(team&.abbreviation)} 55% 26%) 0%, var(--canvas) 52%, hsl(#{hue_for(opponent&.abbreviation)} 55% 24%) 100%)"
+  end
+
   def book_badge(bookmaker, size: :sm)
     if bookmaker.logo_url.present?
       image_tag(bookmaker.logo_url, alt: bookmaker.name, class: "#{SIZES.fetch(size).split.first} shrink-0 rounded-md object-contain", loading: "lazy")

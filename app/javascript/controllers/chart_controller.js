@@ -40,7 +40,7 @@ export default class extends Controller {
       const base = { label: d.label, data: d.data, hidden: !!d.hidden, _meta: d }
       if (d.kind === "bars") return { ...base, type: "bar", backgroundColor: d.colors.map(color), borderRadius: 4, maxBarThickness: 36, order: 2 }
       return { ...base, type: "line", borderColor: color(d.color), backgroundColor: color(d.color), borderDash: d.dash ? [ 6, 5 ] : [], borderWidth: d.kind === "movement" ? 2.5 : 2,
-               pointRadius: d.kind === "line" || d.group ? 0 : 3, stepped: d.step ? "before" : false, fill: false, order: 1, spanGaps: true }
+               pointRadius: d.kind === "line" || d.group ? 0 : (d.kind === "closing" ? 5 : 3), pointStyle: d.kind === "closing" ? "rectRounded" : "circle", stepped: d.step ? "before" : false, fill: false, order: 1, spanGaps: true }
     })
 
     const valueLabels = {

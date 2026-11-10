@@ -31,13 +31,13 @@ RSpec.describe DefenseRanker do
 
   it "caps tier size at a third of the league so a small league keeps a neutral middle" do
     seed_logs(teams.each_with_index.to_h { |t, i| [ t, 10 + i ] })
-    tiers = described_class.call(season: 2026, tier_size: 10).select { |r| r.stat == "points" }.map(&:tier)
+    tiers = described_class.call(season: 2026, tier_size: 10).select { |r| r.stat == "points" && r.position == "G" }.map(&:tier)
     expect(tiers.tally).to eq("unfavorable" => 2, "neutral" => 2, "favorable" => 2)
   end
 
   it "keeps positions separate and buckets hybrids like G-F under G" do
     seed_logs(teams.to_h { |t| [ t, 20 ] }, position: "G-F")
-    expect(described_class.call(season: 2026, tier_size: 2).map(&:position).uniq).to eq([ "G" ])
+    expect(described_class.call(season: 2026, tier_size: 2).map(&:position).uniq).to match_array(%w[G all])
   end
 
   it "ignores DNPs, other seasons and players without a position" do
@@ -47,7 +47,7 @@ RSpec.describe DefenseRanker do
     PlayerGameLog.update_all(minutes: 30)
     expect(described_class.call(season: 2025)).to be_empty
     Player.update_all(position: nil)
-    expect(described_class.call(season: 2026)).to be_empty
+    expect(described_class.call(season: 2026).map(&:position).uniq).to eq([ "all" ]) # only the all-positions rollup remains
   end
 
   it "averages per game across the whole position group, not per player" do
@@ -56,7 +56,7 @@ RSpec.describe DefenseRanker do
     g2 = create(:player, sport: sport, team: shooter_team, position: "G")
     game = create(:game, sport: sport, home_team: shooter_team, away_team: team, season: 2026, starts_at: 1.day.ago)
     [ g1, g2 ].each { |p| create(:player_game_log, player: p, game: game, team: shooter_team, opponent_team: team, points: 15, season: 2026) }
-    row = described_class.call(season: 2026).find { |r| r.team_id == team.id && r.stat == "points" }
+    row = described_class.call(season: 2026).find { |r| r.team_id == team.id && r.stat == "points" && r.position == "G" }
     expect(row.avg_allowed).to eq(30)
   end
 

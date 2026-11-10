@@ -2,7 +2,7 @@ class PropDetail
   # How the market has moved: replays every snapshot for this player/stat/game/side in time order, keeping the latest
   # line and price per book, and records a point whenever the consensus (median) line or the best price changes.
   class LineMovement
-    Point = Data.define(:at, :line, :best_odds, :books, :line_change, :odds_change)
+    Point = Data.define(:at, :line, :best_odds, :books, :line_change, :odds_change, :line_delta)
     Result = Data.define(:points)
 
     def self.call(**) = new(**).call
@@ -26,7 +26,7 @@ class PropDetail
         next if prev && prev.line == line && prev.best_odds == best
 
         points << Point.new(at: snap.captured_at, line: line, best_odds: best, books: state.size,
-                            line_change: prev && (line <=> prev.line), odds_change: prev && (best <=> prev.best_odds))
+                            line_change: prev && (line <=> prev.line), odds_change: prev && (best <=> prev.best_odds), line_delta: prev && (line - prev.line))
       end
       Result.new(points: points)
     end

@@ -51,8 +51,24 @@ module PropsHelper
 
   # Link to the detail page keeping the window / supporting stat / position tab the viewer picked.
   def detail_path(detail, **overrides)
-    keep = { window: params[:window], support: params[:support], pos: params[:pos] }.compact_blank
+    keep = { window: params[:window], support: params[:support], pos: params[:pos], dpos: params[:dpos], move: params[:move], all: params[:all] }.compact_blank
     league_prop_path(current_league, detail.market, overrides.delete(:side) || detail.side, **keep.merge(overrides).compact_blank)
+  end
+
+  # Pill text: season windows read as years (2026 / 2025) like the reference product.
+  def window_pill_label(key, season)
+    case key
+    when "season" then season.to_s
+    when "prev_season" then (season - 1).to_s
+    else window_label(key)
+    end
+  end
+
+  def streak_statement(detail)
+    s = detail.streak
+    stat = StatCatalog.for_market(detail.market.market_type)
+    "#{detail.player.full_name} has exceeded #{number_with_precision(detail.market.line, precision: 1)} #{stat.label.downcase} in #{s.count} straight games " \
+      "(#{number_with_precision(s.average, precision: 1)} average)."
   end
 
   def window_label(key) = HIT_COLUMNS.find { |k, _, _| k == key }&.second || key.upcase
