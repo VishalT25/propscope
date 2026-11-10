@@ -28,4 +28,11 @@ RSpec.describe Providers::Registry do
     adapter = described_class.send(:build, "sports_game_odds")
     expect(adapter.live?).to be(true)
   end
+
+  it "switches every capability to the live adapters when LIVE_DATA=true, whatever the environment" do
+    stub_const("ENV", ENV.to_h.merge("LIVE_DATA" => "true"))
+    expect(described_class.for(:odds)).to be_a(Providers::SportsGameOdds)
+    expect(described_class.for(:stats)).to be_a(Providers::BallDontLie)
+    expect(described_class.for(:stats).live?).to be(true)
+  end
 end

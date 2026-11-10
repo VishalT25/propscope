@@ -40,3 +40,11 @@
 
 /legacy-next/
 /.rubocop_todo.yml
+
+/model_service/.venv/
+/model_service/__pycache__/
+/model_service/**/__pycache__/
+/model_service/.pytest_cache/
+/tmp/model/
+/model_service/models/*
+!/model_service/models/.gitkeep

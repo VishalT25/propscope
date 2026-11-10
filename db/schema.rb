@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_10_000007) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_11_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -192,6 +192,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_10_000007) do
     t.index ["team_id"], name: "index_players_on_team_id"
   end
 
+  create_table "predictions", force: :cascade do |t|
+    t.bigint "market_id", null: false
+    t.string "side", null: false
+    t.decimal "probability", precision: 6, scale: 5, null: false
+    t.decimal "projection", precision: 6, scale: 2
+    t.string "model_version", null: false
+    t.datetime "computed_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["market_id", "side"], name: "index_predictions_on_market_id_and_side", unique: true
+    t.index ["market_id"], name: "index_predictions_on_market_id"
+  end
+
   create_table "prop_hit_rates", force: :cascade do |t|
     t.bigint "market_id", null: false
     t.string "side", null: false
@@ -315,6 +328,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_10_000007) do
   add_foreign_key "player_game_logs", "teams", column: "opponent_team_id"
   add_foreign_key "players", "sports"
   add_foreign_key "players", "teams"
+  add_foreign_key "predictions", "markets"
   add_foreign_key "prop_hit_rates", "markets"
   add_foreign_key "saved_filters", "users"
   add_foreign_key "sessions", "users"

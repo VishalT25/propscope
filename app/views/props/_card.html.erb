@@ -17,6 +17,12 @@
       <div class="text-[10px] font-semibold text-muted">OPP</div>
       <div class="text-sm font-bold tabular-nums <%= row.tier ? { 'favorable' => 'text-hit', 'unfavorable' => 'text-miss' }.fetch(row.tier, 'text-muted') : 'text-muted' %>"><%= row.opp_rank&.rank || "–" %></div>
     </div>
+    <% if row.prediction %>
+      <div class="w-14 shrink-0 rounded-lg px-1 py-1.5" style="<%= hit_rate_cell_style(model_pct(row.prediction), 100) %>" title="<%= model_tooltip(row) %>">
+        <div class="text-[10px] font-semibold text-muted">MODEL</div>
+        <div class="text-sm font-bold tabular-nums <%= hit_rate_text_class(model_pct(row.prediction), 100) %>"><%= percent_label(model_pct(row.prediction)) %></div>
+      </div>
+    <% end %>
     <% PropsHelper::HIT_COLUMNS.each do |key, label, _| %>
       <% rate, n = row.rate(key), row.sample(key) %>
       <div class="w-14 shrink-0 rounded-lg px-1 py-1.5" style="<%= hit_rate_cell_style(rate, n) %>" title="<%= hit_tooltip(label, rate, n) %>">

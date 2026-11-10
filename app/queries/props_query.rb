@@ -3,7 +3,7 @@
 class PropsQuery
   PER_PAGE = 50
   WINDOWS = %w[l5 l10 l20 h2h season prev_season].freeze
-  SORTS = (%w[line best_odds ip opp_rank] + WINDOWS).freeze
+  SORTS = (%w[line best_odds ip opp_rank model] + WINDOWS).freeze
   SIDES = %w[over under].freeze
   TIERS = %w[favorable neutral unfavorable].freeze
   INVERT = { "favorable" => "unfavorable", "unfavorable" => "favorable", "neutral" => "neutral" }.freeze
@@ -44,7 +44,7 @@ class PropsQuery
     end
   end
 
-  Row = Data.define(:market, :side, :player, :game, :line, :price, :implied, :hit, :opp_rank, :tier) do
+  Row = Data.define(:market, :side, :player, :game, :line, :price, :implied, :hit, :opp_rank, :tier, :prediction) do
     def team = player.team
     def opponent = game.home_team_id == player.team_id ? game.away_team : game.home_team
     def home? = game.home_team_id == player.team_id
@@ -69,9 +69,10 @@ class PropsQuery
     ids = markets.map(&:id)
     prices = BestPrice.for(market_ids: ids, bookmaker_ids: effective_book_ids)
     hits = PropHitRate.where(market_id: ids).index_by { |h| [ h.market_id, h.side ] }
+    predictions = Prediction.where(market_id: ids).index_by { |p| [ p.market_id, p.side ] } # empty when the model service is off
     ranks = defense_ranks(markets)
 
-    rows = markets.flat_map { |m| sides.filter_map { |side| build_row(m, side, prices, hits, ranks) } }
+    rows = markets.flat_map { |m| sides.filter_map { |side| build_row(m, side, prices, hits, ranks, predictions) } }
     rows = filter(rows)
     rows = sort(rows)
     total = rows.size
@@ -117,7 +118,7 @@ class PropsQuery
     DefenseRank.where(season: season).index_by { |r| [ r.team_id, r.stat, r.position ] }
   end
 
-  def build_row(market, side, prices, hits, ranks)
+  def build_row(market, side, prices, hits, ranks, predictions)
     price = prices[[ market.id, side ]] or return nil
     player = market.player
     game = market.game
@@ -128,7 +129,8 @@ class PropsQuery
     rank = ranks[[ opponent_id, stat.defense_stat, StatCatalog.position_bucket(player.position) ]]
     tier = rank && (side == "under" ? INVERT.fetch(rank.tier) : rank.tier)
     Row.new(market: market, side: side, player: player, game: game, line: market.line, price: price,
-            implied: OddsMath.american_to_implied(price.american_odds), hit: hits[[ market.id, side ]], opp_rank: rank, tier: tier)
+            implied: OddsMath.american_to_implied(price.american_odds), hit: hits[[ market.id, side ]], opp_rank: rank, tier: tier,
+            prediction: predictions[[ market.id, side ]])
   end
 
   def filter(rows)
@@ -157,6 +159,7 @@ class PropsQuery
     when "best_odds" then ->(r) { r.price.decimal_odds }
     when "ip" then ->(r) { r.implied }
     when "opp_rank" then ->(r) { r.opp_rank&.rank }
+    when "model" then ->(r) { r.prediction&.probability }
     else ->(r) { r.sample(name).to_i >= ApplicationHelper::MIN_SAMPLE ? r.rate(name) : nil }
     end
   end

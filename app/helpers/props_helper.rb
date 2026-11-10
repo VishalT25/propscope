@@ -9,6 +9,13 @@ module PropsHelper
   def pick_title(row) = pick_label(row.side, row.line, row.stat)
   def detail_pick_title(detail) = pick_label(detail.side, detail.market.line, StatCatalog.for_market(detail.market.market_type))
 
+  def model_pct(prediction) = prediction && (prediction.probability * 100)
+
+  def model_tooltip(row)
+    p = row.prediction
+    "Model (#{p.model_version}) projects #{number_with_precision(p.projection, precision: 1)} #{row.stat.short}: #{number_with_precision(p.probability * 100, precision: 0)}% chance of the #{row.side}, pushes excluded. A projection from past form, not a guarantee."
+  end
+
   def hits_in(rate, n) = rate && n ? (rate * n / 100).round : nil
 
   def hit_tooltip(label, rate, n)

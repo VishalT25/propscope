@@ -20,6 +20,12 @@
       <span class="inline-flex min-w-9 justify-center rounded-full px-2 py-0.5 text-xs font-bold tabular-nums <%= PropsHelper::TIER_STYLES[row.tier] %>" title="<%= tier_tooltip(row) %>"><%= row.opp_rank.rank %></span>
     <% else %><span class="text-muted" title="No defence data yet">–</span><% end %>
   </td>
+  <% if show_model %>
+    <td class="p-0.5 text-center">
+      <% if row.prediction %><div class="rounded-lg px-1 py-2 font-bold tabular-nums <%= hit_rate_text_class(model_pct(row.prediction), 100) %>" style="<%= hit_rate_cell_style(model_pct(row.prediction), 100) %>" title="<%= model_tooltip(row) %>"><%= percent_label(model_pct(row.prediction)) %></div>
+      <% else %><span class="text-muted" title="No model prediction for this prop">–</span><% end %>
+    </td>
+  <% end %>
   <% PropsHelper::HIT_COLUMNS.each do |key, label, _| %>
     <% rate, n = row.rate(key), row.sample(key) %>
     <td class="p-0.5 text-center">

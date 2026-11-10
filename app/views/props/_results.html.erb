@@ -12,6 +12,7 @@
   </details>
 </div>
 
+<% show_model = result.rows.any?(&:prediction) %>
 <% if result.rows.empty? %>
   <div class="card mt-3 grid place-items-center px-6 py-14 text-center">
     <h2 class="text-lg font-bold">No props match</h2>
@@ -31,6 +32,7 @@
           <th class="px-3 py-2.5"><%= link_to "Best price#{sort_arrow(filters, 'best_odds')}", league_props_path(current_league, sort_link_params(filters, "best_odds")), title: "Sort by best price" %></th>
           <th class="px-3 py-2.5 text-right"><%= link_to "IP#{sort_arrow(filters, 'ip')}", league_props_path(current_league, sort_link_params(filters, "ip")), title: "Implied probability of the best price" %></th>
           <th class="px-3 py-2.5 text-center"><%= link_to "Opp#{sort_arrow(filters, 'opp_rank')}", league_props_path(current_league, sort_link_params(filters, "opp_rank")), title: "Opponent rank vs this position (1 = toughest)" %></th>
+          <% if show_model %><th class="px-1 py-2.5 text-center"><%= link_to "Model#{sort_arrow(filters, 'model')}", league_props_path(current_league, sort_link_params(filters, "model")), title: "Model: chance this side wins, from the optional model service. Click to sort." %></th><% end %>
           <% PropsHelper::HIT_COLUMNS.each do |key, label, tip| %>
             <th class="px-1 py-2.5 text-center"><%= link_to "#{label}#{sort_arrow(filters, key)}", league_props_path(current_league, sort_link_params(filters, key)), title: "#{tip}. Click to sort." %></th>
           <% end %>
@@ -39,7 +41,7 @@
       </thead>
       <tbody class="divide-y divide-line">
         <% result.rows.each do |row| %>
-          <%= render "props/row", row: row %>
+          <%= render "props/row", row: row, show_model: show_model %>
         <% end %>
       </tbody>
     </table>

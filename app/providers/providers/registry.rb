@@ -3,9 +3,13 @@ module Providers
   class Registry
     CONFIG = Rails.application.config_for(:providers)
 
+    # What LIVE_DATA=true switches every capability to, whatever the environment (see docs/operations.md).
+    LIVE = { odds: "sports_game_odds", props: "sports_game_odds", reference: "balldontlie", stats: "balldontlie" }.freeze
+
     class << self
       def for(capability, env: Rails.env)
-        key = CONFIG.fetch(capability.to_sym) { raise ArgumentError, "unknown capability #{capability}" }
+        source = LiveData.enabled? ? LIVE : CONFIG
+        key = source.fetch(capability.to_sym) { raise ArgumentError, "unknown capability #{capability}" }
         build(key.to_s)
       end
 

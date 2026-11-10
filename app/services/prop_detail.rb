@@ -18,7 +18,7 @@ class PropDetail
   Streak = Data.define(:hits, :count, :average)
   Detail = Data.define(:market, :side, :player, :game, :team, :opponent, :price, :opposite_price, :books, :lines, :window, :bars, :summary,
                        :support, :support_averages, :defense, :defense_dpos, :defense_tabs, :tier, :history, :history_position, :history_all, :movement,
-                       :movement_side, :stat_tabs, :streak, :rates)
+                       :movement_side, :stat_tabs, :streak, :rates, :prediction)
 
   def self.call(**) = new(**).call
 
@@ -55,7 +55,8 @@ class PropDetail
       support: support_series(window_logs), support_averages: support_averages(window_logs), defense: defense, defense_dpos: @dpos, defense_tabs: defense_tabs, tier: defense && (@side == "under" ? PropsQuery::INVERT.fetch(defense.tier) : defense.tier),
       history: History.call(market: @market, opponent: opponent, position: history_position(player), closing_for: ClosingLines, side: @side, all: @all),
       history_position: history_position(player), history_all: @all, movement: LineMovement.call(market: @market, side: @move_side, bookmaker_ids: @bookmaker_ids),
-      movement_side: @move_side, stat_tabs: stat_tabs, streak: streak(logs, stat), rates: PropHitRate.find_by(market_id: @market.id, side: @side)
+      movement_side: @move_side, stat_tabs: stat_tabs, streak: streak(logs, stat), rates: PropHitRate.find_by(market_id: @market.id, side: @side),
+      prediction: Prediction.find_by(market_id: @market.id, side: @side)
     )
   end
 

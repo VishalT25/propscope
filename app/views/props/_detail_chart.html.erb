@@ -38,6 +38,12 @@
     <b class="text-fg"><%= s.avg_closing_line ? number_with_precision(s.avg_closing_line, precision: 1) : "–" %></b> Average closing line
   </p>
 
+  <% if d.prediction %>
+    <p class="mt-2 text-sm text-muted" title="From the optional model service (version <%= d.prediction.model_version %>). A projection from past form, not a guarantee.">
+      <b class="text-fg"><%= number_with_precision(d.prediction.probability * 100, precision: 0) %>%</b> model chance of the <%= d.side %>
+      <span aria-hidden="true">•</span> projects <b class="text-fg"><%= number_with_precision(d.prediction.projection, precision: 1) %></b> <%= StatCatalog.for_market(d.market.market_type).short.downcase %></p>
+  <% end %>
+
   <% if d.bars.empty? %>
     <div class="mt-4 grid place-items-center rounded-xl bg-surface-2 py-14 text-center text-sm text-muted">
       <p class="font-semibold text-fg">No games in this window yet</p>
