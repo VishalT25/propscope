@@ -23,7 +23,7 @@
 <% else %>
   <div class="card mt-3 hidden overflow-x-auto md:block">
     <table class="w-full min-w-[56rem] text-sm">
-      <thead class="border-b border-line text-left text-xs uppercase tracking-wide text-muted">
+      <thead class="border-b border-line text-left text-xs text-muted">
         <tr>
           <th class="px-3 py-2.5">Player</th>
           <th class="px-3 py-2.5">Matchup</th>
@@ -34,6 +34,7 @@
           <% PropsHelper::HIT_COLUMNS.each do |key, label, tip| %>
             <th class="px-1 py-2.5 text-center"><%= link_to "#{label}#{sort_arrow(filters, key)}", league_props_path(current_league, sort_link_params(filters, key)), title: "#{tip}. Click to sort." %></th>
           <% end %>
+          <th class="w-12"></th>
         </tr>
       </thead>
       <tbody class="divide-y divide-line">

@@ -1,0 +1,30 @@
+<% if feed.rows.empty? %>
+  <p class="py-10 text-center text-sm text-muted">No insights match yet. They are generated after odds and stats are loaded.</p>
+<% else %>
+  <ul class="divide-y divide-line">
+    <% feed.rows.each do |row| %>
+      <li class="py-3.5">
+        <div class="flex items-start gap-3">
+          <%= player_avatar(row.player) %>
+          <div class="min-w-0 flex-1">
+            <p class="font-semibold leading-snug"><%= row.insight.statement %></p>
+            <p class="mt-0.5 text-xs text-muted"><%= row.player.team.abbreviation %> · <%= row.game.away_team.abbreviation %> @ <%= row.game.home_team.abbreviation %> · <%= local_day(row.game.starts_at) %>, <%= local_time(row.game.starts_at) %></p>
+            <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
+              <%= link_to "#{row.insight.side.capitalize} #{number_with_precision(row.market.line, precision: 1)} #{row.stat.short}", league_prop_path(current_league, row.market, row.insight.side), class: "font-bold hover:text-accent", data: { turbo_frame: "_top" } %>
+              <% if row.price %><%= render "shared/price_chip", american: row.price.american_odds, bookmaker: row.price.bookmaker %><% end %>
+              <div class="min-w-40 flex-1"><%= render "shared/hit_rate_bar", results: row.outcomes %></div>
+            </div>
+          </div>
+          <span class="shrink-0 text-right text-xs text-muted" title="Strength: hit rate weighted by sample size (0 to 100)"><span class="block font-display text-lg font-bold text-fg tabular-nums"><%= number_with_precision(row.insight.strength, precision: 0) %></span>strength</span>
+        </div>
+      </li>
+    <% end %>
+  </ul>
+  <% if feed.pages > 1 %>
+    <nav class="mt-3 flex items-center justify-center gap-3 border-t border-line pt-3 text-sm" aria-label="Pages">
+      <% if feed.page > 1 %><%= link_to "← Previous", path_for_page.call(feed.page - 1), class: "chip" %><% end %>
+      <span class="text-muted">Page <%= feed.page %> of <%= feed.pages %></span>
+      <% if feed.page < feed.pages %><%= link_to "Next →", path_for_page.call(feed.page + 1), class: "chip" %><% end %>
+    </nav>
+  <% end %>
+<% end %>

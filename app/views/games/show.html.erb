@@ -1,0 +1,19 @@
+<% g = @game %>
+<% content_for :title, "#{g.away_team.abbreviation} @ #{g.home_team.abbreviation}" %>
+
+<%= link_to league_games_path(current_league, date: g.slate_date.iso8601), class: "mt-2 inline-flex items-center gap-1 text-sm font-medium text-muted hover:text-fg" do %><span aria-hidden="true">←</span> Games<% end %>
+
+<section class="card mt-2 overflow-hidden" style="<%= hero_style(g.away_team, g.home_team) %>">
+  <div class="grid grid-cols-[1fr_auto_1fr] items-center gap-3 px-4 py-6 text-center">
+    <div class="flex flex-col items-center gap-1.5"><%= team_badge(g.away_team, size: :xl) %><span class="font-display text-lg font-bold"><%= g.away_team.name %></span></div>
+    <div><p class="text-sm text-muted"><%= local_day(g.starts_at) %></p><p class="font-display text-2xl font-extrabold"><%= local_time(g.starts_at) %></p><p class="text-xs text-muted">@</p></div>
+    <div class="flex flex-col items-center gap-1.5"><%= team_badge(g.home_team, size: :xl) %><span class="font-display text-lg font-bold"><%= g.home_team.name %></span></div>
+  </div>
+  <div role="tablist" class="tabs tabs-border border-t border-fg/10 px-2">
+    <% { "odds" => "Odds", "insights" => "Insights", "matchup" => "Matchup" }.each do |key, label| %>
+      <%= link_to label, league_game_path(current_league, g, tab: key), role: "tab", class: "tab font-semibold #{'tab-active' if key == @tab}", "aria-selected": (key == @tab) %>
+    <% end %>
+  </div>
+</section>
+
+<%= render "games/#{@tab}", g: g %>

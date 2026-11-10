@@ -1,0 +1,43 @@
+<% groups = current_user ? PickSlip.call(user: current_user) : [] %>
+<dialog id="picks_slip" class="modal modal-bottom sm:modal-middle" aria-label="My picks">
+  <div class="modal-box max-w-lg bg-surface">
+    <div class="flex items-center justify-between">
+      <h2 class="text-lg font-bold">My picks</h2>
+      <form method="dialog"><button class="btn btn-sm btn-circle btn-ghost" aria-label="Close"><%= icon :close, css: "size-4" %></button></form>
+    </div>
+    <% if current_user.nil? %>
+      <p class="py-8 text-center text-sm text-muted"><%= link_to "Sign in", new_session_path, class: "text-accent underline" %> to build a slip. Picks are grouped by the book you will place them at.</p>
+    <% elsif groups.empty? %>
+      <p class="py-8 text-center text-sm text-muted">No picks yet. Use the + on any prop.</p>
+    <% else %>
+      <% share_text = groups.map { |gr| "#{gr.bookmaker.name}\n" + gr.lines.map { |l| "- #{l.player.full_name} #{l.pick.side} #{number_with_precision(l.market.line, precision: 1)} #{l.stat.short} (#{format_price(l.pick.price_at_add)})" }.join("\n") }.join("\n\n") %>
+      <div class="mt-3 space-y-5">
+        <% groups.each do |gr| %>
+          <section>
+            <h3 class="flex items-center gap-2 text-sm font-bold"><%= book_badge(gr.bookmaker) %> <%= gr.bookmaker.name %> <span class="font-normal text-muted"><%= gr.lines.size %> <%= "pick".pluralize(gr.lines.size) %></span></h3>
+            <ul class="mt-1 divide-y divide-line">
+              <% gr.lines.each do |l| %>
+                <li class="flex items-center gap-3 py-2.5">
+                  <%= player_avatar(l.player, size: :sm, badge: false) %>
+                  <div class="min-w-0 flex-1">
+                    <%= link_to l.player.full_name, league_prop_path(League.default, l.market, l.pick.side), class: "block truncate font-semibold hover:text-accent", data: { turbo_frame: "_top" } %>
+                    <span class="text-xs text-muted"><%= l.pick.side.capitalize %> <%= number_with_precision(l.market.line, precision: 1) %> <%= l.stat.short %></span>
+                  </div>
+                  <div class="text-right text-sm tabular-nums" title="Price when you added it, and the price now at this book">
+                    <span class="text-muted"><%= format_price(l.pick.price_at_add) %></span> <span aria-hidden="true">→</span>
+                    <% if l.now_odds %><b class="<%= { 1 => 'text-hit', -1 => 'text-miss', 0 => '' }[l.moved] %>"><%= format_price(l.now_odds) %></b><% else %><span class="text-muted" title="This book no longer offers the line">off</span><% end %>
+                  </div>
+                  <%= button_to picks_path_for(l.pick), method: :delete, class: "btn btn-ghost btn-xs btn-circle", "aria-label": "Remove pick", form: { class: "contents" } do %><%= icon :close, css: "size-3.5" %><% end %>
+                </li>
+              <% end %>
+            </ul>
+          </section>
+        <% end %>
+      </div>
+      <div class="modal-action" data-controller="clipboard" data-clipboard-text-value="<%= share_text %>">
+        <button type="button" class="btn btn-outline btn-sm" data-action="clipboard#copy"><span data-clipboard-target="label">Share</span></button>
+      </div>
+    <% end %>
+  </div>
+  <form method="dialog" class="modal-backdrop"><button aria-label="Close">close</button></form>
+</dialog>

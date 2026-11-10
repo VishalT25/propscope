@@ -1,3 +1,15 @@
 <% content_for :title, "Insights" %>
-<%= render "shared/page_header", title: "Insights", subtitle: "Plain-English streaks attached to an actionable pick, ranked and paginated." %>
-<%= render "shared/coming_soon", title: "Insights coming soon", body: "The data layer comes first. This page will read only from precomputed tables.", phase: "Phase 5" %>
+<%= render "shared/page_header", title: "Insights", subtitle: "Ready-made angles: streaks and splits written in plain English, each attached to a pick, ranked by strength." %>
+
+<%= form_with url: league_insights_path(current_league), method: :get, class: "mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-5", data: { turbo_action: "advance" } do %>
+  <%= select_tag :game_id, options_for_select([ [ "All games", "" ] ] + @games.map { |g| [ "#{g.away_team.abbreviation} @ #{g.home_team.abbreviation} · #{local_day(g.starts_at)}", g.id ] }, @filters[:game_id]), class: "field", "aria-label": "Game", onchange: "this.form.requestSubmit()" %>
+  <%= select_tag :team_id, options_for_select([ [ "All teams", "" ] ] + @teams.map { |t| [ t.name, t.id ] }, @filters[:team_id]), class: "field", "aria-label": "Team", onchange: "this.form.requestSubmit()" %>
+  <%= select_tag :market_type, options_for_select([ [ "All markets", "" ] ] + StatCatalog::ALL.map { |s| [ s.label, s.market_type ] }, @filters[:market_type]), class: "field", "aria-label": "Market", onchange: "this.form.requestSubmit()" %>
+  <%= search_field_tag :q, @filters[:q], placeholder: "Search players", class: "field", "aria-label": "Player", autocomplete: "off" %>
+  <button class="btn btn-primary" type="submit">Apply</button>
+<% end %>
+
+<section class="card mt-4 p-4">
+  <p class="text-sm text-muted"><span class="font-semibold text-fg"><%= number_with_delimiter(@feed.total) %></span> insights</p>
+  <%= render "insights/list", feed: @feed, path_for_page: ->(page) { league_insights_path(current_league, @filters.merge(page: page)) } %>
+</section>

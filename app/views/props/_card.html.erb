@@ -9,6 +9,7 @@
     <div class="shrink-0 text-right">
       <%= render "shared/price_chip", american: row.price.american_odds, bookmaker: row.price.bookmaker, book_name: row.price.bookmaker.name %>
       <div class="mt-1 text-xs tabular-nums text-muted" title="Implied probability of the best price">IP <%= number_with_precision(row.implied * 100, precision: 1) %>%</div>
+      <div class="mt-1.5"><%= render "props/add_pick", market: row.market, side: row.side %></div>
     </div>
   </div>
   <div class="no-scrollbar -mx-1 mt-3 flex gap-1 overflow-x-auto px-1 text-center">

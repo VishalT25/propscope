@@ -3,12 +3,12 @@
 module AvatarsHelper
   SIZES = { xs: "size-5 text-[8px]", sm: "size-7 text-[10px]", md: "size-9 text-xs", lg: "size-14 text-lg", xl: "size-20 text-2xl" }.freeze
 
-  # Stable hue 0..359 from any string (crc32 is deterministic across processes, unlike String#hash).
-  def hue_for(key) = Zlib.crc32(key.to_s) % 360
+  # Stable hue from any string (crc32 is deterministic across processes, unlike String#hash).
+  # Kept to 10..215 degrees (red, orange, gold, green, teal, cyan): the indigo and violet band is deliberately excluded.
+  def hue_for(key) = 10 + (Zlib.crc32(key.to_s) % 205)
 
   def tint_style(key)
-    hue = hue_for(key)
-    "background: linear-gradient(135deg, hsl(#{hue} 62% 46%), hsl(#{(hue + 28) % 360} 58% 34%)); color: #fff"
+    "background: oklch(46% 0.1 #{hue_for(key)}); color: oklch(97% 0.012 #{hue_for(key)})"
   end
 
   def team_badge(team, size: :sm)
@@ -38,7 +38,7 @@ module AvatarsHelper
 
   # Hero background: a wash of the player's team tint into the opponent's, over the dark canvas.
   def hero_style(team, opponent)
-    "background: linear-gradient(115deg, hsl(#{hue_for(team&.abbreviation)} 55% 26%) 0%, var(--canvas) 52%, hsl(#{hue_for(opponent&.abbreviation)} 55% 24%) 100%)"
+    "background: linear-gradient(115deg, oklch(30% 0.06 #{hue_for(team&.abbreviation)}) 0%, var(--color-base-200) 52%, oklch(29% 0.055 #{hue_for(opponent&.abbreviation)}) 100%)"
   end
 
   def book_badge(bookmaker, size: :sm)

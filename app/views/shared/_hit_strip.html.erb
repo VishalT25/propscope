@@ -1,0 +1,7 @@
+<%# Thin per-game hit/miss strip + %. locals: strip (Games::HitStrips::Strip or nil) %>
+<% if strip %>
+  <div class="flex items-center gap-2" title="Share of recent games that would have cleared today's line">
+    <div class="flex h-1.5 flex-1 gap-px"><% strip.outcomes.each do |o| %><span class="h-full flex-1 rounded-full <%= o.nil? ? 'bg-push' : (o ? 'bg-hit' : 'bg-miss') %>"></span><% end %></div>
+    <span class="w-9 text-right text-xs font-bold tabular-nums <%= hit_rate_text_class(strip.rate, strip.outcomes.compact.size) %>"><%= percent_label(strip.rate) %></span>
+  </div>
+<% end %>

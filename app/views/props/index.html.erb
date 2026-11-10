@@ -6,7 +6,7 @@
     <button type="button" class="chip" data-action="sheet#open" aria-haspopup="dialog">
       <%= icon :bars, css: "size-4" %> Filters
       <% if @filters.active_count.positive? %>
-        <span class="rounded-full bg-accent px-1.5 text-xs font-bold text-white" title="Current filters"><%= @filters.active_count %></span>
+        <span class="rounded-full bg-accent px-1.5 text-xs font-bold text-on-accent" title="Current filters"><%= @filters.active_count %></span>
       <% end %>
     </button>
     <button type="button" class="chip" data-action="sheet#open" data-sheet-tab-param="templates">Saved filters</button>

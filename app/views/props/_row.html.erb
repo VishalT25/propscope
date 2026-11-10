@@ -26,4 +26,5 @@
       <div class="rounded-lg px-1 py-2 font-bold tabular-nums <%= hit_rate_text_class(rate, n) %>" style="<%= hit_rate_cell_style(rate, n) %>" title="<%= hit_tooltip(label, rate, n) %>"><%= percent_label(rate, n) %></div>
     </td>
   <% end %>
+  <td class="px-2 text-right"><%= render "props/add_pick", market: row.market, side: row.side %></td>
 </tr>

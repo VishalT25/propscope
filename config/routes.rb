@@ -5,6 +5,7 @@ Rails.application.routes.draw do
   resource :preferences, only: :update
   patch "books", to: "books#update", as: :books
   resources :saved_filters, only: %i[create destroy]
+  resources :picks, only: %i[create destroy]
 
   root to: redirect("/nba/props")
 
@@ -13,7 +14,7 @@ Rails.application.routes.draw do
       get :count, on: :collection
     end
     get "props/:market_id/:side", to: "props#show", as: :prop, constraints: { market_id: /\d+/, side: /over|under/ }
-    resources :games, only: :index
+    resources :games, only: %i[index show]
     resources :insights, only: :index
   end
 

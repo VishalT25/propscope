@@ -72,4 +72,6 @@ module PropsHelper
   end
 
   def window_label(key) = HIT_COLUMNS.find { |k, _, _| k == key }&.second || key.upcase
+
+  def picks_path_for(pick) = pick_path(pick)
 end

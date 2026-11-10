@@ -4,7 +4,7 @@
 
 <section class="card relative mt-2 overflow-hidden" style="<%= hero_style(d.team, d.opponent) %>">
   <div class="flex items-start justify-between px-4 pt-4">
-    <%= link_to league_props_path(current_league), class: "inline-flex items-center gap-2 rounded-xl px-2 py-1.5 text-sm font-semibold hover:bg-white/10" do %>
+    <%= link_to league_props_path(current_league), class: "inline-flex items-center gap-2 rounded-xl px-2 py-1.5 text-sm font-semibold hover:bg-fg/10" do %>
       <span aria-hidden="true" class="text-lg">←</span> Back to props
     <% end %>
     <span class="chip cursor-not-allowed opacity-60" title="Game page arrives in the next phase">Matchup <span aria-hidden="true">›</span></span>
@@ -12,27 +12,27 @@
 
   <div class="flex flex-col items-center px-4 pb-5 text-center">
     <div class="flex items-center -space-x-3"><%= player_avatar(d.player, size: :xl, badge: false) %><%= team_badge(d.team, size: :xl) %></div>
-    <p class="mt-3 inline-flex items-center gap-2 rounded-full bg-black/30 px-3 py-1 text-sm font-semibold">
+    <p class="mt-3 inline-flex items-center gap-2 rounded-full bg-canvas/50 px-3 py-1 text-sm font-semibold">
       <span><%= d.game.home_team_id == d.team.id ? "#{d.opponent.abbreviation} @ #{d.team.abbreviation}" : "#{d.team.abbreviation} @ #{d.opponent.abbreviation}" %></span>
       <span class="text-muted"><%= local_day(d.game.starts_at) %> <%= local_time(d.game.starts_at) %></span>
     </p>
     <h1 class="mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl"><%= d.player.full_name %>
-      <span class="ml-1 align-middle text-sm font-semibold text-muted"><span class="rounded-full bg-black/30 px-2 py-0.5"><%= d.team.abbreviation %></span> (<%= d.player.position %>)</span></h1>
+      <span class="ml-1 align-middle text-sm font-semibold text-muted"><span class="rounded-full bg-canvas/50 px-2 py-0.5"><%= d.team.abbreviation %></span> (<%= d.player.position %>)</span></h1>
     <p class="mt-1 text-lg font-bold text-muted"><%= stat.label %> - <%= d.side.capitalize %> <%= number_with_precision(d.market.line, precision: 1) %></p>
-    <% if d.game.starts_at < Time.current %><p class="mt-2 rounded-lg bg-black/30 px-3 py-1.5 text-sm text-muted">This game has started. Prices are the last pregame snapshot.</p><% end %>
+    <% if d.game.starts_at < Time.current %><p class="mt-2 rounded-lg bg-canvas/50 px-3 py-1.5 text-sm text-muted">This game has started. Prices are the last pregame snapshot.</p><% end %>
   </div>
 
   <div class="flex flex-wrap items-center gap-2 px-4 pb-4">
     <% %w[over under].each do |side| %>
       <% price = side == d.side ? d.price : d.opposite_price %>
-      <%= link_to detail_path(d, side: side), class: "inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-bold #{side == d.side ? 'border-hit/70 bg-black/30' : 'border-line bg-black/20 text-muted hover:text-fg'}", "aria-current": (side == d.side ? "page" : nil) do %>
+      <%= link_to detail_path(d, side: side), class: "inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-bold #{side == d.side ? 'border-hit/70 bg-canvas/50' : 'border-line bg-canvas/40 text-muted hover:text-fg'}", "aria-current": (side == d.side ? "page" : nil) do %>
         <%= icon :bars, css: "size-4" %> <%= side.capitalize %> <%= number_with_precision(d.market.line, precision: 1) %>
         <span class="tabular-nums <%= side == d.side ? 'text-muted' : '' %>"><%= price ? format_price(price.american_odds) : "–" %></span>
       <% end %>
     <% end %>
 
     <details class="relative">
-      <summary class="inline-flex cursor-pointer list-none items-center gap-2 rounded-xl border border-line bg-black/20 px-4 py-2.5 text-sm font-bold">Alt lines <%= icon :chevron, css: "size-4" %></summary>
+      <summary class="inline-flex cursor-pointer list-none items-center gap-2 rounded-xl border border-line bg-canvas/40 px-4 py-2.5 text-sm font-bold">Alt lines <%= icon :chevron, css: "size-4" %></summary>
       <ul class="absolute z-30 mt-2 w-64 divide-y divide-line rounded-xl border border-line bg-surface p-1 text-sm shadow-xl">
         <% d.lines.each do |market, price| %>
           <li><%= link_to league_prop_path(current_league, market, d.side), class: "flex items-center justify-between rounded-lg px-3 py-2 hover:bg-surface-2 #{'font-bold text-accent' if market.id == d.market.id}", data: { turbo_frame: "_top" } do %>
@@ -42,7 +42,9 @@
       </ul>
     </details>
 
-    <details class="relative ml-auto">
+    <div class="ml-auto flex items-center gap-2">
+    <%= render "props/add_pick", market: d.market, side: d.side %>
+    <details class="relative">
       <summary class="flex cursor-pointer list-none items-center gap-3 rounded-xl bg-fg px-4 py-2.5 text-canvas" title="Best price across your enabled books">
         <% if d.price %>
           <span class="text-lg font-extrabold">⊕</span><span class="font-extrabold"><%= d.side.capitalize %> <%= number_with_precision(d.market.line, precision: 1) %></span>
@@ -51,9 +53,9 @@
         <%= icon :chevron, css: "size-4" %>
       </summary>
       <div class="absolute right-0 z-30 mt-2 w-80 rounded-xl border border-line bg-surface p-3 text-fg shadow-xl">
-        <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">All books (<%= d.books.size %>)</p>
+        <p class="mb-2 text-xs font-semibold text-muted">All books (<%= d.books.size %>)</p>
         <table class="w-full text-sm">
-          <thead class="text-left text-xs uppercase tracking-wide text-muted"><tr><th class="py-1">Book</th><th class="text-right">Over</th><th class="text-right">Under</th></tr></thead>
+          <thead class="text-left text-xs text-muted"><tr><th class="py-1">Book</th><th class="text-right">Over</th><th class="text-right">Under</th></tr></thead>
           <tbody class="divide-y divide-line">
             <% d.books.each do |row| %>
               <tr class="<%= 'opacity-45' unless row.enabled %>" title="<%= 'Not counted: switched off in your book selector' unless row.enabled %>">
@@ -66,9 +68,10 @@
         </table>
       </div>
     </details>
+    </div>
   </div>
 
-  <nav class="no-scrollbar flex gap-1 overflow-x-auto border-t border-white/10 px-3" aria-label="Stat">
+  <nav class="no-scrollbar flex gap-1 overflow-x-auto border-t border-fg/10 px-3" aria-label="Stat">
     <% d.stat_tabs.each do |tab_stat, tab_market| %>
       <% active = tab_stat.market_type == d.market.market_type %>
       <% if tab_market %>

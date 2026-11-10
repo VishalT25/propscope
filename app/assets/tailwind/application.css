@@ -1,74 +1,134 @@
 @import "tailwindcss";
 
-/* Design tokens. Dark first; light via [data-theme="light"].
-   Colour carries meaning: hit / miss / push, EV accent, tier colours. Everything else is neutral. */
-:root,
-[data-theme="dark"] {
-  --canvas: #0a0c11;
-  --surface: #12151c;
-  --surface-2: #1a1e29;
-  --line: #262b38;
-  --fg: #eceef4;
-  --muted: #8b93a7;
-  --hit: #22c55e;
-  --miss: #ef4444;
-  --push: #e0a526;
-  --ev: #3b9eff;
-  --accent: #7b7bff;
-  --accent-2: #19d3c5;
-  --fav: #22c55e;
-  --neutral: #8b93a7;
-  --unfav: #ef4444;
-  color-scheme: dark;
+/* daisyUI 5 (vendored, no node). We define our own themes in OKLCH, so none of the built-in themes ship. */
+@plugin "./daisyui.mjs" {
+  themes: false;
+  logs: false;
 }
 
-[data-theme="light"] {
-  --canvas: #f4f5f9;
-  --surface: #ffffff;
-  --surface-2: #eef0f6;
-  --line: #dde0ea;
-  --fg: #12151c;
-  --muted: #5d6578;
-  --hit: #16a34a;
-  --miss: #dc2626;
-  --push: #b7791f;
-  --ev: #1d7fe0;
-  --accent: #5b5bf0;
-  --accent-2: #0fa89c;
+/* Calibrated, never pure black or white. Hue 195 to 215 (deep teal-slate) keeps surfaces cohesive with the aquamarine accent. */
+@plugin "./daisyui-theme.mjs" {
+  name: "propscope-dark";
+  default: true;
+  prefersdark: true;
+  color-scheme: dark;
+  --color-base-100: oklch(17.5% 0.012 212);  /* canvas */
+  --color-base-200: oklch(21.5% 0.013 212);  /* surface */
+  --color-base-300: oklch(26.5% 0.015 212);  /* raised / inputs */
+  --color-base-content: oklch(93% 0.008 200);
+  --color-primary: oklch(83% 0.12 172);      /* aquamarine */
+  --color-primary-content: oklch(21% 0.035 190);
+  --color-secondary: oklch(74% 0.085 215);   /* cool cyan */
+  --color-secondary-content: oklch(21% 0.03 215);
+  --color-accent: oklch(78% 0.1 150);
+  --color-accent-content: oklch(21% 0.03 150);
+  --color-neutral: oklch(30% 0.015 212);
+  --color-neutral-content: oklch(93% 0.008 200);
+  --color-info: oklch(76% 0.1 232);          /* EV */
+  --color-info-content: oklch(21% 0.03 232);
+  --color-success: oklch(76% 0.16 155);      /* hit */
+  --color-success-content: oklch(20% 0.04 155);
+  --color-warning: oklch(80% 0.13 85);       /* push */
+  --color-warning-content: oklch(22% 0.04 85);
+  --color-error: oklch(67% 0.18 25);         /* miss */
+  --color-error-content: oklch(97% 0.012 25);
+  --radius-selector: 0.75rem;
+  --radius-field: 0.625rem;
+  --radius-box: 0.875rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
+@plugin "./daisyui-theme.mjs" {
+  name: "propscope-light";
+  default: false;
+  prefersdark: false;
   color-scheme: light;
+  --color-base-100: oklch(97.2% 0.008 195);
+  --color-base-200: oklch(94.8% 0.01 195);
+  --color-base-300: oklch(90.5% 0.012 195);
+  --color-base-content: oklch(25% 0.02 215);
+  --color-primary: oklch(54% 0.1 175);
+  --color-primary-content: oklch(97% 0.015 175);
+  --color-secondary: oklch(52% 0.09 215);
+  --color-secondary-content: oklch(97% 0.012 215);
+  --color-accent: oklch(52% 0.1 150);
+  --color-accent-content: oklch(97% 0.012 150);
+  --color-neutral: oklch(40% 0.02 215);
+  --color-neutral-content: oklch(97% 0.008 200);
+  --color-info: oklch(52% 0.11 235);
+  --color-info-content: oklch(97% 0.012 235);
+  --color-success: oklch(52% 0.13 155);
+  --color-success-content: oklch(97% 0.015 155);
+  --color-warning: oklch(58% 0.12 80);
+  --color-warning-content: oklch(97% 0.015 85);
+  --color-error: oklch(53% 0.17 25);
+  --color-error-content: oklch(97% 0.012 25);
+  --radius-selector: 0.75rem;
+  --radius-field: 0.625rem;
+  --radius-box: 0.875rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
+/* Extra semantic tokens daisyUI does not have. Our views and the chart controller read these names. */
+[data-theme="propscope-dark"] { --line: oklch(32% 0.016 212); --muted: oklch(72% 0.02 208); }
+[data-theme="propscope-light"] { --line: oklch(86% 0.014 195); --muted: oklch(48% 0.025 210); }
+
+:root {
+  --canvas: var(--color-base-100);
+  --surface: var(--color-base-200);
+  --surface-2: var(--color-base-300);
+  --fg: var(--color-base-content);
+  --hit: var(--color-success);
+  --miss: var(--color-error);
+  --push: var(--color-warning);
+  --ev: var(--color-info);
+  --accent: var(--color-primary);
+  --accent-2: var(--color-secondary);
+  --on-accent: var(--color-primary-content);
 }
 
 @theme inline {
-  --color-canvas: var(--canvas);
-  --color-surface: var(--surface);
-  --color-surface-2: var(--surface-2);
+  --color-canvas: var(--color-base-100);
+  --color-surface: var(--color-base-200);
+  --color-surface-2: var(--color-base-300);
   --color-line: var(--line);
-  --color-fg: var(--fg);
+  --color-fg: var(--color-base-content);
   --color-muted: var(--muted);
-  --color-hit: var(--hit);
-  --color-miss: var(--miss);
-  --color-push: var(--push);
-  --color-ev: var(--ev);
-  --color-accent: var(--accent);
-  --color-accent-2: var(--accent-2);
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --color-hit: var(--color-success);
+  --color-miss: var(--color-error);
+  --color-push: var(--color-warning);
+  --color-ev: var(--color-info);
+  --color-accent: var(--color-primary);
+  --color-accent-2: var(--color-secondary);
+  --color-on-accent: var(--color-primary-content);
+  --font-sans: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
 }
 
 @layer base {
-  body { background: var(--canvas); color: var(--fg); font-family: var(--font-sans); }
+  body { background: var(--color-base-100); color: var(--color-base-content); font-family: var(--font-sans); font-variant-numeric: tabular-nums; }
+  h1, h2, h3, .font-display { font-family: var(--font-display); letter-spacing: -0.01em; }
   [hidden] { display: none !important; }
+  :focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
 }
 
 @layer components {
-  .card { @apply rounded-2xl border border-line bg-surface; }
-  .chip { @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-medium text-fg transition-colors hover:bg-surface-2; }
-  .chip-active { @apply border-transparent bg-accent text-white hover:bg-accent; }
+  /* daisyUI's .card, restyled as a flat surface. No shadows, no glow. */
+  .card { background: var(--color-base-200); border: 1px solid var(--line); }
+  .chip { @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-medium text-fg transition-colors duration-150 ease-out hover:bg-surface-2; }
+  .chip-active { @apply border-transparent bg-accent text-on-accent hover:bg-accent; }
   .chip-disabled { @apply cursor-not-allowed opacity-45 hover:bg-surface; }
-  .btn { @apply inline-flex items-center justify-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-110; }
-  .btn-ghost { @apply inline-flex items-center justify-center gap-2 rounded-xl border border-line px-4 py-2.5 text-sm font-semibold text-fg hover:bg-surface-2; }
-  .field { @apply block w-full rounded-xl border border-line bg-surface-2 px-3.5 py-2.5 text-sm text-fg placeholder:text-muted focus:border-accent focus:outline-none; }
-  .hero-band { background: radial-gradient(120% 140% at 0% 0%, color-mix(in oklab, var(--accent) 38%, transparent), transparent 60%),
-                           radial-gradient(90% 120% at 100% 0%, color-mix(in oklab, var(--accent-2) 22%, transparent), transparent 60%); }
+  .field { @apply block w-full rounded-lg border border-line bg-surface-2 px-3.5 py-2.5 text-sm text-fg transition-colors duration-150 ease-out placeholder:text-muted focus:border-accent focus:outline-none; }
+  /* Calm aquamarine wash, not a gradient splash. */
+  .hero-band { background: linear-gradient(160deg, color-mix(in oklab, var(--color-primary) 13%, var(--color-base-200)) 0%, var(--color-base-200) 70%); }
   .no-scrollbar { scrollbar-width: none; }
   .no-scrollbar::-webkit-scrollbar { display: none; }
 }

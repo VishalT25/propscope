@@ -65,6 +65,9 @@ teams.each_with_index do |team, ti|
     }
   end
 end
+# SGO player IDs are unique: a second player with the same name gets _2_NBA, like the real feed.
+slug_counts = Hash.new(0)
+players.each { |p| key = slug(p[:sgo_name]); slug_counts[key] += 1; p[:sgo_id] = "#{key}_#{slug_counts[key]}_NBA" }
 roster = players.group_by { |p| p[:team][:id] }
 
 # Schedule: ~6-8 games a day for the 31 days before the anchor, then the 8-game slate on the anchor day.
@@ -172,7 +175,7 @@ events = games.reject { |g| g[:final] }.map do |g|
   event_players = {}
   [ home, away ].each do |team|
     roster[team[:id]].first(4).each do |p|
-      pid_sgo = "#{slug(p[:sgo_name])}_1_NBA"
+      pid_sgo = p[:sgo_id]
       event_players[pid_sgo] = { playerID: pid_sgo, teamID: "#{slug(team[:full])}_NBA", firstName: p[:sgo_name].split.first, lastName: p[:sgo_name].split[1..].join(" "), name: p[:sgo_name] }
       STATS.each do |stat, key|
         mean = key == :pra ? p[:pts] + p[:reb] + p[:ast] : p[key]

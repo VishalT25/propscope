@@ -1,0 +1,51 @@
+<section class="card mt-4 p-4">
+  <h2 class="text-lg font-bold">Game lines</h2>
+  <% [ [ "Moneyline", :moneyline, %w[away home], false ], [ "Spread", :spread, %w[away home], true ], [ "Total", :total, %w[over under], true ] ].each do |title, type, sides, show_line| %>
+    <div class="mt-3 border-t border-line pt-3">
+      <h3 class="mb-1 text-sm font-semibold text-muted"><%= title %></h3>
+      <div class="grid gap-x-6 sm:grid-cols-2">
+        <% sides.each do |side| %>
+          <% label = { "away" => g.away_team.abbreviation, "home" => g.home_team.abbreviation, "over" => "Over", "under" => "Under" }[side] %>
+          <%= render "shared/line_cell", cell: @lines.public_send(type)[side], strip: @strips[[ type.to_s, side ]], label: label, show_line: show_line %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+  <p class="mt-3 text-xs text-muted">Alternate markets (alt spreads and totals, win margin, team props) are not collected yet.</p>
+</section>
+
+<section class="mt-4">
+  <h2 class="mb-2 text-lg font-bold">Player props</h2>
+  <% if @props.empty? %>
+    <div class="card grid place-items-center px-6 py-10 text-center text-sm text-muted">No player props with a price from your enabled books.</div>
+  <% else %>
+    <div class="space-y-2">
+      <% StatCatalog::ALL.each do |stat| %>
+        <% list = @props[stat.market_type] %>
+        <% next unless list %>
+        <details class="collapse collapse-arrow card" <%= "open" if stat == StatCatalog::ALL.first %>>
+          <summary class="collapse-title font-semibold"><%= stat.label %> <span class="ml-1 text-sm font-normal text-muted"><%= list.size %> lines</span></summary>
+          <div class="collapse-content overflow-x-auto">
+            <table class="w-full min-w-[34rem] text-sm">
+              <thead class="text-left text-xs text-muted"><tr><th class="py-1.5">Player</th><th>Line</th><th>Over</th><th>Under</th><th class="text-right" title="Share of the last 10 games that cleared the line, per side">L10 O / U</th></tr></thead>
+              <tbody class="divide-y divide-line">
+                <% list.each do |market, sides| %>
+                  <tr>
+                    <td class="py-2"><%= link_to league_prop_path(current_league, market, (sides["over"] || sides["under"]).side), class: "inline-flex items-center gap-2 font-semibold hover:text-accent" do %><%= player_avatar(market.player, size: :sm, badge: false) %><span><%= market.player.full_name %></span><% end %></td>
+                    <td class="tabular-nums"><%= number_with_precision(market.line, precision: 1) %></td>
+                    <% %w[over under].each do |side| %>
+                      <td><% if sides[side] %><%= render "shared/price_chip", american: sides[side].price.american_odds, bookmaker: sides[side].price.bookmaker %><% else %><span class="text-muted">–</span><% end %></td>
+                    <% end %>
+                    <td class="text-right font-bold tabular-nums">
+                      <% %w[over under].each_with_index do |side, i| %><%= " / " if i == 1 %><span class="<%= hit_rate_text_class(sides[side]&.rate("l10"), sides[side]&.sample("l10")) %>"><%= sides[side] ? percent_label(sides[side].rate("l10")) : "–" %></span><% end %>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        </details>
+      <% end %>
+    </div>
+  <% end %>
+</section>

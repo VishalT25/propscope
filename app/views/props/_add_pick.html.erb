@@ -1,0 +1,6 @@
+<%# locals: market, side %>
+<% if current_user %>
+  <%= button_to picks_path(market_id: market.id, side: side), method: :post, class: "btn btn-circle btn-outline btn-sm", title: "Add to My Picks", "aria-label": "Add to My Picks", form: { class: "contents" } do %>+<% end %>
+<% else %>
+  <%= link_to "+", new_session_path, class: "btn btn-circle btn-outline btn-sm", title: "Sign in to build a slip", "aria-label": "Sign in to add to My Picks" %>
+<% end %>

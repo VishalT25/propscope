@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="propscope-dark">
   <head>
     <title><%= content_for(:title) ? "#{content_for(:title)} · #{app_name}" : app_name %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -8,14 +8,14 @@
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <script>
-      try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
+      try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = "propscope-" + t; } catch (e) {}
     </script>
     <%= yield :head %>
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Hanken+Grotesk:wght@400..800&display=swap">
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
@@ -27,6 +27,7 @@
       <%= render "shared/header" %>
       <%= render "books/panel" %>
     </div>
+    <%= render "picks/slip" %>
     <%= render "shared/flash" %>
     <main class="mx-auto w-full max-w-screen-2xl px-4 pb-24 pt-4">
       <%= yield %>

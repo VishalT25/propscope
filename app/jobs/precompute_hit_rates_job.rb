@@ -2,5 +2,8 @@
 class PrecomputeHitRatesJob < ApplicationJob
   queue_as :default
 
-  def perform = HitRates::Precompute.call
+  def perform
+    HitRates::Precompute.call
+    GenerateInsightsJob.perform_later
+  end
 end

@@ -6,8 +6,8 @@ class HitRateCalculator
   WINDOWS = %i[l5 l10 l20 h2h season prev_season].freeze
   RECENT = { l5: 5, l10: 10, l20: 20 }.freeze
 
-  GameValue = Data.define(:date, :season, :opponent_id, :value, :minutes, :game_id) do
-    def initialize(game_id: nil, **rest) = super
+  GameValue = Data.define(:date, :season, :opponent_id, :value, :minutes, :game_id, :home) do
+    def initialize(game_id: nil, home: nil, **rest) = super
   end
 
   Window = Data.define(:hits, :misses, :pushes) do
@@ -21,7 +21,7 @@ class HitRateCalculator
 
   # Builds GameValues from PlayerGameLog rows for a given stat.
   def self.game_values(logs, stat)
-    logs.map { |l| GameValue.new(date: l.game_date, season: l.season, opponent_id: l.opponent_team_id, value: stat.value(l), minutes: l.minutes, game_id: l.game_id) }
+    logs.map { |l| GameValue.new(date: l.game_date, season: l.season, opponent_id: l.opponent_team_id, value: stat.value(l), minutes: l.minutes, game_id: l.game_id, home: l.home) }
   end
 
   # Per-game hit (true) / miss (false) / push (nil) for the last `count` played games, oldest first (for the bar).

@@ -9,16 +9,16 @@ export default class extends Controller {
   light() { this.#set("light") }
 
   #set(theme) {
-    document.documentElement.dataset.theme = theme
+    document.documentElement.dataset.theme = `propscope-${theme}`
     try { localStorage.setItem("theme", theme) } catch (e) { /* storage unavailable */ }
     this.#paint()
   }
 
   #paint() {
-    const current = document.documentElement.dataset.theme
+    const current = document.documentElement.dataset.theme.replace("propscope-", "")
     for (const [name, el] of [["dark", this.darkTarget], ["light", this.lightTarget]]) {
       el.classList.toggle("bg-accent", name === current)
-      el.classList.toggle("text-white", name === current)
+      el.classList.toggle("text-on-accent", name === current)
       el.classList.toggle("text-muted", name !== current)
       el.setAttribute("aria-pressed", name === current)
     }

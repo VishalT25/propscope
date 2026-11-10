@@ -9,9 +9,9 @@
   <% if d.history.empty? %>
     <p class="mt-3 rounded-xl bg-surface-2 py-8 text-center text-sm text-muted">No games by this position against <%= d.opponent.name %> yet.</p>
   <% else %>
-    <div class="mt-2 overflow-x-auto rounded-xl border border-line">
+    <div class="mt-2 overflow-x-auto border-t border-line">
       <table class="w-full min-w-[28rem] text-sm">
-        <thead class="bg-surface-2 text-left text-xs text-muted"><tr><th class="px-3 py-2">Player &amp; Date</th><th class="px-3 text-right">Result</th><th class="border-l border-line px-3" title="The line that game closed at. A star means we have no closing line, so the current line is used.">Line</th><th class="px-3 text-right">Odds</th></tr></thead>
+        <thead class="text-left text-xs text-muted"><tr><th class="px-3 py-2">Player &amp; Date</th><th class="px-3 text-right">Result</th><th class="border-l border-line px-3" title="The line that game closed at. A star means we have no closing line, so the current line is used.">Line</th><th class="px-3 text-right">Odds</th></tr></thead>
         <tbody class="divide-y divide-line">
           <% d.history.each do |h| %>
             <% won = h.outcome.nil? ? nil : (h.outcome == (d.side == "over")) %>

@@ -16,6 +16,7 @@ Nothing touches the network unless `LIVE_DATA=true`. In development and test, ev
 | `MarkClosingLinesJob` | every 10 min | Flags the last pre-tip snapshot as closing. |
 | `ComputeDefenseRanksJob` | 04:30 daily (also after each stats ingest) | Defence vs position ranks from our own logs. |
 | `PrecomputeHitRatesJob` | 04:45 daily (also after each odds snapshot and stats ingest) | `prop_hit_rates` for every upcoming player prop, both sides. Pages read this table. |
+| `GenerateInsightsJob` | 04:50 daily (also after each hit-rate run) | Runs the five insight rules over every upcoming prop and replaces that slate's insights. |
 | `PurgeRawPayloadsJob` | 05:30 daily | Deletes raw payloads older than 14 days. |
 
 Jobs are idempotent: running any twice creates no duplicates (covered by specs).

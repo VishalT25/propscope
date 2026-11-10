@@ -1,0 +1,12 @@
+<%# One outcome of a game line. locals: cell (Games::Lines::Cell or nil), strip, label %>
+<div class="min-w-0 flex-1 py-2">
+  <% if cell %>
+    <div class="flex items-center justify-between gap-2">
+      <span class="text-sm font-semibold"><%= label %><%= " #{cell.line > 0 && cell.market.market_type == 'spread' ? '+' : ''}#{number_with_precision(cell.line, precision: 1, strip_insignificant_zeros: true)}" if cell.line && local_assigns[:show_line] != false %></span>
+      <%= render "shared/price_chip", american: cell.price.american_odds, bookmaker: cell.price.bookmaker, book_name: "#{cell.price.bookmaker.name} (#{pluralize(cell.price.books_count, 'book')})" %>
+    </div>
+    <div class="mt-1.5"><%= render "shared/hit_strip", strip: strip %></div>
+  <% else %>
+    <p class="text-sm text-muted"><%= label %> <span class="ml-1">–</span></p>
+  <% end %>
+</div>

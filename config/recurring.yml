@@ -27,6 +27,9 @@ production:
   precompute_hit_rates:
     class: PrecomputeHitRatesJob
     schedule: 45 4 * * * America/New_York
+  generate_insights:
+    class: GenerateInsightsJob
+    schedule: 50 4 * * * America/New_York
   purge_raw_payloads:
     class: PurgeRawPayloadsJob
     schedule: 30 5 * * *

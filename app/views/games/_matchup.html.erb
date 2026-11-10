@@ -1,0 +1,44 @@
+<% home, away = g.home_team, g.away_team %>
+<section class="card mt-4 p-4">
+  <h2 class="text-lg font-bold">Team rankings</h2>
+  <p class="mt-1 text-sm text-muted">Averages per game from our box scores. Offence rank 1 scores the most; defence rank 1 allows the fewest.</p>
+  <% [ [ away, home ], [ home, away ] ].each do |att, dfn| %>
+    <% a, d = @stats[att.id], @stats[dfn.id] %>
+    <div class="mt-4 border-t border-line pt-3">
+      <h3 class="flex items-center gap-2 text-sm font-semibold"><%= team_badge(att, size: :xs) %> <%= att.abbreviation %> offence <span class="text-muted">vs</span> <%= team_badge(dfn, size: :xs) %> <%= dfn.abbreviation %> defence</h3>
+      <% if a && d %>
+        <div class="mt-2 divide-y divide-line">
+          <% Games::TeamStats::STATS.each do |stat, label| %>
+            <% off, def_ = a.scored[stat], d.allowed[stat] %>
+            <% total = off.avg + def_.avg %>
+            <div class="grid grid-cols-[4.5rem_1fr_4.5rem] items-center gap-3 py-2 text-sm">
+              <span class="tabular-nums"><b><%= number_with_precision(off.avg, precision: 1) %></b> <span class="text-xs text-muted">#<%= off.rank %></span></span>
+              <div>
+                <p class="text-center text-xs text-muted"><%= label %></p>
+                <div class="mt-1 flex h-2 gap-0.5" role="img" aria-label="<%= att.abbreviation %> <%= off.avg %> vs <%= dfn.abbreviation %> allows <%= def_.avg %>">
+                  <span class="rounded-l-full bg-accent" style="width: <%= (off.avg / total * 100).round(1) %>%"></span><span class="rounded-r-full bg-accent-2" style="width: <%= (def_.avg / total * 100).round(1) %>%"></span>
+                </div>
+              </div>
+              <span class="text-right tabular-nums"><span class="text-xs text-muted">#<%= def_.rank %></span> <b><%= number_with_precision(def_.avg, precision: 1) %></b></span>
+            </div>
+          <% end %>
+        </div>
+      <% else %><p class="mt-2 text-sm text-muted">Not enough games yet.</p><% end %>
+    </div>
+  <% end %>
+</section>
+
+<section class="card mt-4 p-4">
+  <h2 class="text-lg font-bold">Team records</h2>
+  <div class="mt-3 grid grid-cols-[1fr_auto_1fr] gap-x-4 gap-y-1 text-sm">
+    <% [ [ "Overall", :overall ], [ "Home", :home ], [ "Road", :away ] ].each do |label, key| %>
+      <span class="text-right font-bold tabular-nums"><%= @records[away.id][key] %></span><span class="text-center text-muted"><%= label %></span><span class="font-bold tabular-nums"><%= @records[home.id][key] %></span>
+    <% end %>
+    <span class="text-right"><%= safe_join(@records[away.id][:form].map { |w| tag.span(w ? "W" : "L", class: "mr-1 font-bold #{w ? 'text-hit' : 'text-miss'}") }) %></span><span class="text-center text-muted">Last 5</span><span><%= safe_join(@records[home.id][:form].map { |w| tag.span(w ? "W" : "L", class: "mr-1 font-bold #{w ? 'text-hit' : 'text-miss'}") }) %></span>
+  </div>
+</section>
+
+<section class="card mt-4 p-4">
+  <h2 class="text-lg font-bold">Injuries, lineups and public betting</h2>
+  <p class="mt-1 text-sm text-muted">Not shown. The free data sources do not supply them and we will not fake them. The injuries feature stays off until a provider is configured.</p>
+</section>

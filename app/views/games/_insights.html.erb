@@ -1,0 +1,4 @@
+<section class="card mt-4 p-4">
+  <h2 class="text-lg font-bold">Insights <span class="text-sm font-normal text-muted">· <%= number_with_delimiter(@feed.total) %> ranked by strength</span></h2>
+  <%= render "insights/list", feed: @feed, path_for_page: ->(page) { league_game_path(current_league, g, tab: "insights", page: page) } %>
+</section>

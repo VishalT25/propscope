@@ -70,6 +70,7 @@ module Ingest
       seed_closing_history
       DefenseRanker.call(season: Game.maximum(:season))
       HitRates::Precompute.call
+      Insights::Engine.call
     end
   end
 end

@@ -1,3 +1,28 @@
 <% content_for :title, "Games" %>
-<%= render "shared/page_header", title: "Games", subtitle: "Today's slate with best price per market and hit-rate strips." %>
-<%= render "shared/coming_soon", title: "Games coming soon", body: "The data layer comes first. This page will read only from precomputed tables.", phase: "Phase 5" %>
+<%= render "shared/page_header", title: "Games", subtitle: "Today's slate with the best price on every line and how often each side has cleared it lately." %>
+
+<div class="mt-4 flex flex-wrap items-center gap-3">
+  <nav class="no-scrollbar -mx-1 flex flex-1 gap-1.5 overflow-x-auto px-1" aria-label="Date">
+    <% @dates.each_with_index do |(date, count), i| %>
+      <%= link_to league_games_path(current_league, date: date.iso8601, q: @query), class: "chip shrink-0 flex-col !items-start !gap-0 !rounded-xl !px-3.5 !py-2 #{'chip-active' if date == @date}", "aria-current": (date == @date ? "date" : nil) do %>
+        <span class="text-sm font-bold"><%= i.zero? ? "Today" : date.strftime("%a") %></span>
+        <span class="text-xs opacity-80"><%= date.strftime("%b %-d") %> · <%= count %></span>
+      <% end %>
+    <% end %>
+  </nav>
+  <%= form_with url: league_games_path(current_league), method: :get, class: "w-full sm:w-64", data: { turbo_action: "advance" } do %>
+    <%= hidden_field_tag :date, @date.iso8601, id: nil %>
+    <%= search_field_tag :q, @query, placeholder: "Search teams", class: "field", "aria-label": "Search teams", autocomplete: "off" %>
+  <% end %>
+</div>
+
+<% if @cards.empty? %>
+  <div class="card mt-4 grid place-items-center px-6 py-14 text-center">
+    <h2 class="text-lg font-bold"><%= @query ? "No games match “#{@query}”" : "No games on #{@date.strftime('%b %-d')}" %></h2>
+    <p class="mt-1 max-w-md text-sm text-muted"><%= @query ? "Try a team name or code, or another day." : "Pick another day in the strip above." %></p>
+  </div>
+<% else %>
+  <div class="mt-4 grid gap-4 lg:grid-cols-2">
+    <% @cards.each do |card| %><%= render "games/card", card: card %><% end %>
+  </div>
+<% end %>

@@ -3,6 +3,6 @@
   <h1 class="text-2xl font-extrabold tracking-tight">Forgot your password?</h1>
   <%= form_with url: passwords_path, class: "mt-5 space-y-3" do |form| %>
     <%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "username", placeholder: "Email address", value: params[:email_address], class: "field" %>
-    <%= form.submit "Email reset instructions", class: "btn w-full cursor-pointer" %>
+    <%= form.submit "Email reset instructions", class: "btn btn-primary w-full cursor-pointer" %>
   <% end %>
 </div>

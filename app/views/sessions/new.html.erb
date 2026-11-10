@@ -4,7 +4,7 @@
   <%= form_with url: session_url, class: "mt-5 space-y-3" do |form| %>
     <%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "username", placeholder: "Email address", value: params[:email_address], class: "field" %>
     <%= form.password_field :password, required: true, autocomplete: "current-password", placeholder: "Password", maxlength: 72, class: "field" %>
-    <%= form.submit "Sign in", class: "btn w-full cursor-pointer" %>
+    <%= form.submit "Sign in", class: "btn btn-primary w-full cursor-pointer" %>
   <% end %>
   <div class="mt-4 flex justify-between text-sm text-muted">
     <%= link_to "Forgot password?", new_password_path, class: "hover:text-fg" %>

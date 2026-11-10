@@ -2,7 +2,7 @@
 # then truncate (the rows are committed, so transactional rollback cannot remove them).
 module SeededData
   def seed_fixtures_once
-    before(:context) { Ingest::SeedFixtures.call }
+    before(:context) { Ingest::SeedFixtures.call(today: Date.current + 1) } # tomorrow: always upcoming, whatever the time of day
     after(:context) do
       conn = ActiveRecord::Base.connection
       conn.truncate_tables(*(conn.tables - %w[schema_migrations ar_internal_metadata]))
