@@ -8,7 +8,7 @@ class Setting < ApplicationRecord
   class << self
     def get(key, default = nil)
       find_by(key: key.to_s)&.value.presence || default
-    rescue ActiveRecord::NoDatabaseError, ActiveRecord::StatementInvalid, ActiveRecord::Encryption::Errors::Decryption
+    rescue ActiveRecord::NoDatabaseError, ActiveRecord::StatementInvalid, ActiveRecord::Encryption::Errors::Base
       default
     end
 

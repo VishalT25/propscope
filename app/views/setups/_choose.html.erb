@@ -1,0 +1,20 @@
+<section class="mt-6 grid gap-8 lg:grid-cols-[3fr_2fr]">
+  <div class="card p-6">
+    <h2 class="text-xl font-bold">Use your own data</h2>
+    <p class="mt-1 max-w-prose text-pretty text-sm text-muted">Real odds, lines and box scores, loaded with accounts you own. Nothing is shared with anyone: this computer talks only to the data providers.</p>
+    <ol class="mt-4 space-y-2 text-sm">
+      <li><b>A SportsGameOdds key.</b> The free plan is enough. <%= link_to "Get one", "https://sportsgameodds.com", target: "_blank", rel: "noopener noreferrer", class: "font-semibold text-accent hover:underline" %></li>
+      <li><b>A BallDontLie key on their paid plan.</b> Box scores, which hit rates need, are not on the free plan. <%= link_to "Get one", "https://balldontlie.io", target: "_blank", rel: "noopener noreferrer", class: "font-semibold text-accent hover:underline" %></li>
+      <li><b>About half an hour, once.</b> The first load of two seasons of history runs in the background.</li>
+    </ol>
+    <p class="mt-3 text-xs text-muted">You are responsible for following each provider's terms.</p>
+    <div class="mt-5"><%= button_to "Use my own data", choose_setup_path(mode: "live"), method: :post, class: "btn btn-primary btn-sm", form: { class: "contents" } %></div>
+  </div>
+
+  <div class="self-center">
+    <h2 class="text-lg font-bold">Just looking around?</h2>
+    <p class="mt-1 text-sm text-muted">Load sample data: made-up players, made-up odds, ready in a few seconds, and no keys. Nothing in it is real.</p>
+    <%= button_to "Use sample data", choose_setup_path(mode: "sample"), method: :post, class: "btn btn-outline btn-sm mt-4", form: { class: "contents" },
+          data: { turbo_submits_with: "Loading sample data…" } %>
+  </div>
+</section>

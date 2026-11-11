@@ -1,0 +1,29 @@
+<%= form_with url: keys_setup_path, method: :patch, class: "mt-6 max-w-2xl" do %>
+  <div class="divide-y divide-line">
+    <% ApiKeys::PROVIDERS.each do |provider, meta| %>
+      <% check = ApiKeys.present?(provider) ? Setup.check(provider) : nil %>
+      <fieldset class="py-5 first:pt-0">
+        <legend class="sr-only"><%= meta[:name] %> key</legend>
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <label for="key_<%= provider %>" class="font-bold"><%= meta[:name] %> <span class="text-sm font-normal text-muted">for <%= meta[:purpose] %></span></label>
+          <% if check == "box_scores" || check == "ok" %><span class="text-sm font-semibold text-hit">Tested: works</span>
+          <% elsif check == "no_box_scores" %><span class="text-sm font-semibold text-miss">Works, but no box scores</span>
+          <% else %><span class="text-sm text-muted">Not tested yet</span><% end %>
+        </div>
+        <input id="key_<%= provider %>" type="password" name="keys[<%= provider %>]" autocomplete="off" spellcheck="false" class="field mt-2 w-full font-mono"
+               placeholder="<%= ApiKeys.present?(provider) ? "#{ApiKeys.hint(provider)} saved. Leave blank to keep it, or paste a new key." : "Paste your #{meta[:name]} key" %>">
+        <p class="mt-1 text-xs text-muted">
+          <% if ApiKeys.source(provider) == :environment %>Set by the <code class="font-mono"><%= meta[:env] %></code> environment variable, which takes priority.
+          <% else %>Not sure where to find it? <%= link_to "Open #{meta[:name]}", provider == "balldontlie" ? "https://balldontlie.io" : "https://sportsgameodds.com", target: "_blank", rel: "noopener noreferrer", class: "font-semibold text-accent hover:underline" %>.<% end %>
+          <% if provider == "balldontlie" && check == "no_box_scores" %><span class="text-miss">Hit rates need box scores, which come with BallDontLie's paid (ALL-STAR) plan.</span><% end %>
+        </p>
+      </fieldset>
+    <% end %>
+  </div>
+
+  <p class="mt-2 text-xs text-muted">Testing a key makes a couple of tiny requests (one SportsGameOdds event, a few BallDontLie calls). Keys are never shown again, only their last four characters.</p>
+  <div class="mt-4 flex flex-wrap items-center gap-3">
+    <button type="submit" class="btn btn-primary btn-sm" data-turbo-submits-with="Testing…">Save and test keys</button>
+    <%= link_to "Back", (Setup.complete? ? settings_path : choose_setup_path(mode: "back")), data: { turbo_method: (Setup.complete? ? "get" : "post") }, class: "text-sm font-semibold text-muted hover:text-fg" %>
+  </div>
+<% end %>

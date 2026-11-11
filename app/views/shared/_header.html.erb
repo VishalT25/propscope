@@ -1,3 +1,4 @@
+<% setting_up = controller_name == "setups" && Setup.required? %>
 <header class="sticky top-0 z-40 border-b border-line bg-canvas/90 backdrop-blur">
   <div class="mx-auto flex min-h-14 w-full max-w-screen-2xl flex-wrap items-center gap-x-3 px-4 md:flex-nowrap md:gap-x-6">
     <%= link_to root_path, class: "flex items-center gap-2 py-2 font-extrabold tracking-tight" do %>
@@ -5,6 +6,7 @@
       <span class="text-lg"><%= app_name %></span>
     <% end %>
 
+    <% unless setting_up %>
     <%# Inline on desktop. On phones it wraps to its own row under the logo and scrolls sideways: no menu to open. %>
     <nav aria-label="Main" class="no-scrollbar order-last -mx-4 w-[calc(100%+2rem)] overflow-x-auto border-t border-line px-3 py-1.5 md:order-none md:mx-0 md:w-auto md:border-0 md:p-0">
       <ul class="flex items-center gap-1">
@@ -17,7 +19,9 @@
         <% end %>
       </ul>
     </nav>
+    <% end %>
 
+    <% unless setting_up %>
     <div class="ml-auto flex items-center gap-2">
       <%= render "books/chip" %>
       <button type="button" class="relative rounded-lg p-2 text-muted transition-colors duration-150 hover:bg-surface-2 hover:text-fg" aria-label="My picks" title="My picks"
@@ -27,5 +31,6 @@
       </button>
       <%= render "shared/account_menu" %>
     </div>
+    <% end %>
   </div>
 </header>

@@ -102,6 +102,7 @@ module Backfill
 
     def finish(state, message = nil)
       @run.update!(state: state, message: message, finished_at: Time.current, heartbeat_at: Time.current)
+      Setup.finish_live if state == "done"
       @run
     end
   end

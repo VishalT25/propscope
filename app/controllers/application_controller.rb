@@ -12,6 +12,7 @@ class ApplicationController < ActionController::Base
   # Always know who is signed in (guests are allowed on public pages).
   before_action :resume_session
   before_action :use_local_user
+  before_action :require_setup
 
   helper_method :single_user?, :slip
 
@@ -23,6 +24,11 @@ class ApplicationController < ActionController::Base
 
   def use_local_user
     Current.local_user = User.local if single_user? && Current.session.nil?
+  end
+
+  # A fresh single-user install opens on the setup page until it has sample data or your own data (see Setup).
+  def require_setup
+    redirect_to setup_path if single_user? && Setup.required?
   end
 
   # In single-user mode nothing needs a login.

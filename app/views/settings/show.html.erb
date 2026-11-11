@@ -58,4 +58,6 @@
   </section>
 <% end %>
 
+<% if can_edit_images? %><%= render "settings/data" %><% end %>
+
 <%= render "settings/about", build: @build, last_odds_at: @last_odds_at %>
