@@ -73,6 +73,7 @@ module ApplicationHelper
 
   def league_nav_items
     [
+      [ "Home", root_path ],
       [ "Insights", league_insights_path(current_league) ],
       [ "Games", league_games_path(current_league) ],
       [ "Props", league_props_path(current_league) ],

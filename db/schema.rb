@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_11_000002) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_12_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -265,6 +265,39 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_11_000002) do
     t.index ["user_id"], name: "index_sessions_on_user_id"
   end
 
+  create_table "slip_legs", force: :cascade do |t|
+    t.bigint "slip_id", null: false
+    t.bigint "market_id", null: false
+    t.bigint "bookmaker_id", null: false
+    t.string "side", null: false
+    t.decimal "line", precision: 7, scale: 2, null: false
+    t.integer "american_odds", null: false
+    t.decimal "decimal_odds", precision: 8, scale: 4, null: false
+    t.string "result"
+    t.decimal "actual", precision: 8, scale: 2
+    t.datetime "graded_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["bookmaker_id"], name: "index_slip_legs_on_bookmaker_id"
+    t.index ["market_id"], name: "index_slip_legs_on_market_id"
+    t.index ["result"], name: "index_slip_legs_on_result"
+    t.index ["slip_id", "market_id", "side"], name: "index_slip_legs_leg", unique: true
+    t.index ["slip_id"], name: "index_slip_legs_on_slip_id"
+  end
+
+  create_table "slips", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "bookmaker_id"
+    t.string "name", null: false
+    t.decimal "stake", precision: 12, scale: 2, null: false
+    t.decimal "decimal_odds", precision: 14, scale: 4, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["bookmaker_id"], name: "index_slips_on_bookmaker_id"
+    t.index ["user_id", "created_at"], name: "index_slips_on_user_id_and_created_at"
+    t.index ["user_id"], name: "index_slips_on_user_id"
+  end
+
   create_table "sports", force: :cascade do |t|
     t.string "key", null: false
     t.string "name", null: false
@@ -333,5 +366,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_11_000002) do
   add_foreign_key "prop_hit_rates", "markets"
   add_foreign_key "saved_filters", "users"
   add_foreign_key "sessions", "users"
+  add_foreign_key "slip_legs", "bookmakers"
+  add_foreign_key "slip_legs", "markets"
+  add_foreign_key "slip_legs", "slips"
+  add_foreign_key "slips", "bookmakers"
+  add_foreign_key "slips", "users"
   add_foreign_key "teams", "sports"
 end

@@ -6,8 +6,9 @@ Rails.application.routes.draw do
   patch "books", to: "books#update", as: :books
   resources :saved_filters, only: %i[create destroy]
   resources :picks, only: %i[index create destroy]
+  resources :slips, only: %i[create destroy]
 
-  root to: redirect("/nba/props")
+  root to: "home#show"
 
   scope "/:league", constraints: { league: Regexp.union(League.keys) }, as: :league do
     resources :props, only: :index do

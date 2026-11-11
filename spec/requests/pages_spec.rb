@@ -1,9 +1,10 @@
 require "rails_helper"
 
 RSpec.describe "Public pages" do
-  it "redirects root to NBA props" do
+  it "serves Home at the root, for guests too" do
     get "/"
-    expect(response).to redirect_to("/nba/props")
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include("Your slips")
   end
 
   %w[props games insights].each do |page|

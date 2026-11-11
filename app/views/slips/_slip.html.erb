@@ -1,0 +1,47 @@
+<%# locals: slip, settlement (Slips::Settlement::Result) %>
+<% status_label, status_css = slip_status_label(settlement) %>
+<article class="card p-4">
+  <header class="flex items-start justify-between gap-3">
+    <div class="min-w-0">
+      <h3 class="truncate font-bold"><%= slip.name %></h3>
+      <p class="text-xs text-muted">
+        Saved <%= local_day(slip.created_at) %>, <%= local_time(slip.created_at) %>
+        · <%= slip.bookmaker ? slip.bookmaker.name : "best price per leg" %>
+      </p>
+    </div>
+    <p class="shrink-0 text-right">
+      <span class="block text-sm font-extrabold <%= status_css %>"><%= status_label %></span>
+      <span class="block font-display text-xl font-extrabold tabular-nums"><%= format_price(OddsMath.decimal_to_american(slip.decimal_odds)) %></span>
+    </p>
+  </header>
+
+  <ul class="mt-3 divide-y divide-line border-t border-line">
+    <% slip.legs.each do |leg| %>
+      <% label, css, detail = slip_leg_result(leg) %>
+      <% market = leg.market %>
+      <li class="flex items-center gap-3 py-2.5">
+        <%= player_avatar(market.player, size: :sm, badge: false) %>
+        <div class="min-w-0 flex-1">
+          <%= link_to market.player.full_name, league_prop_path(League.default, market, leg.side), class: "block truncate text-sm font-semibold hover:text-accent" %>
+          <span class="text-xs text-muted"><%= slip_leg_label(leg) %> · <%= market.game.away_team.abbreviation %> @ <%= market.game.home_team.abbreviation %></span>
+        </div>
+        <div class="shrink-0 text-right text-sm">
+          <span class="block font-bold tabular-nums"><%= format_price(leg.american_odds) %></span>
+          <span class="block text-xs font-semibold <%= css %>"><%= label %> <span class="font-normal text-muted">· <%= detail %></span></span>
+        </div>
+      </li>
+    <% end %>
+  </ul>
+
+  <footer class="mt-1 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3 text-sm">
+    <p class="text-muted">
+      <%= number_to_currency(slip.stake) %> stake
+      <% if settlement.status == :pending %>would pay <b class="text-fg tabular-nums"><%= number_to_currency((slip.stake * slip.decimal_odds).round(2)) %></b>
+      <% elsif settlement.status == :won %>paid <b class="text-hit tabular-nums"><%= number_to_currency(settlement.payout) %></b> (+<%= number_to_currency(settlement.profit) %>)
+      <% elsif settlement.status == :push %>returned <b class="text-fg tabular-nums"><%= number_to_currency(settlement.payout) %></b>
+      <% else %>lost <b class="text-miss tabular-nums"><%= number_to_currency(slip.stake) %></b>
+      <% end %>
+    </p>
+    <%= button_to "Delete", slip_path(slip), method: :delete, class: "btn btn-ghost btn-xs", form: { class: "contents", data: { turbo_confirm: "Delete this saved slip?" } } %>
+  </footer>
+</article>

@@ -1,0 +1,32 @@
+<% content_for :title, "Home" %>
+<%= render "shared/page_header", title: "Your slips", chips: false,
+      subtitle: "Every parlay you have saved, with how each leg did once the box scores are in. Build one with the + on any prop, then save it from your slip." %>
+
+<% if current_user.nil? %>
+  <div class="card mt-3 px-6 py-12 text-center">
+    <h2 class="text-lg font-bold">Sign in to keep your slips</h2>
+    <p class="mx-auto mt-1 max-w-prose text-sm text-muted">Saved slips belong to an account. You can still browse every prop without one.</p>
+    <div class="mt-4 flex justify-center gap-2">
+      <%= link_to "Sign in", new_session_path, class: "btn btn-primary btn-sm" %>
+      <%= link_to "Browse props", league_props_path(current_league), class: "btn btn-outline btn-sm" %>
+    </div>
+  </div>
+<% elsif @in_play.empty? && @settled.empty? %>
+  <div class="card mt-3 px-6 py-14 text-center">
+    <h2 class="text-lg font-bold">No saved slips yet</h2>
+    <p class="mx-auto mt-1 max-w-prose text-sm text-muted">Add legs with the + on any prop, pick a book in your slip, and choose Save slip. It will show up here and be graded when the games are done.</p>
+    <div class="mt-4 flex justify-center"><%= link_to "Browse props", league_props_path(current_league), class: "btn btn-primary btn-sm" %></div>
+  </div>
+<% else %>
+  <% { "In play" => @in_play, "Settled" => @settled }.each do |heading, slips| %>
+    <% next if slips.empty? %>
+    <section class="mt-6" aria-labelledby="<%= heading.parameterize %>">
+      <h2 id="<%= heading.parameterize %>" class="mb-2 flex items-baseline gap-2 text-lg font-bold"><%= heading %> <span class="text-sm font-medium text-muted"><%= slips.size %></span></h2>
+      <ul class="grid gap-3 lg:grid-cols-2">
+        <% slips.each do |slip| %>
+          <li><%= render "slips/slip", slip: slip, settlement: @settlements.fetch(slip) %></li>
+        <% end %>
+      </ul>
+    </section>
+  <% end %>
+<% end %>
