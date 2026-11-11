@@ -68,11 +68,25 @@ module Setup
 
     def finish_live = Setting.delete("setup_intent")
 
-    # Sample data: loads it when the database is empty, so there is something to look at.
+    # Sample data: loads it when there is none, or its slate has gone by, so there is something to look at.
     def use_sample(seeder: -> { Ingest::SeedFixtures.call })
       Setting.set("data_mode", "sample")
       Setting.delete("setup_intent")
-      seeder.call unless Game.exists?
+      seeder.call unless sample_fresh?
+    end
+
+    # Sample data has odds for games that have not started.
+    def sample_fresh?(now: Time.current) = Market.joins(:game).exists?([ "games.starts_at > ?", now ])
+
+    # Called on page views. A chosen sample install whose slate has gone by gets re-dated in the background, at most every 15 minutes.
+    def refresh_sample_if_stale(now: Time.current)
+      return unless Setting.get("data_mode") == "sample" && !sample_fresh?(now: now)
+
+      last = Time.zone.parse(Setting.get("sample_reseed_at").to_s)
+      return if last && last > now - 15.minutes
+
+      Setting.set("sample_reseed_at", now.iso8601)
+      ReseedSampleJob.perform_later
     end
   end
 end

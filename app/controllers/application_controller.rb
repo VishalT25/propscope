@@ -13,6 +13,7 @@ class ApplicationController < ActionController::Base
   before_action :resume_session
   before_action :use_local_user
   before_action :require_setup
+  before_action { Setup.refresh_sample_if_stale if request.get? && request.format.html? }
 
   helper_method :single_user?, :slip
 

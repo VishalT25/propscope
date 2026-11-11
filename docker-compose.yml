@@ -35,7 +35,8 @@ services:
     volumes:
       - uploads:/rails/storage             # logos and photos added in Settings survive rebuilds
     ports:
-      - "${PORT:-3000}:80"
+      # Only this computer can reach it by default: with no sign-in, anyone who could would be you. See docs/self-hosting.md.
+      - "${BIND_ADDRESS:-127.0.0.1}:${PORT:-3000}:80"
 
   model:
     profiles: ["model"]

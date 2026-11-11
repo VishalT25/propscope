@@ -31,7 +31,11 @@
     <% else %>
       <p class="font-bold">Sample data <span class="text-sm font-normal text-muted">made up, for looking around</span></p>
       <p class="mt-1 max-w-prose text-pretty text-sm text-muted">Use your own SportsGameOdds and BallDontLie accounts to get real odds, lines and box scores. Setup takes you through the keys and loads your history in the background.</p>
-      <div class="mt-4"><%= button_to "Use my own data", choose_setup_path(mode: "live"), method: :post, class: "btn btn-primary btn-sm", form: { class: "contents" } %></div>
+      <div class="mt-4 flex flex-wrap gap-3">
+        <%= button_to "Use my own data", choose_setup_path(mode: "live"), method: :post, class: "btn btn-primary btn-sm", form: { class: "contents" } %>
+        <%= button_to "Refresh sample data", choose_setup_path(mode: "sample"), method: :post, class: "btn btn-outline btn-sm", form: { class: "contents" }, data: { turbo_submits_with: "Refreshing…" } %>
+      </div>
+      <p class="mt-2 text-xs text-muted">Sample data is dated to the day it was loaded and re-dated each morning. Refresh it if the Props page is empty.</p>
     <% end %>
   </div>
 </section>

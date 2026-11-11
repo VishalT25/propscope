@@ -114,13 +114,13 @@ RSpec.describe "Setup" do
       expect([ described_class.check("sports_game_odds"), ApiKeys.get("sports_game_odds") ]).to eq([ nil, "new-key" ])
     end
 
-    it "loads sample data only when there is none, and switches back from live" do
+    it "loads sample data when there is none or its slate has gone by, and not otherwise; and switches back from live" do
       seeded = 0
       seeder = -> { seeded += 1 }
       Setting.set("data_mode", "live")
       described_class.use_sample(seeder: seeder)
       expect([ described_class.mode, LiveData.enabled?, seeded ]).to eq([ "sample", false, 1 ])
-      create(:game)
+      create(:market).game.update!(starts_at: 3.hours.from_now) # a slate still ahead
       described_class.use_sample(seeder: seeder)
       expect(seeded).to eq(1)
     end

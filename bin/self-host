@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# One command to run your own copy:  bin/self-host            (sample data, no API keys needed)
-#                                    bin/self-host --live      (real data: put your keys in .env first)
+# One command to run your own copy:  bin/self-host
 #                                    bin/self-host --model     (also start the optional model service)
+# Then open the app: its setup page lets you use sample data, or enter your own API keys and load your history.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -20,11 +20,13 @@ set_var PROPSCOPE_DATABASE_PASSWORD "$(openssl rand -hex 16)"
 
 profiles=()
 for arg in "$@"; do
-  if [ "$arg" = "--model" ]; then
-    profiles=(--profile model)
-    set_var MODEL_SERVICE_URL "http://model:8000"   # the web container reaches the model container by name
-    set_var MODEL_API_KEY "$(openssl rand -hex 16)"
-  fi
+  case "$arg" in
+    --model)
+      profiles=(--profile model)
+      set_var MODEL_SERVICE_URL "http://model:8000"   # the web container reaches the model container by name
+      set_var MODEL_API_KEY "$(openssl rand -hex 16)" ;;
+    --live) echo "Note: --live is no longer needed. Choose \"Use my own data\" on the setup page, or set LIVE_DATA=true in .env." ;;
+  esac
 done
 
 docker compose "${profiles[@]}" up -d --build
@@ -34,13 +36,5 @@ for _ in $(seq 1 60); do
   sleep 2
 done
 
-if [[ " $* " == *" --live "* ]]; then
-  sed -i.bak "s|^LIVE_DATA=.*|LIVE_DATA=true|" .env && rm -f .env.bak
-  docker compose up -d web
-  echo "Live mode on. Load data with:"
-  echo "  docker compose exec web bin/rails runner 'SyncReferenceDataJob.perform_now'"
-  echo "  docker compose exec web bin/rails data:backfill_logs SEASONS=2"
-else
-  docker compose exec web bin/rails data:seed_fixtures
-fi
-echo "Open http://localhost:${PORT:-3000}"
+echo "Open http://localhost:${PORT:-3000} and follow the setup page."
+echo "It is reachable from this computer only. See docs/self-hosting.md before changing that."

@@ -26,9 +26,9 @@ It is a research and analytics tool. It never takes bets, never handles money an
 
 ## Run it
 ```
-bin/self-host          # Docker: app + Postgres + sample data, open http://localhost:3000
+bin/self-host          # Docker: app + Postgres. Open http://localhost:3000 and follow the setup page.
 ```
-Real data needs your own API keys; see **[docs/self-hosting.md](docs/self-hosting.md)**.
+The setup page lets you try sample data straight away, or enter your own API keys and load your history (it tests the keys, shows progress, and can resume). See **[docs/self-hosting.md](docs/self-hosting.md)**.
 
 ## Data, API keys and terms
 You bring your own keys. You are responsible for following each provider's terms.
