@@ -1,7 +1,7 @@
 <%# locals: title:, subtitle: nil, chips: true %>
 <section class="hero-band card overflow-hidden px-5 pb-4 pt-6">
   <h1 class="text-3xl font-extrabold tracking-tight"><%= title %></h1>
-  <% if local_assigns[:subtitle] %><p class="mt-1 max-w-2xl text-sm text-muted"><%= subtitle %></p><% end %>
+  <% if local_assigns[:subtitle] %><p class="mt-1 max-w-prose text-sm text-muted"><%= subtitle %></p><% end %>
   <% if local_assigns.fetch(:chips, true) %>
     <div class="no-scrollbar -mx-1 mt-4 flex gap-2 overflow-x-auto px-1 pb-1" role="tablist" aria-label="League">
       <% League::ALL.each do |league| %>

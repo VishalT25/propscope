@@ -96,6 +96,9 @@
 }
 
 @theme inline {
+  /* Smallest functional text: book codes, hit-rate labels, sample counts. Nothing below 11px. */
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1.2;
   --color-canvas: var(--color-base-100);
   --color-surface: var(--color-base-200);
   --color-surface-2: var(--color-base-300);
@@ -174,6 +177,8 @@
   tbody tr { transition: background-color 0.15s ease-out; }
 }
 
+/* Reduced motion drops movement, not feedback: nothing slides, grows or pops, but colour changes still show state. */
 @media (prefers-reduced-motion: reduce) {
-  *, ::before, ::after { animation-duration: 0.001ms !important; animation-delay: 0ms !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+  *, ::before, ::after { animation: none !important; scroll-behavior: auto !important; }
+  .card-hover:hover, .chip:active { transform: none; }
 }

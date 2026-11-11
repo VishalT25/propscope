@@ -1,7 +1,7 @@
 # Our own icons: monogram badges tinted from a hash of the code. No third-party logos or photos.
 # If a record has a logo_url / photo_url (licensed images supplied by the self-hoster) we show that instead.
 module AvatarsHelper
-  SIZES = { xs: "size-5 text-[8px]", sm: "size-7 text-[10px]", md: "size-9 text-xs", lg: "size-14 text-lg", xl: "size-20 text-2xl" }.freeze
+  SIZES = { dot: "size-4", xs: "size-5", sm: "size-7 text-2xs", md: "size-9 text-xs", lg: "size-14 text-lg", xl: "size-20 text-2xl" }.freeze
 
   # Stable hue from any string (crc32 is deterministic across processes, unlike String#hash).
   # Kept to 10..215 degrees (red, orange, gold, green, teal, cyan): the indigo and violet band is deliberately excluded.
@@ -17,7 +17,8 @@ module AvatarsHelper
     if team.logo_url.present?
       image_tag(team.logo_url, alt: team.name, class: "#{SIZES.fetch(size).split.first} shrink-0 object-contain", loading: "lazy")
     else
-      tag.span(team.abbreviation.first(3), class: "#{badge_base} #{SIZES.fetch(size)}", style: tint_style(team.abbreviation), title: team.name, role: "img", "aria-label": team.name)
+      # The xs and dot badges are colour markers only: every use sits beside the abbreviation as text, and 11px letters do not fit in 20px.
+      tag.span(%i[dot xs].include?(size) ? nil : team.abbreviation.first(3), class: "#{badge_base} #{SIZES.fetch(size)}", style: tint_style(team.abbreviation), title: team.name, role: "img", "aria-label": team.name)
     end
   end
 
@@ -32,7 +33,7 @@ module AvatarsHelper
     return inner unless badge && player.team
 
     tag.span(class: "relative inline-block shrink-0") do
-      safe_join([ inner, tag.span(team_badge(player.team, size: :xs), class: "absolute -bottom-1 -right-1 rounded-full ring-2 ring-surface") ])
+      safe_join([ inner, tag.span(team_badge(player.team, size: :dot), class: "absolute -bottom-1.5 -right-1.5 rounded-full ring-2 ring-surface") ])
     end
   end
 
@@ -45,7 +46,7 @@ module AvatarsHelper
     if bookmaker.logo_url.present?
       image_tag(bookmaker.logo_url, alt: bookmaker.name, class: "#{SIZES.fetch(size).split.first} shrink-0 rounded-md object-contain", loading: "lazy")
     else
-      tag.span(bookmaker.code, class: "inline-grid h-7 min-w-9 shrink-0 place-items-center rounded-md px-1 text-[10px] font-extrabold tracking-wide",
+      tag.span(bookmaker.code, class: "inline-grid h-7 min-w-9 shrink-0 place-items-center rounded-md px-1 text-2xs font-extrabold tracking-wide",
                                style: tint_style(bookmaker.key), title: bookmaker.name)
     end
   end

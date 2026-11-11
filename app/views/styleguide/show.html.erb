@@ -23,7 +23,7 @@
     <div class="grid grid-cols-6 gap-1 text-center text-sm font-bold tabular-nums">
       <% [["L5", 80, 5], ["L10", 70, 10], ["L20", 55, 20], ["H2H", 33, 3], ["2026", 45, 40], ["2025", 20, 60]].each do |label, pct, n| %>
         <div class="rounded-lg px-1 py-2" style="<%= hit_rate_cell_style(pct, n) %>">
-          <div class="text-[10px] font-semibold text-muted"><%= label %></div>
+          <div class="text-2xs font-semibold text-muted"><%= label %></div>
           <span class="<%= hit_rate_text_class(pct, n) %>"><%= percent_label(pct, n) %></span>
         </div>
       <% end %>
