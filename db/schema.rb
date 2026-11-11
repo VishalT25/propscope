@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_12_000003) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_12_000004) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -50,6 +50,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_12_000003) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["provider", "period"], name: "index_api_usages_on_provider_and_period", unique: true
+  end
+
+  create_table "backfill_runs", force: :cascade do |t|
+    t.string "state", default: "queued", null: false
+    t.string "phase"
+    t.integer "seasons", default: 2, null: false
+    t.integer "total_days", default: 0, null: false
+    t.integer "done_days", default: 0, null: false
+    t.text "message"
+    t.boolean "cancel_requested", default: false, null: false
+    t.datetime "started_at"
+    t.datetime "heartbeat_at"
+    t.datetime "finished_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["state"], name: "index_backfill_runs_on_state"
   end
 
   create_table "bookmakers", force: :cascade do |t|
