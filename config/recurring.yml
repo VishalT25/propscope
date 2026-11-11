@@ -30,6 +30,9 @@ production:
   generate_insights:
     class: GenerateInsightsJob
     schedule: 50 4 * * * America/New_York
+  reseed_sample:
+    class: ReseedSampleJob
+    schedule: 30 6 * * * America/New_York
   purge_raw_payloads:
     class: PurgeRawPayloadsJob
     schedule: 30 5 * * *
@@ -38,6 +41,9 @@ production:
     schedule: every hour at minute 12
 
 development:
+  reseed_sample:
+    class: ReseedSampleJob
+    schedule: 30 6 * * * America/New_York
   clear_solid_queue_finished_jobs:
     command: "SolidQueue::Job.clear_finished_in_batches(sleep_between_batches: 0.3)"
     schedule: every hour at minute 12

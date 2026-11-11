@@ -41,7 +41,7 @@ Heavy nights (12+ games) cost more. You cannot overrun the quota: at 80% the opt
 | Task | Notes |
 |---|---|
 | `data:seed_fixtures` | Loads the synthetic sample slate. Also run by `db:seed` outside production. |
-| `data:backfill_logs SEASONS=2` | Needs `LIVE_DATA=true` and a BallDontLie ALL-STAR key. Resumable. |
+| `data:backfill_logs SEASONS=2` | Needs live data on (`LIVE_DATA=true`) and a BallDontLie ALL-STAR key. Resumable. The setup page runs the same thing in the background. |
 | `data:refresh_odds` | Needs `LIVE_DATA=true`. Fetches odds for the next 36 hours now (development has no scheduler). |
 | `data:quota` | API usage this month and where it is heading. |
 | `data:capture_fixtures` | Needs `LIVE_DATA=true`. Records a small real sample over the synthetic one. Review before committing (provider terms forbid bulk data). |

@@ -2,16 +2,19 @@
 
 Propscope is built to be run by you, with your own API keys. Nothing here takes bets or handles money.
 
-Single-user by default: there is no sign-in. One built-in local user holds your slip, saved filters and preferences. If you share a deployment, set `SINGLE_USER=false` to turn accounts back on.
+Single-user by default: there is no sign-in. One built-in local user holds your slip, saved filters and preferences. That is safe because the app listens on this computer only (`127.0.0.1`). If you let other machines reach it (`BIND_ADDRESS=0.0.0.0`), anyone who can would be you, so also set `SINGLE_USER=false` to turn accounts on.
 
-## 1. Run it with sample data (no keys, about 5 minutes)
+## 1. Run it
 ```
 git clone <this repo> && cd propscope
 bin/self-host            # needs Docker
 ```
-That creates `.env` with random secrets, builds and starts the app and Postgres, and loads a synthetic sample slate (fictional players). Open http://localhost:3000. Change the port with `PORT=8080 bin/self-host`.
+That creates `.env` with random secrets and builds and starts the app and Postgres. Open http://localhost:3000 (change the port with `PORT=8080 bin/self-host`). A fresh install opens on a **setup page**:
 
-## 2. Use real data
+- **Use sample data:** made-up players and odds, ready in seconds, no keys. Good for looking around. It is re-dated each morning so today's slate is always there. You can switch to your own data later in Settings.
+- **Use my own data:** the setup page takes you through steps 2 and 3 below.
+
+## 2. Use real data (set up in the app)
 You need your own keys (you are responsible for each provider's terms):
 
 | Provider | What for | Free tier | What you really need |
@@ -19,14 +22,11 @@ You need your own keys (you are responsible for each provider's terms):
 | [SportsGameOdds](https://sportsgameodds.com) | odds and props | 2,500 events/month, 10 req/min, 9 books | the free key is enough |
 | [BallDontLie](https://balldontlie.io) | teams, players, games, box scores | teams, players, games only | **the ALL-STAR plan (about $9.99/month for NBA)** for box scores, which hit rates need |
 
-1. Put the keys in `.env` (`SPORTSGAMEODDS_API_KEY`, `BALLDONTLIE_API_KEY`).
-2. `bin/self-host --live` (sets `LIVE_DATA=true`).
-3. Load history once (about 20 minutes for two seasons on the paid BallDontLie rate; resumable):
-```
-docker compose exec web bin/rails data:backfill_logs SEASONS=2
-docker compose exec web bin/rails runner 'SnapshotOddsJob.perform_now("morning")'
-```
-After that the scheduled jobs keep it current. On the free BallDontLie plan, set `min_interval: 12.5` for `balldontlie` in `config/providers.yml` (5 requests/minute).
+1. **Keys.** On the setup page, paste both keys and press "Save and test keys". Each key is tested with one tiny request, and the page tells you if a key is rejected or if your BallDontLie plan has no box scores (it needs them, so the free plan can't be used for live data). Keys are stored encrypted in the database, are never shown again (only the last four characters), and an environment variable of the same name (`SPORTSGAMEODDS_API_KEY`, `BALLDONTLIE_API_KEY`) always takes priority if you would rather use `.env`.
+2. **History.** Choose one or two seasons (two is best) and start. It runs in the background, with a progress bar, and takes about 25 minutes for two seasons. You can close the page. If it stops (a budget runs out, the app restarts, a provider errors) nothing is lost: start it again and it carries on where it left off.
+3. **After that** the scheduled jobs keep everything current. Settings, Data shows your keys (last four characters), how much of each monthly allowance is used, and when history was loaded, and has "Refresh odds now", "Change keys or load more history", and "Switch to sample data".
+
+Prefer the command line? `LIVE_DATA=true` in `.env` with your keys, then `docker compose exec web bin/rails data:backfill_logs SEASONS=2` does the same load, and setup counts it as done.
 
 ## 3. The optional model service
 ```
