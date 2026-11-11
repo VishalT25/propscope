@@ -1,0 +1,34 @@
+<%# locals: build (BuildInfo::Info), last_odds_at %>
+<section class="mt-8" aria-labelledby="about">
+  <h2 id="about" class="text-lg font-bold">About</h2>
+  <div class="card mt-3 p-5">
+    <p class="font-display text-2xl font-extrabold tracking-tight"><%= app_name %> <span class="text-base font-bold text-muted">v<%= build.version %></span></p>
+    <p class="mt-1 max-w-prose text-pretty text-sm text-muted">An open-source, self-hostable research tool for player props. It never takes a bet or handles money.</p>
+
+    <dl class="mt-4 grid grid-cols-[max-content_1fr] gap-x-6 gap-y-2 border-t border-line pt-4 text-sm">
+      <dt class="text-muted">Version</dt><dd class="font-semibold tabular-nums"><%= build.version %></dd>
+
+      <dt class="text-muted">Commit</dt>
+      <dd class="min-w-0 font-semibold">
+        <% if build.git? %>
+          <code class="font-mono text-[0.9em] tabular-nums" title="<%= build.commit %>"><%= build.short_commit %></code>
+          <% if build.dirty %><span class="ml-1 font-normal text-push">with uncommitted changes</span><% end %>
+        <% else %><span class="font-normal text-muted">not available (no git checkout in this install)</span><% end %>
+      </dd>
+
+      <% if build.branch.present? %><dt class="text-muted">Branch</dt><dd class="font-semibold"><code class="font-mono text-[0.9em]"><%= build.branch %></code></dd><% end %>
+      <% if build.committed_at %><dt class="text-muted">Committed</dt><dd><%= local_day(build.committed_at) %>, <%= local_time(build.committed_at) %></dd><% end %>
+      <% if build.built_at %><dt class="text-muted">Built</dt><dd><%= local_day(build.built_at) %>, <%= local_time(build.built_at) %></dd><% end %>
+
+      <dt class="text-muted">Environment</dt><dd class="capitalize"><%= build.environment %></dd>
+      <dt class="text-muted">Data</dt><dd><%= build.live_data ? "Live data" : "Sample data (fixtures), no live API calls" %></dd>
+      <dt class="text-muted">Odds updated</dt><dd><%= last_odds_at ? "#{time_ago_in_words(last_odds_at)} ago" : "no odds yet" %></dd>
+      <dt class="text-muted">Runtime</dt><dd class="tabular-nums">Ruby <%= build.ruby %> · Rails <%= build.rails %></dd>
+    </dl>
+
+    <p class="mt-5 border-t border-line pt-4 text-sm">
+      Made by <b class="font-display text-base font-extrabold tracking-tight">Vishal</b>.
+      <span class="text-muted">Thanks for using it.</span>
+    </p>
+  </div>
+</section>

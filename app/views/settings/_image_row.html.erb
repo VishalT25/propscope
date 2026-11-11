@@ -1,0 +1,20 @@
+<%# locals: name, detail, preview, has_image, upload_path, remove_path, section, label %>
+<li class="flex flex-wrap items-center gap-3 py-2.5">
+  <%= preview %>
+  <div class="min-w-0 flex-1 basis-40">
+    <p class="truncate text-sm font-semibold"><%= name %></p>
+    <div class="flex items-center gap-2 text-xs text-muted">
+      <span><%= detail %></span>
+      <% if has_image %>
+        <%= button_to "Remove", remove_path, method: :delete, params: { q: params[:q], section: section }, class: "font-semibold text-miss hover:underline", "aria-label": "Remove #{label}",
+              form: { class: "contents", data: { turbo_confirm: "Remove this image?" } } %>
+      <% end %>
+    </div>
+  </div>
+  <%= form_with url: upload_path, method: :patch, multipart: true, class: "flex items-center gap-2" do %>
+    <input type="hidden" name="q" value="<%= params[:q] %>">
+    <input type="hidden" name="section" value="<%= section %>">
+    <input type="file" name="image" accept="image/png,image/jpeg,image/webp,image/gif" aria-label="Upload <%= label %>"
+           class="file-input file-input-sm w-44 sm:w-52" onchange="this.form.requestSubmit()">
+  <% end %>
+</li>

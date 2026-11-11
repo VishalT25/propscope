@@ -40,6 +40,8 @@ To host the model service on Vercel instead, see `docs/deploy-model-service.md`.
 - **Logs:** `docker compose logs -f web`
 - **Update:** `git pull && docker compose up -d --build` (migrations run on start)
 - **Back up the database:** `docker compose exec db pg_dump -U propscope propscope_production > backup.sql`
+- **Logos and photos:** Settings (account menu, then "Settings and about") lets you upload a logo per team and a photo per player: PNG, JPEG, WebP or GIF, up to 2 MB. Files live in the `uploads` Docker volume, so they survive `up --build`; back that volume up with the database. Only an admin can change them (the one local user is an admin in single-user mode). Until you add one, everything gets a generated monogram. Upload only images you have the right to use.
+- **Version and git info:** the About section shows `VERSION` and the git commit and branch. A Docker image has no `.git`, so to show them pass `GIT_SHA`, `GIT_BRANCH`, `GIT_COMMITTED_AT` (ISO 8601) and optionally `BUILD_TIME` as environment variables (the Compose file passes them through), for example `GIT_SHA=$(git rev-parse HEAD) GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD) GIT_COMMITTED_AT=$(git log -1 --format=%cI) docker compose up -d --build`. Without them the About section simply says git details are not available.
 - **Admin / budget:** usage is stored in `api_usages`; see `docs/operations.md` for jobs and rake tasks.
 - **Run on a server:** the same Compose file works on any VPS. Put a reverse proxy with HTTPS (Caddy, nginx) in front of port 3000. A Kamal config is scaffolded in `config/deploy.yml` but has not been tested.
 
