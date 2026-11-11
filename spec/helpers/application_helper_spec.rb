@@ -56,4 +56,16 @@ RSpec.describe ApplicationHelper do
       expect(helper.hit_rate_cell_style(20, 10)).to include("var(--miss)")
     end
   end
+
+  describe "#nav_active?" do
+    it "is active on the page itself and below it, but not on a sibling that shares a prefix" do
+      allow(helper.request).to receive(:path).and_return("/nba/props/123/over")
+      expect(helper.nav_active?("/nba/props")).to be(true)
+      expect(helper.nav_active?("/nba/games")).to be(false)
+      allow(helper.request).to receive(:path).and_return("/nba/props")
+      expect(helper.nav_active?("/nba/props")).to be(true)
+      allow(helper.request).to receive(:path).and_return("/nba/propsx")
+      expect(helper.nav_active?("/nba/props")).to be(false)
+    end
+  end
 end
