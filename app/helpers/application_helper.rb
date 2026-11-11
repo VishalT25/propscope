@@ -73,11 +73,14 @@ module ApplicationHelper
 
   def league_nav_items
     [
-      [ "Insights", league_insights_path(current_league), true ],
-      [ "Games", league_games_path(current_league), true ],
-      [ "Props", league_props_path(current_league), true ],
-      [ "EV+", league_ev_path(current_league), true ],
-      [ "Arbitrage", league_arbitrage_path(current_league), true ]
+      [ "Insights", league_insights_path(current_league) ],
+      [ "Games", league_games_path(current_league) ],
+      [ "Props", league_props_path(current_league) ],
+      [ "EV+", league_ev_path(current_league) ],
+      [ "Arbitrage", league_arbitrage_path(current_league) ]
     ]
   end
+
+  # A nav link is active on its own page and below it (Props stays lit on a prop's detail page).
+  def nav_active?(path) = request.path == path || request.path.start_with?("#{path}/")
 end

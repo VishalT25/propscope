@@ -1,13 +1,22 @@
-<header class="sticky top-0 z-40 border-b border-line bg-canvas/90 backdrop-blur" data-controller="toggle" data-action="keydown.esc->toggle#hide click@window->toggle#clickOutside">
-  <div class="mx-auto flex h-14 w-full max-w-screen-2xl items-center gap-3 px-4">
-    <button type="button" class="-ml-2 rounded-lg p-2 hover:bg-surface-2" aria-label="Menu" data-action="toggle#toggle" data-toggle-target="button">
-      <%= icon :menu %>
-    </button>
-
-    <%= link_to root_path, class: "flex items-center gap-2 font-extrabold tracking-tight" do %>
+<header class="sticky top-0 z-40 border-b border-line bg-canvas/90 backdrop-blur">
+  <div class="mx-auto flex min-h-14 w-full max-w-screen-2xl flex-wrap items-center gap-x-3 px-4 md:flex-nowrap md:gap-x-6">
+    <%= link_to root_path, class: "flex items-center gap-2 py-2 font-extrabold tracking-tight" do %>
       <svg viewBox="0 0 24 24" class="size-6" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="var(--accent)" stroke-width="2.4"/><circle cx="12" cy="12" r="3.2" fill="var(--accent-2)"/></svg>
       <span class="text-lg"><%= app_name %></span>
     <% end %>
+
+    <%# Inline on desktop. On phones it wraps to its own row under the logo and scrolls sideways: no menu to open. %>
+    <nav aria-label="Main" class="no-scrollbar order-last -mx-4 w-[calc(100%+2rem)] overflow-x-auto border-t border-line px-3 py-1.5 md:order-none md:mx-0 md:w-auto md:border-0 md:p-0">
+      <ul class="flex items-center gap-1">
+        <% league_nav_items.each do |label, path| %>
+          <% active = nav_active?(path) %>
+          <li class="shrink-0">
+            <%= link_to label, path, "aria-current": (active ? "page" : nil),
+                  class: "block rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors duration-150 #{active ? 'bg-surface-2 text-fg' : 'text-muted hover:bg-surface-2 hover:text-fg'}" %>
+          </li>
+        <% end %>
+      </ul>
+    </nav>
 
     <div class="ml-auto flex items-center gap-2">
       <%= render "books/chip" %>
@@ -19,20 +28,4 @@
       <%= render "shared/account_menu" %>
     </div>
   </div>
-
-  <nav class="border-t border-line bg-canvas" data-toggle-target="panel" hidden aria-label="Main">
-    <ul class="mx-auto grid max-w-screen-2xl gap-1 p-3 sm:grid-cols-2 lg:grid-cols-5">
-      <% league_nav_items.each do |label, path, enabled| %>
-        <li>
-          <% if enabled %>
-            <%= link_to label, path, class: "block rounded-xl px-4 py-3 text-base font-semibold hover:bg-surface-2 #{'bg-surface-2' if current_page?(path)}" %>
-          <% else %>
-            <span class="flex items-center justify-between rounded-xl px-4 py-3 text-base font-semibold text-muted" title="Coming in a later phase">
-              <%= label %> <span class="rounded-full bg-surface-2 px-2 py-0.5 text-xs">Soon</span>
-            </span>
-          <% end %>
-        </li>
-      <% end %>
-    </ul>
-  </nav>
 </header>
