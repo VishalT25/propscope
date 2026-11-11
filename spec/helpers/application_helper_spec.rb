@@ -41,6 +41,16 @@ RSpec.describe ApplicationHelper do
       expect(helper.small_sample?(ApplicationHelper::MIN_SAMPLE)).to be(false)
     end
 
+    it "sets the number in the tone mixed into the foreground, never the raw tone colour" do
+      style = helper.hit_rate_cell_style(95, 10)
+      expect(style).to match(/color: color-mix\(in oklab, var\(--hit\) \d+%, var\(--fg\)\)/)
+      expect(style).not_to match(/(?<!background-)color: var\(/)
+    end
+
+    it "caps the tint so the label stays readable" do
+      expect(helper.hit_rate_cell_style(100, 10)).to include("var(--hit) #{ApplicationHelper::HIT_TINT_MAX}%")
+    end
+
     it "tints green above 50 and red below" do
       expect(helper.hit_rate_cell_style(80, 10)).to include("var(--hit)")
       expect(helper.hit_rate_cell_style(20, 10)).to include("var(--miss)")

@@ -31,14 +31,19 @@ module ApplicationHelper
 
   def hit_rate_text_class(pct, n = nil) = HIT_TONE_TEXT.fetch(hit_rate_tone(pct, n))
 
-  # Heat tint for table cells: stronger background for rates further from 50%.
+  HIT_TONE_VAR = { hit: "--hit", miss: "--miss", push: "--push" }.freeze
+  HIT_TINT_MAX = 42 # strongest background tint, in percent; keeps the number readable on top of it
+
+  # Heat tint for table cells: stronger background for rates further from 50%. The number is set in the tone colour
+  # mixed into the foreground (never the raw tone colour), so contrast holds at every tint strength and in both themes.
   def hit_rate_cell_style(pct, n = nil)
     tone = hit_rate_tone(pct, n)
     return "" if tone == :muted
 
-    strength = ((pct - 50).abs * 1.1).clamp(8, 55).round
-    color = pct >= 50 ? "var(--hit)" : "var(--miss)"
-    "background-color: color-mix(in oklab, #{color} #{strength}%, transparent)"
+    strength = ((pct - 50).abs * 1.1).clamp(8, HIT_TINT_MAX).round
+    tint = pct >= 50 ? "--hit" : "--miss"
+    "background-color: color-mix(in oklab, var(#{tint}) #{strength}%, transparent); " \
+      "color: color-mix(in oklab, var(#{HIT_TONE_VAR.fetch(tone)}) 32%, var(--fg))"
   end
 
   # True when a rate rests on fewer than MIN_SAMPLE games (and at least one).

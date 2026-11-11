@@ -21,6 +21,7 @@
   </head>
 
   <body class="min-h-dvh antialiased">
+    <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[70] focus:rounded-lg focus:bg-accent focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-on-accent">Skip to content</a>
     <%# One sheet controller wraps the header chip and the panel. The panel must NOT live inside the header:
         its backdrop-blur would become the containing block for the panel's position: fixed. %>
     <div data-controller="sheet">
@@ -30,7 +31,7 @@
     <%= render "picks/slip", slip: slip %>
     <div id="toast" class="pointer-events-none fixed bottom-4 left-1/2 z-[60] -translate-x-1/2"></div>
     <%= render "shared/flash" %>
-    <main class="mx-auto w-full max-w-screen-2xl px-4 pb-24 pt-4">
+    <main id="main" tabindex="-1" class="focus:outline-none mx-auto w-full max-w-screen-2xl px-4 pb-24 pt-4">
       <%= yield %>
     </main>
   </body>

@@ -55,7 +55,7 @@
                 <% l = pair.left_snaps.find { |s| s.bookmaker_id == id } %><% r = pair.right_snaps.find { |s| s.bookmaker_id == id } %>
                 <% fair_left = row.per_book[id] %>
                 <tr class="<%= 'font-semibold' if id == row.snap.bookmaker_id %>">
-                  <td class="py-1.5"><span class="inline-flex items-center gap-2"><%= book_badge(@books[id]) %><%= tag.span("fair", class: "rounded bg-surface-2 px-1 text-[10px] text-muted", title: "Used for the fair price") if row.per_book.key?(id) && row.books_used > 0 && id.in?(row.per_book.keys) %></span></td>
+                  <td class="py-1.5"><span class="inline-flex items-center gap-2"><%= book_badge(@books[id]) %><%= tag.span("fair", class: "rounded bg-surface-2 px-1 text-2xs text-muted", title: "Used for the fair price") if row.per_book.key?(id) && row.books_used > 0 && id.in?(row.per_book.keys) %></span></td>
                   <td class="text-right tabular-nums"><%= l ? format_price(l.american_odds) : "–" %></td>
                   <td class="text-right tabular-nums"><%= r ? format_price(r.american_odds) : "–" %></td>
                   <td class="text-right tabular-nums text-muted"><%= fair_left ? format_price(OddsMath.implied_to_american(row.side == :left ? fair_left : BigDecimal(1) - fair_left)) : "–" %></td>

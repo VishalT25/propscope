@@ -13,21 +13,21 @@
     </div>
   </div>
   <div class="no-scrollbar -mx-1 mt-3 flex gap-1 overflow-x-auto px-1 text-center">
-    <div class="w-14 shrink-0 rounded-lg bg-surface-2 px-1 py-1.5" title="<%= tier_tooltip(row) %>">
-      <div class="text-[10px] font-semibold text-muted">OPP</div>
+    <div class="w-16 shrink-0 rounded-lg bg-surface-2 px-1 py-1.5" title="<%= tier_tooltip(row) %>">
+      <div class="text-2xs font-semibold text-muted">OPP</div>
       <div class="text-sm font-bold tabular-nums <%= row.tier ? { 'favorable' => 'text-hit', 'unfavorable' => 'text-miss' }.fetch(row.tier, 'text-muted') : 'text-muted' %>"><%= row.opp_rank&.rank || "–" %></div>
     </div>
     <% if row.prediction %>
-      <div class="w-14 shrink-0 rounded-lg px-1 py-1.5" style="<%= hit_rate_cell_style(model_pct(row.prediction), 100) %>" title="<%= model_tooltip(row) %>">
-        <div class="text-[10px] font-semibold text-muted">MODEL</div>
-        <div class="text-sm font-bold tabular-nums <%= hit_rate_text_class(model_pct(row.prediction), 100) %>"><%= percent_label(model_pct(row.prediction)) %></div>
+      <div class="w-16 shrink-0 rounded-lg px-1 py-1.5 <%= "text-muted" if model_pct(row.prediction).nil? %>" style="<%= hit_rate_cell_style(model_pct(row.prediction), 100) %>" title="<%= model_tooltip(row) %>">
+        <div class="text-2xs font-semibold">MODEL</div>
+        <div class="text-sm font-bold tabular-nums"><%= percent_label(model_pct(row.prediction)) %></div>
       </div>
     <% end %>
     <% PropsHelper::HIT_COLUMNS.each do |key, label, _| %>
       <% rate, n = row.rate(key), row.sample(key) %>
-      <div class="w-14 shrink-0 rounded-lg px-1 py-1.5" style="<%= hit_rate_cell_style(rate, n) %>" title="<%= hit_tooltip(label, rate, n) %>">
-        <div class="text-[10px] font-semibold text-muted"><%= label.upcase %></div>
-        <div class="text-sm font-bold tabular-nums <%= hit_rate_text_class(rate, n) %>"><%= percent_label(rate, n) %><% if small_sample?(n) %><sup class="ml-0.5 text-[9px] font-semibold opacity-70" title="Based on <%= n %> <%= 'game'.pluralize(n) %>"><%= n %>g</sup><% end %></div>
+      <div class="w-16 shrink-0 rounded-lg px-1 py-1.5 <%= "text-muted" if rate.nil? %>" style="<%= hit_rate_cell_style(rate, n) %>" title="<%= hit_tooltip(label, rate, n) %>">
+        <div class="text-2xs font-semibold"><%= label.upcase %></div>
+        <div class="text-sm font-bold tabular-nums"><%= percent_label(rate, n) %><% if small_sample?(n) %><sup class="ml-0.5 text-2xs font-semibold" title="Based on <%= n %> <%= 'game'.pluralize(n) %>"><%= n %>g</sup><% end %></div>
       </div>
     <% end %>
   </div>

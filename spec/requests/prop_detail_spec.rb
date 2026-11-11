@@ -45,7 +45,8 @@ end
 RSpec.describe AvatarsHelper, type: :helper do
   it "draws monogram avatars without third-party images, and prefers a supplied photo" do
     player = build(:player, first_name: "Dušan", last_name: "Marković", team: build(:team, abbreviation: "BOS"))
-    expect(helper.player_avatar(player)).to include(">DM<", "BOS")
+    # The corner team badge is a colour marker (no letters); the team stays available as its accessible name.
+    expect(helper.player_avatar(player)).to include(">DM<", %(aria-label="#{player.team.name}"))
     player.photo_url = "https://example.test/p.png"
     expect(helper.player_avatar(player)).to include("https://example.test/p.png")
   end
