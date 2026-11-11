@@ -13,6 +13,7 @@ It is a research and analytics tool. It never takes bets, never handles money an
 - **Insights:** plain-English streaks and splits attached to a pick, ranked by strength.
 - **EV+ and Arbitrage:** devigged fair price (sharp book if configured, otherwise a market consensus), EV and Kelly; two-book arbitrage with whole-cent stake splits.
 - **My Picks slip (parlay builder):** add legs with the +, choose a book, and see every leg at that book's price with the combined odds and payout for your stake. See which single book pays most for the whole slip. Copy it, or open a leg at the book where the provider gives a betslip link. Alternate lines included.
+- **Home and saved slips:** the landing page lists every slip you saved (a snapshot of the book, stake and each leg's price), in play first. Legs are graded from the box scores we already store (hit, miss, push, or void for a DNP or postponed game), and each slip shows its result and payout.
 - **American or decimal odds**, dark and light themes, and no accounts needed: self-hosted copies are single-user by default.
 - **Optional model:** a small XGBoost projection service, honestly evaluated (see `model_service/README.md`).
 

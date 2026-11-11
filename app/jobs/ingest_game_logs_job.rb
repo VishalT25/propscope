@@ -10,6 +10,7 @@ class IngestGameLogsJob < ApplicationJob
       Ingest::GameLogs.call(logs: provider.fetch_game_logs(sport: "nba", date: date))
       ComputeDefenseRanksJob.perform_later
       PrecomputeHitRatesJob.perform_later
+      GradeSlipsJob.perform_later
     end
   end
 end
