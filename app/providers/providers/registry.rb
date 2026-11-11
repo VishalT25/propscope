@@ -4,6 +4,8 @@ module Providers
     CONFIG = Rails.application.config_for(:providers)
 
     # What LIVE_DATA=true switches every capability to, whatever the environment (see docs/operations.md).
+    FREE_BALLDONTLIE_INTERVAL = 12.5 # 5 requests a minute
+
     LIVE = { odds: "sports_game_odds", props: "sports_game_odds", reference: "balldontlie", stats: "balldontlie" }.freeze
 
     class << self
@@ -21,6 +23,12 @@ module Providers
 
       def budget_config(provider) = CONFIG.fetch(:budgets).fetch(provider.to_sym, {})
 
+      # Seconds between calls. The free BallDontLie plan allows 5 requests a minute, the paid one 60; Settings records which one this is.
+      def min_interval(provider)
+        base = budget_config(provider)[:min_interval]
+        provider.to_s == "balldontlie" && Setting.get("balldontlie_plan") == "free" ? [ base.to_f, FREE_BALLDONTLIE_INTERVAL ].max : base
+      end
+
       private
 
       def build(key)
@@ -28,13 +36,13 @@ module Providers
         when "fixture" then Fixture.new
         when "sports_game_odds"
           SportsGameOdds.new(transport: HttpTransport.new(
-            provider: key, base_url: "https://api.sportsgameodds.com/v2/", min_interval: budget_config(key)[:min_interval],
-            auth: -> { { "X-Api-Key" => ENV.fetch("SPORTSGAMEODDS_API_KEY") } }
+            provider: key, base_url: "https://api.sportsgameodds.com/v2/", min_interval: min_interval(key),
+            auth: -> { { "X-Api-Key" => ApiKeys.fetch(key) } }
           ))
         when "balldontlie"
           BallDontLie.new(transport: HttpTransport.new(
-            provider: key, base_url: "https://api.balldontlie.io/v1/", min_interval: budget_config(key)[:min_interval],
-            auth: -> { { "Authorization" => ENV.fetch("BALLDONTLIE_API_KEY") } }
+            provider: key, base_url: "https://api.balldontlie.io/v1/", min_interval: min_interval(key),
+            auth: -> { { "Authorization" => ApiKeys.fetch(key) } }
           ))
         else raise ArgumentError, "unknown provider #{key}"
         end
