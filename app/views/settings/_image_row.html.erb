@@ -6,12 +6,13 @@
     <div class="flex items-center gap-2 text-xs text-muted">
       <span><%= detail %></span>
       <% if has_image %>
-        <%= button_to "Remove", remove_path, method: :delete, params: { q: params[:q], section: section }, class: "font-semibold text-miss hover:underline", "aria-label": "Remove #{label}",
+        <%= button_to "Remove", remove_path, method: :delete, params: { league: params[:league], q: params[:q], section: section }, class: "font-semibold text-miss hover:underline", "aria-label": "Remove #{label}",
               form: { class: "contents", data: { turbo_confirm: "Remove this image?" } } %>
       <% end %>
     </div>
   </div>
   <%= form_with url: upload_path, method: :patch, multipart: true, class: "flex items-center gap-2" do %>
+    <input type="hidden" name="league" value="<%= params[:league] %>">
     <input type="hidden" name="q" value="<%= params[:q] %>">
     <input type="hidden" name="section" value="<%= section %>">
     <input type="file" name="image" accept="image/png,image/jpeg,image/webp,image/gif" aria-label="Upload <%= label %>"

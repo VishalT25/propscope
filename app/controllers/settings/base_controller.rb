@@ -8,10 +8,11 @@ module Settings
 
     def require_admin
       return if current_user&.admin?
+      return render(json: { error: "Only an admin can change images." }, status: :forbidden) if request.format.json? || request.xhr?
 
       redirect_to settings_path, alert: "Only an admin can change images.", status: :see_other
     end
 
-    def back_to_settings(**flash) = redirect_to(settings_path(q: params[:q].presence, anchor: params[:section]), status: :see_other, **flash)
+    def back_to_settings(**flash) = redirect_to(settings_path(league: params[:league].presence, q: params[:q].presence, anchor: params[:section]), status: :see_other, **flash)
   end
 end

@@ -11,6 +11,9 @@ Rails.application.routes.draw do
   namespace :settings do
     resources :logos, only: %i[update destroy] # :id is the team
     resources :photos, only: %i[update destroy] # :id is the player
+    resources :images, only: :create do # bulk upload for a league
+      get :names, on: :collection
+    end
   end
 
   root to: "home#show"
