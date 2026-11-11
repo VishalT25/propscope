@@ -10,17 +10,81 @@ RSpec.describe "Backfill" do
   end
 
   describe Backfill::Estimate do
-    it "works out requests and minutes from the seasons and the plan's pace" do
-      paid = described_class.call(seasons: 2, interval: 1.1)
-      expect([ paid.game_days, paid.requests, paid.minutes ]).to eq([ 330, 1332, 25 ])
-      free = described_class.call(seasons: 1, interval: 12.5)
-      expect(free.minutes).to eq(140)
+    let(:early_season) { Date.new(2026, 11, 11) } # a few weeks into the season
+    let(:late_season) { Date.new(2027, 3, 1) }
+
+    it "counts a full past season and only the days played of the current one" do
+      expect(described_class.game_days(1, early_season)).to eq(20)
+      expect(described_class.game_days(2, early_season)).to eq(233)
+      expect(described_class.game_days(2, late_season)).to eq(343)
+      expect(described_class.game_days(1, Date.new(2026, 6, 30))).to eq(213) # the season just ended
+    end
+
+    it "works out requests and minutes from the days and the plan's pace" do
+      paid = described_class.call(seasons: 2, interval: 1.1, today: early_season)
+      expect([ paid.game_days, paid.requests, paid.minutes ]).to eq([ 233, 771, 17 ])
+      free = described_class.call(seasons: 1, interval: 12.5, today: early_season)
+      expect([ free.requests, free.minutes ]).to eq([ 80, 20 ])
     end
 
     it "follows the plan chosen in Settings by default" do
-      expect(described_class.call(seasons: 1).minutes).to be < 20
+      expect(described_class.call(seasons: 1, today: late_season).minutes).to be < 20
       Setting.set("balldontlie_plan", "free")
-      expect(described_class.call(seasons: 1).minutes).to be > 100
+      expect(described_class.call(seasons: 1, today: late_season).minutes).to be > 100
+    end
+  end
+
+  describe Backfill::Eta do
+    let(:now) { Time.utc(2026, 11, 12, 4, 0, 0) }
+    let(:started) { now - 60 }
+
+    def run_at(phase, **attrs) = BackfillRun.create!(state: "running", phase: phase, seasons: 2, phase_started_at: started, **attrs)
+
+    it "says which step it is, and counts requests and the rest of the time in the reference step" do
+      run = run_at("reference", requests_done: 4, phase_requests_start: 0)
+      eta = described_class.call(run, now: now, interval: 1.1)
+      expect([ eta.step, eta.steps, eta.title, eta.unit ]).to eq([ 1, 4, "Teams, players and the schedule", "requests" ])
+      expect([ eta.done, eta.total ]).to eq([ 4, 25 ])
+      expect(eta.then_minutes).to be_positive
+      expect(eta.seconds_left).to be > eta.then_minutes * 60 # this step, then the box scores, then the tail
+    end
+
+    it "uses the pace the step has actually managed once it has made enough requests" do
+      slow = described_class.call(run_at("reference", requests_done: 10, phase_requests_start: 0), now: now, interval: 1.1) # 6 s a request
+      fast = described_class.call(run_at("reference", requests_done: 30, phase_requests_start: 0), now: now, interval: 1.1) # past the expected count
+      expect(slow.step_seconds).to eq(90)   # 15 requests left at 6 s each
+      expect([ fast.total, fast.step_seconds ]).to eq([ 30, 2 ]) # never negative; always one more to go
+    end
+
+    it "is exact in the box-score step: days left, at the cost per day so far" do
+      run = run_at("box_scores", total_days: 233, done_days: 20, requests_done: 80, phase_requests_start: 20) # 60 requests in 60 s, 3 a day
+      eta = described_class.call(run, now: now, interval: 1.1)
+      expect([ eta.step, eta.done, eta.total, eta.unit ]).to eq([ 2, 20, 233, "game days" ])
+      expect(eta.step_seconds).to eq(639) # 213 days x 3 requests x 1 s
+      expect(eta.seconds_left).to eq(639 + 60)
+      expect(eta.finish_at).to eq(now + 699)
+    end
+
+    it "falls back to sensible defaults in a step's first moments" do
+      run = run_at("box_scores", total_days: 100, done_days: 1, requests_done: 30, phase_requests_start: 28)
+      eta = described_class.call(run, now: now, interval: 1.1)
+      expect(eta.step_seconds).to eq((99 * Backfill::Estimate::REQUESTS_PER_DAY * 1.1 * 1.15).round)
+    end
+
+    it "has a short, fixed answer for the last two steps, and none of the counters" do
+      ranks = described_class.call(run_at("ranks"), now: now)
+      odds = described_class.call(run_at("odds"), now: now)
+      expect([ ranks.step, ranks.total, ranks.seconds_left ]).to eq([ 3, nil, 42 ])
+      expect([ odds.step, odds.seconds_left ]).to eq([ 4, 15 ])
+    end
+  end
+
+  describe SetupsHelper, type: :helper do
+    it "puts a number of seconds in words" do
+      expect([ 10, 44 ].map { |s| helper.eta_phrase(s) }).to all(eq("less than a minute"))
+      expect([ helper.eta_phrase(60), helper.eta_phrase(89) ]).to all(eq("about a minute"))
+      expect([ helper.eta_phrase(150), helper.eta_phrase(11 * 60 + 20), helper.eta_phrase(3000) ]).to eq([ "about 3 minutes", "about 11 minutes", "about 50 minutes" ])
+      expect([ helper.eta_phrase(3600), helper.eta_phrase(5400 + 60) ]).to eq([ "about 1 hour", "about 1 hour 31 min" ])
     end
   end
 
@@ -37,6 +101,29 @@ RSpec.describe "Backfill" do
       expect(PropHitRate.count).to be_positive
       expect(OddsSnapshot.count).to be_positive
       expect(lines).to include("Loading teams, players and the schedule", "Loading box scores", "Fetching today's odds")
+    end
+
+    it "counts the provider requests it makes, and when each step began, so the page can say how long is left" do
+      described_class.call(run, provider: fixture)
+      run.reload
+      expect(run.requests_done).to be_positive
+      expect(run.phase_started_at).to be_present
+      expect(run.phase_requests_start).to be_positive # the later steps started after the earlier ones' requests
+      expect(run.phase_requests).to be >= 0
+    end
+
+    it "does not count requests made by another thread" do
+      described_class.call(run, provider: fixture)
+      quiet = run.reload.requests_done
+      PlayerGameLog.delete_all # so the second run has the same days to load
+
+      noisy = provider_with(:fetch_teams) do |**kw|
+        Thread.new { 5.times { ActiveSupport::Notifications.instrument("request.propscope", provider: "other", path: "/elsewhere") } }.join
+        __getobj__.fetch_teams(**kw)
+      end
+      again = BackfillRun.create!(seasons: 1)
+      described_class.call(again, provider: noisy)
+      expect(again.reload.requests_done).to eq(quiet)
     end
 
     it "is resumable: days that already have box scores are not fetched again" do

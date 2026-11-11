@@ -80,7 +80,8 @@ RSpec.describe "Setup" do
       expect(flash[:notice]).to match(/Both keys work/)
       expect([ ApiKeys.get("sports_game_odds"), ApiKeys.get("balldontlie") ]).to eq([ "sgo-key-1111", "bdl-key-2222" ])
       follow_redirect!
-      expect(response.body).to include("How much history?", "about 25 minutes")
+      expect(response.body).to include("How much history?")
+      expect(response.body).to match(/about \d+ minutes, roughly [\d,]+ requests/)
     end
 
     it "never shows a saved key again, only its last four characters" do
@@ -155,7 +156,8 @@ RSpec.describe "Setup" do
       Setup.go_live
       run = BackfillRun.create!(state: "running", phase: "box_scores", total_days: 200, done_days: 50, heartbeat_at: Time.current)
       get "/setup/progress"
-      expect(response.body).to include("Box scores", "50 of 200 game days (25%)", 'data-controller="poll"', "Stop")
+      expect(response.body).to include("Box scores", "step 2 of 4", "50 of 200 game days (25%)", 'data-controller="poll"', "Stop", "done around")
+      expect(response.body).to match(/(less than a minute|about [\d a-z]+) left/i)
 
       run.update!(state: "paused", message: "balldontlie budget exhausted (500/500 this month). Start it again next month.")
       get "/setup/progress"
@@ -169,6 +171,23 @@ RSpec.describe "Setup" do
       run.update!(state: "done", message: nil)
       get "/setup/progress"
       expect(response.body).to include("All set", "Open Propscope")
+    end
+
+    it "explains the reference step: how many requests, why it cannot be faster, and what comes next" do
+      keys_ready!
+      Setup.go_live
+      BackfillRun.create!(state: "running", phase: "reference", seasons: 2, requests_done: 10, phase_requests_start: 0, phase_started_at: 20.seconds.ago, heartbeat_at: Time.current)
+      get "/setup/progress"
+      expect(response.body).to include("Teams, players and the schedule", "step 1 of 4", "request 10 of about 25", "cannot go faster", "Then come the box scores, about")
+    end
+
+    it "says it is waiting before the first step has begun" do
+      keys_ready!
+      Setup.go_live
+      BackfillRun.create!(state: "queued")
+      get "/setup/progress"
+      expect(response.body).to include("Waiting to start")
+      expect(response.body).not_to include("left")
     end
 
     it "gates the app until the history is loaded, then opens it" do

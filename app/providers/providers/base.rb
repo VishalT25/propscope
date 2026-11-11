@@ -34,6 +34,7 @@ module Providers
       else
         transport.get(path, params)
       end
+      ActiveSupport::Notifications.instrument("request.propscope", provider: provider_key, path: path) # lets a backfill count them
       RawPayloadStore.capture(provider: provider_key, endpoint: path, params: params, status: 200, body: storage_body(body), fetched_at: clock.call)
       body
     end
