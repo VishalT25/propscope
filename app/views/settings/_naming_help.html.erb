@@ -1,0 +1,28 @@
+<%# locals: league %>
+<div class="card mt-4 p-4">
+  <h3 class="font-bold">How to prepare your files</h3>
+  <dl class="mt-3 grid gap-x-6 gap-y-3 text-pretty text-sm sm:grid-cols-[max-content_1fr]">
+    <dt class="font-semibold">Format</dt>
+    <dd>PNG, JPEG, WebP or GIF. The file's contents are checked, not its extension. SVG is not accepted.</dd>
+
+    <dt class="font-semibold">Size</dt>
+    <dd>Up to <b>2 MB</b> per file. Square images, at least 256 × 256 pixels, look best (they are shown in a circle). Larger files are skipped.</dd>
+
+    <dt class="font-semibold">Team logos</dt>
+    <dd>Name each file with the team code, in any case: <code class="font-mono text-[0.9em]">BOS.png</code>, <code class="font-mono text-[0.9em]">lal.webp</code>.</dd>
+
+    <dt class="font-semibold">Player photos</dt>
+    <dd>
+      <p>Name each file with the player's name, in lower case, with the words joined by hyphens: <code class="font-mono text-[0.9em]">jaylen-brown.png</code>.</p>
+      <ul class="mt-1 list-disc space-y-0.5 pl-5 text-muted">
+        <li>Accents and punctuation don't matter: Dušan Marković is <code class="font-mono text-[0.9em]">dusan-markovic.png</code>, Karl-Anthony Towns is <code class="font-mono text-[0.9em]">karl-anthony-towns.png</code>.</li>
+        <li>Jr, Sr, II and III are optional: Wendell Carter Jr. is <code class="font-mono text-[0.9em]">wendell-carter.png</code>.</li>
+        <li>If two players of the same league share a name, add the team code after an underscore: <code class="font-mono text-[0.9em]">jaylen-brown_BOS.png</code>. The upload tells you when this is needed.</li>
+      </ul>
+    </dd>
+
+    <dt class="font-semibold">Replacing</dt>
+    <dd>Uploading a file for someone who already has an image replaces it. Files that don't match anyone are skipped and listed with the reason; nothing else is affected.</dd>
+  </dl>
+  <p class="mt-3 text-xs text-muted">Only upload images you have the right to use. They are stored on this install and shown to everyone who uses it.</p>
+</div>

@@ -1,0 +1,16 @@
+<%# locals: league, kind ("teams" or "players"), title, noun ("team"/"player"), with_image, total, example %>
+<div class="card p-4" data-controller="bulk-upload" data-bulk-upload-url-value="<%= settings_images_path %>"
+     data-bulk-upload-league-value="<%= league.key %>" data-bulk-upload-kind-value="<%= kind %>">
+  <div class="flex items-baseline justify-between gap-3">
+    <h3 class="font-bold"><%= title %></h3>
+    <p class="text-sm text-muted"><b class="text-fg tabular-nums" data-bulk-upload-target="count"><%= with_image %></b> of <span class="tabular-nums"><%= total %></span> <%= noun.pluralize(total) %> have <%= kind == "teams" ? "a logo" : "a photo" %></p>
+  </div>
+  <p class="mt-1 text-sm text-muted">Choose all the files at once (for example, select everything in the folder). Name them like <code class="font-mono text-[0.9em] text-fg"><%= example %></code>.</p>
+  <input type="file" multiple accept="image/png,image/jpeg,image/webp,image/gif" aria-label="Choose <%= title.downcase %> to upload for <%= league.name %>"
+         class="file-input mt-3 w-full" data-bulk-upload-target="input" data-action="change->bulk-upload#upload">
+  <p class="mt-2 text-sm font-medium" role="status" aria-live="polite" data-bulk-upload-target="status"></p>
+  <div data-bulk-upload-target="results"></div>
+  <p class="mt-3 text-xs text-muted">
+    <%= link_to "Download the list of exact file names (CSV)", names_settings_images_path(league: league.key, kind: kind), class: "font-semibold text-accent hover:underline" %>
+  </p>
+</div>

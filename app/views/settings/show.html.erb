@@ -1,49 +1,60 @@
 <% content_for :title, "Settings" %>
-<%= render "shared/page_header", title: "Settings", chips: false,
-      subtitle: "Add your own team logos and player photos, and see exactly which version of Propscope is running." %>
+<%= render "shared/page_header", title: "Settings",
+      subtitle: "Add your own team logos and player photos for each league, and see exactly which version of Propscope is running." %>
 
 <% if can_edit_images? %>
   <section class="mt-6" aria-labelledby="images">
-    <h2 id="images" class="text-lg font-bold">Logos and photos</h2>
+    <h2 id="images" class="text-lg font-bold">Logos and photos for <%= @league.name %></h2>
     <p class="mt-1 max-w-prose text-sm text-muted">
-      Until you add one, every team and player gets a generated monogram. PNG, JPEG, WebP or GIF, up to 2 MB; square images look best.
-      Only upload images you have the right to use. They are stored on this install and shown to everyone who uses it.
+      Until you add one, every team and player gets a generated monogram. Upload a whole league's worth at once, matched by file name.
+      Pick another league above to do the same for its teams and players.
     </p>
 
+    <%= render "settings/naming_help", league: @league %>
+
     <div class="mt-4 grid gap-4 lg:grid-cols-2">
-      <div id="logos" class="card p-4">
-        <h3 class="font-bold">Team logos</h3>
-        <ul class="mt-2 max-h-[34rem] divide-y divide-line overflow-y-auto" tabindex="0" aria-label="Team logos">
-          <% @teams.each do |team| %>
-            <%= render "settings/image_row", name: team.name, detail: team.abbreviation, preview: team_badge(team, size: :md), has_image: team.logo_url.present?,
-                  upload_path: settings_logo_path(team), remove_path: settings_logo_path(team), section: "logos", label: "logo for #{team.name}" %>
-          <% end %>
-        </ul>
-      </div>
+      <%= render "settings/bulk_uploader", league: @league, kind: "teams", title: "Team logos", noun: "team", with_image: @coverage[:teams][0], total: @coverage[:teams][1], example: "BOS.png" %>
+      <%= render "settings/bulk_uploader", league: @league, kind: "players", title: "Player photos", noun: "player", with_image: @coverage[:players][0], total: @coverage[:players][1], example: "jaylen-brown.png" %>
+    </div>
 
-      <div id="photos" class="card p-4">
-        <h3 class="font-bold">Player photos</h3>
-        <%= form_with url: settings_path, method: :get, class: "mt-2 flex gap-2", data: { turbo_frame: "_top" } do %>
-          <input type="search" name="q" value="<%= @query %>" maxlength="60" placeholder="Search for a player" aria-label="Search for a player" class="field min-w-0 flex-1">
-          <input type="hidden" name="section" value="photos">
-          <button type="submit" class="btn btn-outline btn-sm h-auto shrink-0 self-stretch">Search</button>
-        <% end %>
-
-        <% if @players.empty? %>
-          <p class="py-8 text-center text-sm text-muted">
-            <%= @query.present? ? "No player matches “#{@query}”." : "Search for a player to add a photo. Players who already have one will be listed here." %>
-          </p>
-        <% else %>
-          <p class="mt-3 text-xs text-muted"><%= @query.present? ? "Showing up to #{SettingsController::PLAYER_RESULTS} matches. Search for a longer name to narrow them." : "Players with a photo" %></p>
-          <ul class="mt-1 divide-y divide-line">
-            <% @players.each do |player| %>
-              <%= render "settings/image_row", name: player.full_name, detail: [ player.team&.abbreviation, player.position ].compact.join(" · "), preview: player_avatar(player, size: :md, badge: false),
-                    has_image: player.photo_url.present?, upload_path: settings_photo_path(player), remove_path: settings_photo_path(player), section: "photos", label: "photo for #{player.full_name}" %>
+    <details class="mt-4" <%= "open" if @query.present? || params[:section].present? %>>
+      <summary class="cursor-pointer text-sm font-semibold">Add or remove one at a time</summary>
+      <div class="mt-3 grid gap-4 lg:grid-cols-2">
+        <div id="logos" class="card p-4">
+          <h3 class="font-bold">Team logos</h3>
+          <ul class="mt-2 max-h-[34rem] divide-y divide-line overflow-y-auto" tabindex="0" aria-label="Team logos">
+            <% @teams.each do |team| %>
+              <%= render "settings/image_row", name: team.name, detail: team.abbreviation, preview: team_badge(team, size: :md), has_image: team.logo_url.present?,
+                    upload_path: settings_logo_path(team), remove_path: settings_logo_path(team), section: "logos", label: "logo for #{team.name}" %>
             <% end %>
           </ul>
-        <% end %>
+        </div>
+
+        <div id="photos" class="card p-4">
+          <h3 class="font-bold">Player photos</h3>
+          <%= form_with url: settings_path, method: :get, class: "mt-2 flex gap-2", data: { turbo_frame: "_top" } do %>
+            <input type="search" name="q" value="<%= @query %>" maxlength="60" placeholder="Search for a player" aria-label="Search for a player" class="field min-w-0 flex-1">
+            <input type="hidden" name="league" value="<%= @league.key %>">
+            <input type="hidden" name="section" value="photos">
+            <button type="submit" class="btn btn-outline btn-sm h-auto shrink-0 self-stretch">Search</button>
+          <% end %>
+
+          <% if @players.empty? %>
+            <p class="py-8 text-center text-sm text-muted">
+              <%= @query.present? ? "No player matches “#{@query}”." : "Search for a player to add a photo. Players who already have one will be listed here." %>
+            </p>
+          <% else %>
+            <p class="mt-3 text-xs text-muted"><%= @query.present? ? "Showing up to #{SettingsController::PLAYER_RESULTS} matches. Search for a longer name to narrow them." : "Players with a photo" %></p>
+            <ul class="mt-1 divide-y divide-line">
+              <% @players.each do |player| %>
+                <%= render "settings/image_row", name: player.full_name, detail: [ player.team&.abbreviation, player.position ].compact.join(" · "), preview: player_avatar(player, size: :md, badge: false),
+                      has_image: player.photo_url.present?, upload_path: settings_photo_path(player), remove_path: settings_photo_path(player), section: "photos", label: "photo for #{player.full_name}" %>
+              <% end %>
+            </ul>
+          <% end %>
+        </div>
       </div>
-    </div>
+    </details>
   </section>
 <% end %>
 

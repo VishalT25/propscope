@@ -7,7 +7,7 @@ RSpec.describe "Settings and About" do
   def file(bytes, name: "logo.png", type: "image/png")
     path = Rails.root.join("tmp", "upload-#{SecureRandom.hex(4)}-#{name}")
     File.binwrite(path, bytes)
-    Rack::Test::UploadedFile.new(path, type)
+    Rack::Test::UploadedFile.new(path, type, original_filename: name)
   end
 
   before { allow(Rails.configuration.x).to receive(:single_user).and_return(true) }
@@ -87,6 +87,75 @@ RSpec.describe "Settings and About" do
       get team.reload.logo_url
       expect(response).to have_http_status(:ok)
       expect([ response.media_type, response.body.b ]).to eq([ "image/png", png ])
+    end
+  end
+
+  describe "bulk upload for a league" do
+    let(:json) { { "Accept" => "application/json" } }
+    let!(:lal) { create(:team, sport: team.sport, abbreviation: "LAL", name: "Los Angeles Testers") }
+
+    it "explains the format, size and naming convention, and offers the list of exact names" do
+      get "/settings"
+      expect(response.body).to include("How to prepare your files", "PNG, JPEG, WebP or GIF", "2 MB", "BOS.png", "jaylen-brown.png", "jaylen-brown_BOS.png",
+                                       "dusan-markovic.png", "Logos and photos for NBA", "Download the list of exact file names")
+      expect(response.body).to include(CGI.escapeHTML(names_settings_images_path(league: "nba", kind: "teams")), CGI.escapeHTML(names_settings_images_path(league: "nba", kind: "players")))
+    end
+
+    it "shows how many teams and players in the league already have an image" do
+      team.update!(logo_url: "/x")
+      create(:player, sport: team.sport, photo_url: "/y")
+      create(:player, sport: team.sport)
+      get "/settings"
+      expect(response.body).to include(%(<b class="text-fg tabular-nums" data-bulk-upload-target="count">1</b> of <span class="tabular-nums">#{Team.count}</span> teams have a logo),
+                                       %(<b class="text-fg tabular-nums" data-bulk-upload-target="count">1</b> of <span class="tabular-nums">2</span> players have a photo))
+    end
+
+    it "matches many files by name, saves them, and reports each one as JSON with the league's new totals" do
+      post "/settings/images", params: { league: "nba", kind: "teams", files: [ file(png, name: "BOS.png"), file(png, name: "lal.jpg"), file(png, name: "zzz.png") ] }, headers: json
+      expect(response).to have_http_status(:ok)
+      body = response.parsed_body
+      expect(body["results"].map { |r| [ r["file"], r["status"], r["target"] ] }).to eq([ [ "BOS.png", "saved", "Boston Testers" ], [ "lal.jpg", "saved", "Los Angeles Testers" ], [ "zzz.png", "skipped", nil ] ])
+      expect(body["results"].last["message"]).to match(/No team has the code “zzz”/)
+      expect(body["totals"]).to eq({ "with_image" => 2, "total" => 2 })
+      expect([ team.reload.logo.attached?, lal.reload.logo.attached? ]).to eq([ true, true ])
+    end
+
+    it "does the same for players" do
+      player = create(:player, sport: team.sport, first_name: "Jaylen", last_name: "Brown")
+      post "/settings/images", params: { league: "nba", kind: "players", files: [ file(png, name: "jaylen-brown.png") ] }, headers: json
+      expect(response.parsed_body["results"].first).to include("status" => "saved", "target" => "Jaylen Brown")
+      expect(player.reload.photo).to be_attached
+    end
+
+    it "refuses an unknown or disabled league, an unknown kind, and an empty request" do
+      post "/settings/images", params: { league: "nfl", kind: "teams", files: [ file(png, name: "BOS.png") ] }, headers: json
+      expect(response).to have_http_status(:unprocessable_content)
+      post "/settings/images", params: { league: "nba", kind: "coaches", files: [ file(png, name: "BOS.png") ] }, headers: json
+      expect(response).to have_http_status(:unprocessable_content)
+      post "/settings/images", params: { league: "nba", kind: "teams" }, headers: json
+      expect(response.parsed_body["error"]).to match(/No files/)
+    end
+
+    it "handles at most 50 files per request (the page sends batches of 20)" do
+      files = (1..52).map { |i| file(png, name: "T#{i}.png") }
+      post "/settings/images", params: { league: "nba", kind: "teams", files: files }, headers: json
+      expect(response.parsed_body["results"].size).to eq(50)
+    end
+
+    it "downloads the exact names as CSV" do
+      get "/settings/images/names", params: { league: "nba", kind: "teams" }
+      expect(response.media_type).to eq("text/csv")
+      expect(response.headers["Content-Disposition"]).to include("nba-teams-file-names.csv")
+      expect(response.body).to eq("file_name,name,team,has_image\nBOS.png,Boston Testers,BOS,false\nLAL.png,Los Angeles Testers,LAL,false\n")
+    end
+
+    it "tells a non-admin no, as JSON" do
+      allow(Rails.configuration.x).to receive(:single_user).and_return(false)
+      user = create(:user)
+      post session_path, params: { email_address: user.email_address, password: "password123" }
+      post "/settings/images", params: { league: "nba", kind: "teams", files: [ file(png, name: "BOS.png") ] }, headers: json
+      expect(response).to have_http_status(:forbidden)
+      expect(team.reload.logo).not_to be_attached
     end
   end
 
