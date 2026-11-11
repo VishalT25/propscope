@@ -28,6 +28,12 @@ services:
       DB_HOST: db
       SOLID_QUEUE_IN_PUMA: "true"          # run scheduled jobs in the web process: no separate worker needed
       MODEL_SERVICE_URL: ${MODEL_SERVICE_URL:-}
+      GIT_SHA: ${GIT_SHA:-}                # shown in Settings, About (see docs/self-hosting.md)
+      GIT_BRANCH: ${GIT_BRANCH:-}
+      GIT_COMMITTED_AT: ${GIT_COMMITTED_AT:-}
+      BUILD_TIME: ${BUILD_TIME:-}
+    volumes:
+      - uploads:/rails/storage             # logos and photos added in Settings survive rebuilds
     ports:
       - "${PORT:-3000}:80"
 
@@ -44,3 +50,4 @@ services:
 
 volumes:
   pgdata:
+  uploads:

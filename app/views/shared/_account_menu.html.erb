@@ -24,8 +24,12 @@
       </div>
     </div>
 
-    <% unless single_user? %>
     <div class="mt-3 border-t border-line pt-2 text-sm font-medium">
+      <%= link_to "Settings and about", settings_path, class: "block rounded-lg px-2 py-2 hover:bg-surface-2" %>
+    </div>
+
+    <% unless single_user? %>
+    <div class="text-sm font-medium">
       <% if current_user %>
         <%= button_to "Log out", session_path, method: :delete, class: "w-full rounded-lg px-2 py-2 text-left hover:bg-surface-2", form: { class: "contents" } %>
       <% else %>

@@ -7,6 +7,11 @@ Rails.application.routes.draw do
   resources :saved_filters, only: %i[create destroy]
   resources :picks, only: %i[index create destroy]
   resources :slips, only: %i[create destroy]
+  resource :settings, only: :show
+  namespace :settings do
+    resources :logos, only: %i[update destroy] # :id is the team
+    resources :photos, only: %i[update destroy] # :id is the player
+  end
 
   root to: "home#show"
 
