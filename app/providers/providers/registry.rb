@@ -29,21 +29,21 @@ module Providers
         provider.to_s == "balldontlie" && Setting.get("balldontlie_plan") == "free" ? [ base.to_f, FREE_BALLDONTLIE_INTERVAL ].max : base
       end
 
+      # A real HTTP transport for a provider, whatever LIVE_DATA says. Used to check a key; the key is read when a call is made.
+      def live_transport(provider)
+        key = provider.to_s
+        base_url = { "sports_game_odds" => "https://api.sportsgameodds.com/v2/", "balldontlie" => "https://api.balldontlie.io/v1/" }.fetch(key)
+        header = { "sports_game_odds" => "X-Api-Key", "balldontlie" => "Authorization" }.fetch(key)
+        HttpTransport.new(provider: key, base_url: base_url, min_interval: min_interval(key), auth: -> { { header => ApiKeys.fetch(key) } })
+      end
+
       private
 
       def build(key)
         case key
         when "fixture" then Fixture.new
-        when "sports_game_odds"
-          SportsGameOdds.new(transport: HttpTransport.new(
-            provider: key, base_url: "https://api.sportsgameodds.com/v2/", min_interval: min_interval(key),
-            auth: -> { { "X-Api-Key" => ApiKeys.fetch(key) } }
-          ))
-        when "balldontlie"
-          BallDontLie.new(transport: HttpTransport.new(
-            provider: key, base_url: "https://api.balldontlie.io/v1/", min_interval: min_interval(key),
-            auth: -> { { "Authorization" => ApiKeys.fetch(key) } }
-          ))
+        when "sports_game_odds" then SportsGameOdds.new(transport: live_transport(key))
+        when "balldontlie" then BallDontLie.new(transport: live_transport(key))
         else raise ArgumentError, "unknown provider #{key}"
         end
       end

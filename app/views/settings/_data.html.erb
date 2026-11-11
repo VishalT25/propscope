@@ -1,0 +1,37 @@
+<%# Where the data comes from, for an admin. %>
+<section class="mt-8" aria-labelledby="data">
+  <h2 id="data" class="text-lg font-bold">Data</h2>
+  <div class="card mt-3 p-5">
+    <% if Setup.live? %>
+      <p class="font-bold">Live data <span class="text-sm font-normal text-muted">from your own accounts</span></p>
+      <dl class="mt-3 grid grid-cols-[max-content_1fr] gap-x-6 gap-y-2 text-sm">
+        <% ApiKeys::PROVIDERS.each do |provider, meta| %>
+          <% report = BudgetGuard.report(provider) %>
+          <dt class="text-muted"><%= meta[:name] %></dt>
+          <dd>
+            <% if ApiKeys.present?(provider) %>
+              <span class="font-mono tabular-nums"><%= ApiKeys.hint(provider) %></span>
+              <span class="text-muted">· <%= ApiKeys.source(provider) == :environment ? "from the environment" : "saved in the app" %></span>
+              <% if Setup.check(provider) == "no_box_scores" %><span class="font-semibold text-miss"> · no box scores on this plan</span>
+              <% elsif Setup.check(provider).nil? %><span class="text-muted"> · not tested</span><% end %>
+            <% else %><span class="text-miss">no key</span><% end %>
+            <% if report.limit %><br><span class="text-muted tabular-nums"><%= number_with_delimiter(report.used) %> of <%= number_with_delimiter(report.limit) %> used this month (<%= report.percent.round %>%), on course for about <%= number_with_delimiter(report.projected) %></span>
+            <% else %><br><span class="text-muted tabular-nums"><%= number_with_delimiter(report.used) %> requests this month</span><% end %>
+          </dd>
+        <% end %>
+        <% last = BackfillRun.where(state: "done").order(:finished_at).last %>
+        <dt class="text-muted">History</dt>
+        <dd><%= last ? "#{number_with_delimiter(PlayerGameLog.count)} box scores, loaded #{local_day(last.finished_at)}" : "not loaded yet" %></dd>
+      </dl>
+      <div class="mt-4 flex flex-wrap gap-3">
+        <%= button_to "Refresh odds now", refresh_odds_setup_path, method: :post, class: "btn btn-outline btn-sm", form: { class: "contents" } %>
+        <%= link_to "Change keys or load more history", setup_path(step: "keys"), class: "btn btn-outline btn-sm" %>
+        <%= button_to "Switch to sample data", choose_setup_path(mode: "sample"), method: :post, class: "btn btn-ghost btn-sm", form: { class: "contents", data: { turbo_confirm: "Switch to sample data? Your live data stays in the database but stops updating." } } %>
+      </div>
+    <% else %>
+      <p class="font-bold">Sample data <span class="text-sm font-normal text-muted">made up, for looking around</span></p>
+      <p class="mt-1 max-w-prose text-pretty text-sm text-muted">Use your own SportsGameOdds and BallDontLie accounts to get real odds, lines and box scores. Setup takes you through the keys and loads your history in the background.</p>
+      <div class="mt-4"><%= button_to "Use my own data", choose_setup_path(mode: "live"), method: :post, class: "btn btn-primary btn-sm", form: { class: "contents" } %></div>
+    <% end %>
+  </div>
+</section>

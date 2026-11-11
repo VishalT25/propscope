@@ -1,0 +1,8 @@
+<% content_for :title, "Set up" %>
+<%= render "shared/page_header", title: (@stage == :done ? "Your data" : "Set up #{app_name}"), chips: false,
+      subtitle: { choose: "Choose where the data comes from. You can change this later in Settings.",
+                  keys: "Propscope reads odds and box scores from accounts you own. Your keys stay on this computer, stored encrypted.",
+                  backfill: "Last step: load the history that hit rates are built from. It runs in the background, and you can leave this page.",
+                  done: "How this install gets its data." }.fetch(@stage) %>
+
+<%= render "setups/#{@stage}", run: @run, estimates: @estimates %>

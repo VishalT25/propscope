@@ -1,0 +1,28 @@
+<%# locals: run (BackfillRun or nil) %>
+<% if run.nil? %>
+  <p class="text-sm text-muted">Your keys work. Choose how much history to load.</p>
+<% elsif run.active? %>
+  <div data-controller="poll" data-poll-frame-value="backfill_progress">
+    <p class="font-bold"><%= run.state == "queued" ? "Waiting to start…" : (run.phase_label || "Working") %></p>
+    <% if run.phase == "box_scores" && run.total_days.positive? %>
+      <progress class="progress progress-primary mt-3 w-full" value="<%= run.done_days %>" max="<%= run.total_days %>" aria-label="Box scores loaded"></progress>
+      <p class="mt-1 text-sm text-muted tabular-nums"><%= number_with_delimiter(run.done_days) %> of <%= number_with_delimiter(run.total_days) %> game days (<%= run.percent %>%)</p>
+    <% else %>
+      <progress class="progress progress-primary mt-3 w-full" aria-label="Working"></progress>
+    <% end %>
+    <p class="mt-2 text-xs text-muted">You can close this page; it keeps going in the background. Come back here to check on it.</p>
+    <%= button_to "Stop", cancel_setup_path, method: :post, class: "btn btn-outline btn-xs mt-3", form: { class: "contents" } %>
+  </div>
+<% elsif run.done? %>
+  <div role="status">
+    <p class="text-lg font-bold text-hit">All set.</p>
+    <p class="mt-1 text-sm text-muted"><%= number_with_delimiter(PlayerGameLog.count) %> box scores for <%= number_with_delimiter(Game.where(status: "final").count) %> finished games are loaded, and today's odds are in.</p>
+    <%= link_to "Open #{app_name}", root_path, class: "btn btn-primary btn-sm mt-3" %>
+  </div>
+<% else %>
+  <div role="alert">
+    <p class="font-bold <%= run.state == "failed" ? "text-miss" : "text-push" %>"><%= { "paused" => "Paused", "failed" => "Stopped on an error", "cancelled" => "Stopped", "running" => "Interrupted" }.fetch(run.state, "Stopped") %></p>
+    <p class="mt-1 text-sm"><%= run.stalled? ? "This stopped reporting, which usually means the app was restarted. Nothing is lost: start it again to carry on." : run.message %></p>
+    <% if run.total_days.positive? %><p class="mt-1 text-sm text-muted tabular-nums"><%= number_with_delimiter(run.done_days) %> of <%= number_with_delimiter(run.total_days) %> game days were loaded.</p><% end %>
+  </div>
+<% end %>

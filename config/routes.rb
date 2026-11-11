@@ -8,6 +8,14 @@ Rails.application.routes.draw do
   resources :picks, only: %i[index create destroy]
   resources :slips, only: %i[create destroy]
   resource :settings, only: :show
+  resource :setup, only: :show do # first run: sample data, or your own keys and a backfill
+    post :choose
+    patch :keys
+    post :backfill
+    post :cancel
+    post :refresh_odds
+    get :progress
+  end
   namespace :settings do
     resources :logos, only: %i[update destroy] # :id is the team
     resources :photos, only: %i[update destroy] # :id is the player

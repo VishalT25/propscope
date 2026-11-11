@@ -1,0 +1,14 @@
+<section class="mt-6 max-w-2xl">
+  <% if Setup.live? %>
+    <p class="text-lg font-bold">Live data</p>
+    <p class="mt-1 text-sm text-muted">Odds and box scores come from your own SportsGameOdds and BallDontLie accounts, refreshed on a schedule in the background.</p>
+    <div class="mt-4 flex flex-wrap gap-3">
+      <%= link_to "Change keys or load more history", setup_path(step: "keys"), class: "btn btn-outline btn-sm" %>
+      <%= button_to "Switch to sample data", choose_setup_path(mode: "sample"), method: :post, class: "btn btn-ghost btn-sm", form: { class: "contents", data: { turbo_confirm: "Switch to sample data? Your live data stays in the database but stops updating." } } %>
+    </div>
+  <% else %>
+    <p class="text-lg font-bold">Sample data</p>
+    <p class="mt-1 text-sm text-muted">Made-up players and odds, so you can look around. Nothing in it is real.</p>
+    <div class="mt-4"><%= button_to "Use my own data", choose_setup_path(mode: "live"), method: :post, class: "btn btn-primary btn-sm", form: { class: "contents" } %></div>
+  <% end %>
+</section>
