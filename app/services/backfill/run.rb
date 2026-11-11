@@ -19,10 +19,12 @@ module Backfill
 
     def call
       @run.beat!(state: "running", started_at: @run.started_at || Time.current, message: nil, cancel_requested: false)
-      sync_reference
-      load_box_scores
-      compute
-      fetch_odds
+      counting_requests do
+        sync_reference
+        load_box_scores
+        compute
+        fetch_odds
+      end
       finish("done")
     rescue Stopped
       @run
@@ -40,6 +42,13 @@ module Backfill
     private
 
     def provider = @provider ||= Providers::Registry.for(:stats)
+
+    # Every provider request this thread makes is counted on the run, so the setup page can say how far along it is.
+    def counting_requests(&block)
+      owner = Thread.current
+      counter = ->(*) { @run.update_columns(requests_done: @run.requests_done + 1, heartbeat_at: Time.current) if Thread.current.equal?(owner) }
+      ActiveSupport::Notifications.subscribed(counter, "request.propscope", &block)
+    end
 
     def sport = @sport ||= Sport.nba
 
@@ -89,7 +98,7 @@ module Backfill
     end
 
     def phase(name, message)
-      @run.beat!(phase: name)
+      @run.beat!(phase: name, phase_started_at: Time.current, phase_requests_start: @run.requests_done)
       @log.call(message)
     end
 

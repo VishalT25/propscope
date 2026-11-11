@@ -2,13 +2,34 @@
 <% if run.nil? %>
   <p class="text-sm text-muted">Your keys work. Choose how much history to load.</p>
 <% elsif run.active? %>
+  <% eta = run.state == "queued" ? nil : Backfill::Eta.call(run) %>
   <div data-controller="poll" data-poll-frame-value="backfill_progress">
-    <p class="font-bold"><%= run.state == "queued" ? "Waiting to start…" : (run.phase_label || "Working") %></p>
-    <% if run.phase == "box_scores" && run.total_days.positive? %>
-      <progress class="progress progress-primary mt-3 w-full" value="<%= run.done_days %>" max="<%= run.total_days %>" aria-label="Box scores loaded"></progress>
-      <p class="mt-1 text-sm text-muted tabular-nums"><%= number_with_delimiter(run.done_days) %> of <%= number_with_delimiter(run.total_days) %> game days (<%= run.percent %>%)</p>
+    <% if eta.nil? %>
+      <p class="font-bold">Waiting to start…</p>
+      <progress class="progress progress-primary mt-3 w-full" aria-label="Waiting to start"></progress>
     <% else %>
-      <progress class="progress progress-primary mt-3 w-full" aria-label="Working"></progress>
+      <p class="font-bold"><%= eta.title %> <span class="text-sm font-normal text-muted">step <%= eta.step %> of <%= eta.steps %></span></p>
+      <% if eta.total&.positive? %>
+        <progress class="progress progress-primary mt-3 w-full" value="<%= [ eta.done, eta.total ].min %>" max="<%= eta.total %>" aria-label="<%= eta.title %>"></progress>
+        <p class="mt-1 text-sm text-muted tabular-nums">
+          <% if eta.unit == "game days" %><%= number_with_delimiter(eta.done) %> of <%= number_with_delimiter(eta.total) %> game days (<%= run.percent %>%)
+          <% else %>request <%= number_with_delimiter(eta.done) %> of about <%= number_with_delimiter(eta.total) %><% end %>
+        </p>
+      <% else %>
+        <progress class="progress progress-primary mt-3 w-full" aria-label="<%= eta.title %>"></progress>
+      <% end %>
+      <p class="mt-2 text-sm font-semibold" aria-live="off">
+        <%= eta_phrase(eta.seconds_left).capitalize %> left
+        <span class="font-normal text-muted">· done around <%= local_time(eta.finish_at) %></span>
+      </p>
+      <% if run.phase == "reference" %>
+        <p class="mt-2 max-w-prose text-xs text-muted">
+          This step makes about <%= eta.total %> requests, and BallDontLie allows 60 a minute, so it cannot go faster than that. The rest is saving about 500 players
+          and the season's games to your database. Then come the box scores, about <%= eta.then_minutes %> minutes.
+        </p>
+      <% elsif run.phase == "box_scores" %>
+        <p class="mt-2 max-w-prose text-xs text-muted">Busy nights have more box scores than quiet ones, so the time left moves around a little.</p>
+      <% end %>
     <% end %>
     <p class="mt-2 text-xs text-muted">You can close this page; it keeps going in the background. Come back here to check on it.</p>
     <%= button_to "Stop", cancel_setup_path, method: :post, class: "btn btn-outline btn-xs mt-3", form: { class: "contents" } %>

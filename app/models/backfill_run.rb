@@ -14,6 +14,9 @@ class BackfillRun < ApplicationRecord
   def stalled? = state == "running" && heartbeat_at.present? && heartbeat_at < STALL_AFTER.ago
   def done? = state == "done"
   def phase_label = PHASES[phase]
+  # Provider requests made since the current step began.
+  def phase_requests = requests_done - phase_requests_start
+
   def percent = total_days.to_i.zero? ? nil : (done_days * 100 / total_days)
 
   def beat!(**attrs) = update!(heartbeat_at: Time.current, **attrs)

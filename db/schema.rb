@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_12_000004) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_12_000005) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -65,6 +65,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_12_000004) do
     t.datetime "finished_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "requests_done", default: 0, null: false
+    t.integer "phase_requests_start", default: 0, null: false
+    t.datetime "phase_started_at"
     t.index ["state"], name: "index_backfill_runs_on_state"
   end
 
