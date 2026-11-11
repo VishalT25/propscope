@@ -1,7 +1,6 @@
 import { Controller } from "@hotwired/stimulus"
-import "chart.umd" // vendored Chart.js UMD build: a single file that registers window.Chart (no module chunks to resolve)
-
-const { Chart } = window // UMD build registers every controller, element and scale itself
+// Chart.js is a vendored UMD build: a single file that registers window.Chart (no module chunks to resolve).
+// It is imported on connect, so pages without a chart never download it.
 
 // Renders a chart from a server-built config. Colours are named design tokens ("hit", "miss", ...) resolved
 // from CSS variables, so charts follow the dark/light theme.
@@ -10,7 +9,9 @@ export default class extends Controller {
   static targets = ["canvas"]
   static values = { config: Object }
 
-  connect() {
+  async connect() {
+    await import("chart.umd")
+    if (!this.element.isConnected) return
     this.build()
     this.observer = new MutationObserver(() => this.build())
     this.observer.observe(document.documentElement, { attributes: true, attributeFilter: [ "data-theme" ] })
@@ -56,7 +57,7 @@ export default class extends Controller {
       }
     }
 
-    this.chart = new Chart(this.canvasTarget, {
+    this.chart = new window.Chart(this.canvasTarget, {
       data: { labels: cfg.labels, datasets },
       options: {
         responsive: true, maintainAspectRatio: false, animation: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? false : { duration: 500, easing: "easeOutQuart" }, layout: { padding: { top: 18 } },
