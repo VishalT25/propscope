@@ -1,32 +1,40 @@
-<%# locals: targets (Slips::Handoff::Target), region. One link per sportsbook we can open a slip at, plus a QR code to scan with a phone. %>
-<section class="mt-4 border-t border-line pt-4" aria-labelledby="handoff_title">
-  <h3 id="handoff_title" class="text-sm font-bold">Send to a sportsbook</h3>
+<%# locals: targets (Slips::Handoff::Target), region, scope (makes the heading id unique when it is shown more than once). One link per sportsbook we can open a slip at, plus a QR code to scan with a phone. %>
+<% scope = local_assigns.fetch(:scope, "slip") %>
+<section class="mt-4 border-t border-line pt-4" aria-labelledby="handoff_title_<%= scope %>">
+  <h3 id="handoff_title_<%= scope %>" class="text-sm font-bold">Send to a sportsbook</h3>
   <% targets.each do |t| %>
     <div class="mt-3">
-      <p class="text-sm">
-        <b><%= t.bookmaker.name %></b>
-        <span class="text-muted tabular-nums"><%= t.included %> of <%= t.total %> <%= "leg".pluralize(t.total) %> can be added</span>
-        <% if t.american && t.included == t.total %><span class="text-muted">· pays</span> <b class="tabular-nums"><%= format_price(t.american) %></b><% end %>
-      </p>
-      <div class="mt-2 flex flex-wrap items-center gap-2">
-        <%= link_to "Add #{t.included == t.total ? (t.total == 1 ? 'the leg' : "all #{t.total} legs") : "#{t.included} of #{t.total} legs"} to #{t.bookmaker.name}", t.url,
-              target: "_blank", rel: "noopener noreferrer", class: "btn btn-primary btn-sm" %>
-        <div data-controller="clipboard" data-clipboard-text-value="<%= t.url %>">
-          <button type="button" class="btn btn-outline btn-sm" data-action="clipboard#copy"><span data-clipboard-target="label">Copy link</span></button>
+      <% if t.url %>
+        <p class="text-sm">
+          <b><%= t.bookmaker.name %></b>
+          <span class="text-muted tabular-nums"><%= t.included %> of <%= t.total %> <%= "leg".pluralize(t.total) %> can be added</span>
+          <% if t.american && t.included == t.total %><span class="text-muted">· pays</span> <b class="tabular-nums"><%= format_price(t.american) %></b><% end %>
+        </p>
+        <div class="mt-2 flex flex-wrap items-center gap-2">
+          <%= link_to "Add #{t.included == t.total ? (t.total == 1 ? 'the leg' : "all #{t.total} legs") : "#{t.included} of #{t.total} legs"} to #{t.bookmaker.name}", t.url,
+                target: "_blank", rel: "noopener noreferrer", class: "btn btn-primary btn-sm" %>
+          <div data-controller="clipboard" data-clipboard-text-value="<%= t.url %>">
+            <button type="button" class="btn btn-outline btn-sm" data-action="clipboard#copy"><span data-clipboard-target="label">Copy link</span></button>
+          </div>
         </div>
-      </div>
-      <% { started: "Already started", not_offered: "Not offered at #{t.bookmaker.name} right now", alternate: "Alternate lines have no link", no_link: "No link for" }.each do |reason, label| %>
-        <% legs = t.skipped.select { |_, r| r == reason }.map { |leg, _| leg.player.full_name } %>
-        <% if legs.any? %><p class="mt-1.5 text-xs text-miss"><%= label %>: <%= legs.uniq.to_sentence %>.<%= " Add them in the #{t.bookmaker.name} app yourself." if %i[no_link alternate].include?(reason) %></p><% end %>
+      <% else %>
+        <p class="text-sm"><b><%= t.bookmaker.name %></b> <span class="text-muted">can't take this slip by link: none of its <%= t.total %> <%= "leg".pluralize(t.total) %> has a link.</span></p>
       <% end %>
 
-      <details class="mt-3">
-        <summary class="-my-1 cursor-pointer py-1 text-sm font-medium text-muted hover:text-fg">Open on your phone (QR code)</summary>
-        <div class="mt-3 flex items-center gap-4">
-          <div class="qr-card size-40 shrink-0 rounded-xl p-3"><%= qr_svg(t.url, label: "QR code that opens this slip at #{t.bookmaker.name}") %></div>
-          <p class="text-xs text-muted text-pretty">Point your phone's camera at the code and tap the link it shows. If you have the sportsbook's app it may open there; otherwise it opens the site.</p>
-        </div>
-      </details>
+      <% { started: "Already started", not_offered: "Not offered at #{t.bookmaker.name} right now", alternate: "Alternate lines have no link", no_link: "No link for" }.each do |reason, label| %>
+        <% names = t.skipped.select { |s| s.reason == reason }.map(&:name) %>
+        <% if names.any? %><p class="mt-1.5 text-xs text-miss"><%= label %>: <%= names.uniq.to_sentence %>.<%= " Add them in the #{t.bookmaker.name} app yourself." if %i[no_link alternate].include?(reason) %></p><% end %>
+      <% end %>
+
+      <% if t.url %>
+        <details class="mt-3">
+          <summary class="-my-1 cursor-pointer py-1 text-sm font-medium text-muted hover:text-fg">Open on your phone (QR code)</summary>
+          <div class="mt-3 flex items-center gap-4">
+            <div class="qr-card size-40 shrink-0 rounded-xl p-3"><%= qr_svg(t.url, label: "QR code that opens this slip at #{t.bookmaker.name}") %></div>
+            <p class="text-xs text-muted text-pretty">Point your phone's camera at the code and tap the link it shows. If you have the sportsbook's app it may open there; otherwise it opens the site.</p>
+          </div>
+        </details>
+      <% end %>
     </div>
   <% end %>
   <p class="mt-3 text-xs text-muted text-pretty">

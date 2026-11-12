@@ -72,6 +72,16 @@ RSpec.describe "Sending the slip to a sportsbook" do
     expect(slip_html).to include("1 of 2 legs can be added", "Alternate lines have no link: #{alt.full_name}", "Add them in the FanDuel app yourself")
   end
 
+  it "says why a slip made only of alternate lines cannot be linked, instead of showing nothing (the section used to vanish)" do
+    alt = leg(fd_ids: nil)
+    Market.find_by!(player: alt).update!(is_alternate: true)
+    create(:odds_snapshot, market: Market.find_by!(player: alt), bookmaker: fd, outcome: "over", american_odds: 250, decimal_odds: OddsMath.american_to_decimal(250), line: 24.5, deeplink: nil)
+    get "/nba/props"
+    expect(slip_html).to include("Send to a sportsbook", "can't take this slip by link", "Alternate lines have no link: #{alt.full_name}", "Add them in the FanDuel app yourself")
+    expect(slip_html).not_to include("Open on your phone")
+    expect(slip_html).not_to include("Copy link")
+  end
+
   it "never shows DraftKings links, even when DraftKings has the best price for a leg" do
     leg(fd_ids: [ "42.1", "11" ], dk_better: true)
     get "/nba/props"
@@ -112,6 +122,46 @@ RSpec.describe "Sending the slip to a sportsbook" do
       allow(Rails.configuration.x).to receive(:single_user).and_return(false)
       get "/nba/props"
       expect(response.body).not_to include("Where you bet")
+    end
+  end
+
+  describe "on Home, for saved slips" do
+    def save_slip(*markets, name: "Saved")
+      user.slips.create!(name: name, stake: 10, decimal_odds: 3).tap do |slip|
+        markets.each { |m| slip.legs.create!(market: m, bookmaker: fd, side: "over", line: m.line, american_odds: -110, decimal_odds: BigDecimal("1.9091")) }
+      end
+    end
+
+    def market_of(player) = Market.find_by!(player: player)
+
+    it "offers the link, the copy button and the QR code on a slip that is still in play, for the viewer's region" do
+      a = leg(fd_ids: [ "42.1", "11" ])
+      b = leg(fd_ids: [ "42.2", "22" ])
+      user.update!(region: "on")
+      save_slip(market_of(a), market_of(b))
+      get "/"
+      expect(response.body).to include("Send to a sportsbook", "Add all 2 legs to FanDuel", "Copy link", "Open on your phone (QR code)")
+      expect(response.body).to include("https://on.sportsbook.fanduel.ca/addToBetslip?marketId[0]=42.1&amp;selectionId[0]=11&amp;marketId[1]=42.2&amp;selectionId[1]=22")
+    end
+
+    it "explains a saved slip of alternate lines the same way as the open slip does" do
+      alt = leg(fd_ids: nil)
+      Market.find_by!(player: alt).update!(is_alternate: true)
+      create(:odds_snapshot, market: market_of(alt), bookmaker: fd, outcome: "over", american_odds: 250, decimal_odds: OddsMath.american_to_decimal(250), line: 24.5, deeplink: nil)
+      save_slip(market_of(alt))
+      get "/"
+      expect(response.body).to include("can't take this slip by link", "Alternate lines have no link: #{alt.full_name}")
+    end
+
+    it "gives each saved slip its own heading, and shows nothing on a settled one" do
+      one = leg(fd_ids: [ "42.1", "11" ])
+      two = leg(fd_ids: [ "42.2", "22" ])
+      first = save_slip(market_of(one), name: "One")
+      second = save_slip(market_of(two), name: "Two")
+      second.legs.first.update!(result: "hit", actual: 30, graded_at: Time.current)
+      get "/"
+      expect(response.body).to include(%(id="handoff_title_saved_#{first.id}"))
+      expect(response.body).not_to include(%(id="handoff_title_saved_#{second.id}")) # won: nothing left to send
     end
   end
 end
