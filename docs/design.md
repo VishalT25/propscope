@@ -10,6 +10,7 @@ Own name, palette, type and icons. No third-party branding (no sportsbook logos,
 - **Motion:** colour transitions only (`transition-colors`, 150ms ease-out). No `transition: all`, no bounce.
 - **Type floor:** nothing below 11px (`text-2xs`). Book codes, hit-rate labels and sample counts all use it; no arbitrary `text-[9px]` sizes. The 20px and 16px team markers carry no letters (the abbreviation is always beside them as text).
 - **Contrast:** a hit-rate number is the tone colour mixed into the foreground (`hit_rate_cell_style`), never the raw tone colour on its own tint, and the tint is capped (`HIT_TINT_MAX`). Check new coloured cells with the detector, not by eye.
+- **Filters:** one form, changes apply at once. The common filters are a toolbar under the page header (dropdowns built on the native popover API, so a scrolling bar cannot clip them; a dropdown with something chosen is highlighted and counts it); the rest live in the side panel, tied to the same form with the `form` attribute. Select all / Deselect all on the books list keep at least one book on.
 - **Reduced motion:** movement is removed, colour changes stay (they are the state cue).
 - **Touch:** icon buttons are at least 40px; keyboard users get a skip link.
 

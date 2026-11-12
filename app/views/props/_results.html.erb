@@ -1,5 +1,7 @@
 <div class="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-muted">
-  <p><span class="font-semibold text-fg"><%= number_with_delimiter(result.total) %></span> props · <%= updated_ago(result.updated_at) %><% if result.prices_at %> · prices <%= time_ago_in_words(result.prices_at) %> ago<% end %></p>
+  <%# The toolbar sits outside this frame; it reads these when the frame loads (see filters_controller). %>
+  <span hidden data-total="<%= result.total %>" data-count-label="<%= number_with_delimiter(result.total) %> <%= "prop".pluralize(result.total) %>" data-apply-label="<%= props_count_label(result.total) %>"></span>
+  <p><%= updated_ago(result.updated_at).capitalize %><% if result.prices_at %> · prices <%= time_ago_in_words(result.prices_at) %> ago<% end %></p>
   <details class="relative">
     <summary class="cursor-pointer select-none font-medium hover:text-fg">Legend</summary>
     <div class="absolute right-0 z-20 mt-2 w-80 space-y-1.5 rounded-xl border border-line bg-surface p-3 text-xs shadow-xl">

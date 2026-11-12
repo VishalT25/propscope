@@ -1,0 +1,12 @@
+<%# A toolbar button that opens a dropdown (see dropdown_controller). locals: id, group, label, icon_name, width, active, count. The block is the dropdown's content. %>
+<div data-controller="dropdown" class="shrink-0">
+  <button type="button" class="fbtn" data-dropdown-target="button" data-filters-target="chip" data-group="<%= group %>" data-active="<%= active %>"
+          popovertarget="pop_<%= id %>" aria-haspopup="true">
+    <%= icon icon_name, css: "size-[18px]" %><%= label %>
+    <span class="rounded-full bg-accent px-1.5 text-xs font-bold tabular-nums text-on-accent" data-chip-count <%= "hidden" unless count.positive? %>><%= count if count.positive? %></span>
+    <%= icon :chevron, css: "size-4" %>
+  </button>
+  <div id="pop_<%= id %>" popover data-dropdown-target="panel" class="m-0 inset-auto max-w-[calc(100vw-1rem)] rounded-xl border border-line bg-surface p-3 text-sm text-fg shadow-xl <%= width %>">
+    <%= yield %>
+  </div>
+</div>

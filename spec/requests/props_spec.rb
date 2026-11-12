@@ -6,7 +6,7 @@ RSpec.describe "Props explorer" do
   it "renders the table and cards from precomputed data, with legend and update time" do
     get "/nba/props"
     expect(response).to have_http_status(:ok)
-    expect(response.body).to include("Props explorer", "Legend", "updated", "Best price")
+    expect(response.body).to include("Props explorer", "Legend", "Updated", "Best price")
     expect(response.body).to match(/\d+ props/)
   end
 
@@ -29,7 +29,8 @@ RSpec.describe "Props explorer" do
       get "/nba/props", params: { market_types: [ "player_assists" ] }
       expect(response.body).to include("Assists")
       expect(response.body).not_to include("3-Pointers Made</td>")
-      expect(response.body).to include('title="Current filters"')
+      expect(response.body).to match(/data-filters-target="badge"[^>]*>1</) # the Filters badge counts it
+      expect(response.body).to match(/Propositions.*data-chip-count[^>]*>1</m) # and the Propositions button shows how many
     end
 
     it "shows the empty state when nothing matches" do
@@ -59,20 +60,67 @@ RSpec.describe "Props explorer" do
     end
   end
 
-  describe "live result count (Turbo Stream)" do
-    it "returns the new button label for the filters" do
-      get "/nba/props/count", params: { market_types: [ "player_points" ], side: "over" }, headers: { "Accept" => "text/vnd.turbo-stream.html" }
-      expect(response.media_type).to eq("text/vnd.turbo-stream.html")
-      expect(response.body).to include('target="apply_label"')
-      expect(response.body).to match(/Show \d+ props/)
+  describe "the filters toolbar" do
+    it "sits under the header with the quick dropdowns, the alt-lines toggle and the count, all in one form" do
+      get "/nba/props"
+      body = response.body
+      expect(body).to include('id="filters_form"', "Filters", "Saved", "Propositions", "Players", "Games", "Over / Under", "Show alt lines")
+      expect(body.index("Props explorer")).to be < body.index('id="filters_form"')
+      expect(body.index('id="filters_form"')).to be < body.index("Legend") # the results come after it
+      expect(body).to match(%r{data-filters-target="count"[^>]*>[\d,]+ props?<})
     end
 
-    it "matches the number of results the list shows" do
-      params = { market_types: [ "player_rebounds" ], side: "under" }
-      get "/nba/props/count", params: params, headers: { "Accept" => "text/vnd.turbo-stream.html" }
-      count = response.body[/Show ([\d,]+) props?/, 1].delete(",").to_i
-      get "/nba/props", params: params
-      expect(response.body).to include("<span class=\"font-semibold text-fg\">#{ActiveSupport::NumberHelper.number_to_delimited(count)}</span>")
+    it "keeps the less common filters in the side panel, tied to the same form" do
+      get "/nba/props"
+      %w[odds_min odds_max min_hit_rate hit_window tier].each { |name| expect(response.body).to match(/name="#{name}"[^>]*form="filters_form"|form="filters_form"[^>]*name="#{name}"/) }
+      expect(response.body).to match(/name="book_keys\[\]"[^>]*form="filters_form"|form="filters_form"[^>]*name="book_keys\[\]"/)
+    end
+
+    it "shows no badge or clear button until a filter is set, and both once one is" do
+      get "/nba/props"
+      expect(response.body).to match(/data-filters-target="badge" hidden/)
+      expect(response.body).to match(/Clear all filters.*?hidden|hidden[^>]*Clear all filters/m)
+      get "/nba/props", params: { side: "over", alt: "1" }
+      expect(response.body).to match(/data-filters-target="badge"[^>]*>2</)
+      expect(response.body).not_to match(/data-filters-target="badge" hidden/)
+    end
+
+    it "marks the dropdowns that have something chosen" do
+      get "/nba/props", params: { side: "under" }
+      expect(response.body).to match(/data-group="side" data-active="true"/)
+      expect(response.body).to match(/data-group="games" data-active="false"/)
+    end
+
+    it "carries the new total in the results frame, for the toolbar to show" do
+      get "/nba/props", params: { market_types: [ "player_rebounds" ], side: "under" }
+      total = response.body[/data-total="(\d+)"/, 1].to_i
+      expect(total).to be_positive
+      label = "#{ActiveSupport::NumberHelper.number_to_delimited(total)} #{'prop'.pluralize(total)}"
+      expect(response.body).to include(%(data-count-label="#{label}"), %(data-apply-label="Show #{label}"))
+      expect(response.body).to match(%r{data-filters-target="count"[^>]*>#{Regexp.escape(label)}<}) # the toolbar agrees with the results
+      get "/nba/props"
+      expect(response.body[/data-total="(\d+)"/, 1].to_i).to be > total
+    end
+
+    it "no longer needs a separate count request: the results frame carries the total" do
+      paths = Rails.application.routes.routes.map { |r| r.path.spec.to_s }
+      expect(paths).not_to include(a_string_matching(%r{props/count}))
+    end
+  end
+
+  describe "the books panel" do
+    it "offers select all, deselect all and a running count, and will not submit an empty choice" do
+      get "/nba/props"
+      panel = response.body[%r{<aside[^>]*aria-label="Sportsbooks".*?</aside>}m]
+      expect(panel).to include("Select all", "Deselect all", "data-checklist-target=\"count\"", 'data-checklist-minimum-value="1"')
+      expect(panel).to match(/data-checklist-target="submit"/)
+      expect(panel.scan('data-checklist-target="box"').size).to eq(Bookmaker.count)
+    end
+
+    it "still refuses to save no books on the server" do
+      patch "/books", params: { keys: [] }
+      expect(response).to redirect_to(root_path)
+      expect(flash[:alert]).to match(/at least one book/i)
     end
   end
 

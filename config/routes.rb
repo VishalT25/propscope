@@ -27,9 +27,7 @@ Rails.application.routes.draw do
   root to: "home#show"
 
   scope "/:league", constraints: { league: Regexp.union(League.keys) }, as: :league do
-    resources :props, only: :index do
-      get :count, on: :collection
-    end
+    resources :props, only: :index
     get "props/:market_id/:side", to: "props#show", as: :prop, constraints: { market_id: /\d+/, side: /over|under/ }
     resources :games, only: %i[index show]
     resources :insights, only: :index
