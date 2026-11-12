@@ -101,14 +101,23 @@ RSpec.describe "Slip, picks and single-user mode" do
       expect(cookies[:slip_book]).to eq(book.key)
     end
 
-    it "offers an Open link only when the book supplied a betslip link" do
+    it "offers an Open link only for a book we can send people to, built from the ids in its link and never from its address" do
       add
-      snap = BestPrice.current_snapshots(market_ids: [ market.id ]).find { |s| s.outcome == "over" }
-      get "/picks", params: { book: snap.bookmaker.key }
+      snaps = BestPrice.current_snapshots(market_ids: [ market.id ]).select { |s| s.outcome == "over" }
+      fd = snaps.find { |s| s.bookmaker.key == "fanduel" }
+      other = snaps.find { |s| s.bookmaker.key != "fanduel" }
+
+      get "/picks", params: { book: fd.bookmaker.key }
+      expect(response.body).not_to include(">Open<") # no booking link yet
+      OddsSnapshot.find(fd.id).update!(deeplink: "https://evil.test/addToBetslip?marketId=42.1&selectionId=77")
+      get "/picks", params: { book: fd.bookmaker.key }
+      expect(response.body).to include("https://sportsbook.fanduel.com/addToBetslip?marketId[0]=42.1&amp;selectionId[0]=77", 'rel="noopener noreferrer"', 'target="_blank"')
+      expect(response.body).not_to include("evil.test")
+
+      OddsSnapshot.find(other.id).update!(deeplink: "https://book.test/slip?leg=1") # a book whose links we have not verified
+      get "/picks", params: { book: other.bookmaker.key }
+      expect(response.body).not_to include("book.test")
       expect(response.body).not_to include(">Open<")
-      OddsSnapshot.find(snap.id).update!(deeplink: "https://book.test/slip?leg=1")
-      get "/picks", params: { book: snap.bookmaker.key }
-      expect(response.body).to include("https://book.test/slip?leg=1", 'rel="noopener noreferrer"', 'target="_blank"')
     end
 
     it "copies a plain-text slip with the legs, prices and parlay" do

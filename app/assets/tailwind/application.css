@@ -131,6 +131,8 @@
   .fbtn[data-active="true"] { @apply border-accent text-fg; }
   .fbtn-solid { @apply border-fg bg-fg text-canvas hover:border-fg hover:text-canvas; }
   .sort-link { @apply transition-colors duration-150 ease-out hover:text-fg; }
+  /* A QR code needs dark on light in either theme. */
+  .qr-card { background: #f4f8f7; }
   .chip { @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-medium text-fg transition-colors duration-150 ease-out hover:bg-surface-2; }
   .chip-active { @apply border-transparent bg-accent text-on-accent hover:bg-accent; }
   .chip-disabled { @apply cursor-not-allowed opacity-45 hover:bg-surface; }
