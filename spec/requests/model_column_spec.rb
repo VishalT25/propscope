@@ -14,7 +14,8 @@ RSpec.describe "Model column (optional model service)" do
   end
 
   it "shows the column, tooltip and detail line once predictions exist, and the explorer sorts by it" do
-    Market.joins(:game).where("games.starts_at > now()").where(market_type: "player_points").limit(5).each_with_index do |m, i|
+    # Ordered: the detail page below is for `market` (the lowest id), which must be one of the markets given a prediction.
+    Market.joins(:game).where("games.starts_at > now()").where(market_type: "player_points").order(:id).limit(5).each_with_index do |m, i|
       %w[over under].each { |s| Prediction.create!(market: m, side: s, probability: s == "over" ? 0.5 + i * 0.08 : 0.5 - i * 0.08, projection: 20 + i, model_version: "test-1", computed_at: Time.current) }
     end
     get "/nba/props", params: { market_types: [ "player_points" ], side: "over", sort: "model", dir: "desc" }
