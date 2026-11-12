@@ -8,7 +8,7 @@ RSpec.describe "Sending the slip to a sportsbook" do
 
   before { allow(Rails.configuration.x).to receive(:single_user).and_return(true) }
 
-  def leg(fd_ids: nil, dk_better: false)
+  def leg(fd_ids: nil, dk_better: false, game: self.game)
     player = create(:player, sport: game.sport, team: game.home_team)
     market = create(:market, game: game, player: player, line: 24.5)
     link = fd_ids && "https://sportsbook.fanduel.com/addToBetslip?marketId=#{fd_ids[0]}&selectionId=#{fd_ids[1]}"
@@ -27,7 +27,7 @@ RSpec.describe "Sending the slip to a sportsbook" do
     user.update!(region: "on")
     get "/nba/props"
     html = slip_html
-    expect(html).to include("Send to a sportsbook", "FanDuel", "2 of 2 legs available", "Add all 2 legs to FanDuel", "Copy link", "Open on your phone (QR code)")
+    expect(html).to include("Send to a sportsbook", "FanDuel", "2 of 2 legs can be added", "Add all 2 legs to FanDuel", "Copy link", "Open on your phone (QR code)")
     expect(html).to include("https://on.sportsbook.fanduel.ca/addToBetslip?marketId[0]=42.624795660&amp;selectionId[0]=12260618&amp;marketId[1]=42.624790148&amp;selectionId[1]=61967199")
     expect(html).to include('aria-label="QR code that opens this slip at FanDuel"')
     expect(html).to include("Links for <b class=\"text-fg\">Ontario</b>", "nothing is placed for you")
@@ -52,7 +52,15 @@ RSpec.describe "Sending the slip to a sportsbook" do
     leg(fd_ids: [ "42.1", "11" ])
     missing = leg
     get "/nba/props"
-    expect(slip_html).to include("1 of 2 legs available", "Add 1 of 2 legs to FanDuel", "Not offered at FanDuel right now: #{missing.full_name}")
+    expect(slip_html).to include("1 of 2 legs can be added", "Add 1 of 2 legs to FanDuel", "Not offered at FanDuel right now: #{missing.full_name}")
+  end
+
+  it "says a game has already started, rather than claiming FanDuel is not offering the leg" do
+    leg(fd_ids: [ "42.1", "11" ])
+    started = leg(fd_ids: [ "42.2", "22" ], game: create(:game, starts_at: 3.hours.ago))
+    get "/nba/props"
+    expect(slip_html).to include("1 of 2 legs can be added", "Already started: #{started.full_name}")
+    expect(slip_html).not_to include("Not offered at FanDuel")
   end
 
   it "never shows DraftKings links, even when DraftKings has the best price for a leg" do

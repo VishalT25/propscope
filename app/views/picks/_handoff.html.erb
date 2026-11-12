@@ -5,7 +5,7 @@
     <div class="mt-3">
       <p class="text-sm">
         <b><%= t.bookmaker.name %></b>
-        <span class="text-muted tabular-nums"><%= t.included %> of <%= t.total %> <%= "leg".pluralize(t.total) %> available</span>
+        <span class="text-muted tabular-nums"><%= t.included %> of <%= t.total %> <%= "leg".pluralize(t.total) %> can be added</span>
         <% if t.american && t.included == t.total %><span class="text-muted">· pays</span> <b class="tabular-nums"><%= format_price(t.american) %></b><% end %>
       </p>
       <div class="mt-2 flex flex-wrap items-center gap-2">
@@ -15,8 +15,9 @@
           <button type="button" class="btn btn-outline btn-sm" data-action="clipboard#copy"><span data-clipboard-target="label">Copy link</span></button>
         </div>
       </div>
-      <% if t.missing.any? %>
-        <p class="mt-1.5 text-xs text-miss">Not offered at <%= t.bookmaker.name %> right now: <%= t.missing.map { |leg| leg.player.full_name }.to_sentence %>.</p>
+      <% { started: "Already started", not_offered: "Not offered at #{t.bookmaker.name} right now", no_link: "No link for" }.each do |reason, label| %>
+        <% legs = t.skipped.select { |_, r| r == reason }.map { |leg, _| leg.player.full_name } %>
+        <% if legs.any? %><p class="mt-1.5 text-xs text-miss"><%= label %>: <%= legs.uniq.to_sentence %>.<%= " Add them in the #{t.bookmaker.name} app yourself." if reason == :no_link %></p><% end %>
       <% end %>
 
       <details class="mt-3">

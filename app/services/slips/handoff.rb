@@ -3,7 +3,9 @@ module Slips
   # FanDuel. DraftKings is left out on purpose: the links we get for it fail (single leg or several), so offering them would be worse than
   # offering nothing. See docs/providers/sportsbook_links.md.
   class Handoff
-    Target = Data.define(:bookmaker, :url, :included, :total, :missing, :american)
+    # skipped: [[leg, reason]] for every leg that is not in the link. Reasons: :started (its game has begun), :not_offered (the book has no
+    # price for it) or :no_link (the book has a price but we have no usable link for it).
+    Target = Data.define(:bookmaker, :url, :included, :total, :skipped, :american)
 
     VERIFIED = { "fanduel" => FanDuelLink }.freeze
 
@@ -16,9 +18,10 @@ module Slips
       builder.call(region: region, snapshots: [ snapshot ]).url
     end
 
-    def initialize(slip:, region:)
+    def initialize(slip:, region:, now: Time.current)
       @slip = slip
       @region = region
+      @now = now
     end
 
     def call
@@ -32,12 +35,22 @@ module Slips
     def target(key, builder)
       option = @slip.options.find { |o| o.bookmaker.key == key } or return nil
       offered = @slip.legs.map { |leg| [ leg, leg.offers[option.bookmaker.id] ] }
-      result = builder.call(region: @region, snapshots: offered.filter_map(&:last))
+      open = offered.reject { |leg, _| started?(leg) }
+      result = builder.call(region: @region, snapshots: open.filter_map(&:last))
       return nil unless result.url
 
       linked = result.used.to_set(&:id)
-      missing = offered.reject { |_, snapshot| snapshot && linked.include?(snapshot.id) }.map(&:first)
-      Target.new(bookmaker: option.bookmaker, url: result.url, included: result.used.size, total: @slip.legs.size, missing: missing, american: option.american)
+      skipped = offered.filter_map { |leg, snapshot| (reason = reason_skipped(leg, snapshot, linked)) && [ leg, reason ] }
+      Target.new(bookmaker: option.bookmaker, url: result.url, included: result.used.size, total: @slip.legs.size, skipped: skipped, american: option.american)
+    end
+
+    def started?(leg) = leg.game.starts_at <= @now
+
+    def reason_skipped(leg, snapshot, linked)
+      if started?(leg) then :started
+      elsif snapshot.nil? then :not_offered
+      elsif !linked.include?(snapshot.id) then :no_link
+      end
     end
   end
 end

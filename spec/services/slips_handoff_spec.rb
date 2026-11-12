@@ -74,7 +74,7 @@ RSpec.describe "Sending a slip to a sportsbook" do
     let(:dk) { create(:bookmaker, key: "draftkings", code: "DK", name: "DraftKings") }
     let(:game) { create(:game, starts_at: 5.hours.from_now) }
 
-    def leg(fd: nil, dk: nil, fd_price: -110, dk_price: -120)
+    def leg(fd: nil, dk: nil, fd_price: -110, dk_price: -120, game: self.game)
       market = create(:market, game: game, player: create(:player, sport: game.sport, team: game.home_team), line: 24.5)
       { self.fd => [ fd_price, fd ], self.dk => [ dk_price, dk ] }.each do |book, (price, link)|
         next if price.nil?
@@ -92,7 +92,7 @@ RSpec.describe "Sending a slip to a sportsbook" do
       leg(fd: fd_link("42.2", "22"))
       target = targets(ontario).sole
       expect(target.bookmaker).to eq(fd)
-      expect([ target.included, target.total, target.missing ]).to eq([ 2, 2, [] ])
+      expect([ target.included, target.total, target.skipped ]).to eq([ 2, 2, [] ])
       expect(target.url).to eq("https://on.sportsbook.fanduel.ca/addToBetslip?marketId[0]=42.1&selectionId[0]=11&marketId[1]=42.2&selectionId[1]=22")
       expect(target.american).to eq(OddsMath.decimal_to_american((OddsMath.american_to_decimal(-110)**2).round(4))) # two legs at -110
     end
@@ -107,9 +107,31 @@ RSpec.describe "Sending a slip to a sportsbook" do
       without = leg(fd: nil, fd_price: nil, dk: "https://sportsbook.draftkings.com/event/1?outcomes=0QA1")
       target = targets.sole
       expect([ target.included, target.total ]).to eq([ 1, 2 ])
-      expect(target.missing.map { |l| l.market.id }).to eq([ without.id ])
+      expect(target.skipped.map { |l, reason| [ l.market.id, reason ] }).to eq([ [ without.id, :not_offered ] ])
       expect(target.url.scan("marketId[").size).to eq(1)
       expect(with).to be_present
+    end
+
+    it "says when FanDuel has a price but we have no usable link for it, and leaves that leg out of the link" do
+      leg(fd: fd_link("42.1", "11"))
+      unlinked = leg(fd: "https://sportsbook.fanduel.com/addToBetslip")
+      target = targets.sole
+      expect([ target.included, target.total ]).to eq([ 1, 2 ])
+      expect(target.skipped.map { |l, reason| [ l.market.id, reason ] }).to eq([ [ unlinked.id, :no_link ] ])
+    end
+
+    it "leaves out a leg whose game has already started, and says so, instead of sending something FanDuel cannot add" do
+      leg(fd: fd_link("42.1", "11"))
+      past = leg(fd: fd_link("42.2", "22"), game: create(:game, starts_at: 2.hours.ago))
+      target = targets.sole
+      expect([ target.included, target.total ]).to eq([ 1, 2 ])
+      expect(target.url).not_to include("42.2")
+      expect(target.skipped.map { |l, reason| [ l.market.id, reason ] }).to eq([ [ past.id, :started ] ])
+    end
+
+    it "offers nothing when every leg has started" do
+      leg(fd: fd_link("42.1", "11"), game: create(:game, starts_at: 1.hour.ago))
+      expect(targets).to eq([])
     end
 
     it "never offers DraftKings, whatever links it supplied (they fail), nor a book we have not tested" do
