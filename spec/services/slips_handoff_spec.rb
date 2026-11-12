@@ -107,7 +107,7 @@ RSpec.describe "Sending a slip to a sportsbook" do
       without = leg(fd: nil, fd_price: nil, dk: "https://sportsbook.draftkings.com/event/1?outcomes=0QA1")
       target = targets.sole
       expect([ target.included, target.total ]).to eq([ 1, 2 ])
-      expect(target.skipped.map { |l, reason| [ l.market.id, reason ] }).to eq([ [ without.id, :not_offered ] ])
+      expect(target.skipped.map { |s| [ s.market_id, s.reason ] }).to eq([ [ without.id, :not_offered ] ])
       expect(target.url.scan("marketId[").size).to eq(1)
       expect(with).to be_present
     end
@@ -117,7 +117,7 @@ RSpec.describe "Sending a slip to a sportsbook" do
       unlinked = leg(fd: "https://sportsbook.fanduel.com/addToBetslip")
       target = targets.sole
       expect([ target.included, target.total ]).to eq([ 1, 2 ])
-      expect(target.skipped.map { |l, reason| [ l.market.id, reason ] }).to eq([ [ unlinked.id, :no_link ] ])
+      expect(target.skipped.map { |s| [ s.market_id, s.reason ] }).to eq([ [ unlinked.id, :no_link ] ])
     end
 
     it "says an alternate line has no link (SportsGameOdds gives none for those), rather than blaming the book" do
@@ -125,7 +125,7 @@ RSpec.describe "Sending a slip to a sportsbook" do
       alt = leg(fd: nil, fd_price: -110)
       alt.update!(is_alternate: true)
       target = targets.sole
-      expect(target.skipped.map { |l, reason| [ l.market.id, reason ] }).to eq([ [ alt.id, :alternate ] ])
+      expect(target.skipped.map { |s| [ s.market_id, s.reason ] }).to eq([ [ alt.id, :alternate ] ])
     end
 
     it "leaves out a leg whose game has already started, and says so, instead of sending something FanDuel cannot add" do
@@ -134,7 +134,7 @@ RSpec.describe "Sending a slip to a sportsbook" do
       target = targets.sole
       expect([ target.included, target.total ]).to eq([ 1, 2 ])
       expect(target.url).not_to include("42.2")
-      expect(target.skipped.map { |l, reason| [ l.market.id, reason ] }).to eq([ [ past.id, :started ] ])
+      expect(target.skipped.map { |s| [ s.market_id, s.reason ] }).to eq([ [ past.id, :started ] ])
     end
 
     it "offers nothing when every leg has started" do
@@ -147,10 +147,64 @@ RSpec.describe "Sending a slip to a sportsbook" do
       expect(targets).to eq([])
     end
 
-    it "offers nothing for an empty slip, or when no leg has a link" do
+    it "offers nothing for an empty slip" do
       expect(targets).to eq([])
-      leg(fd: nil)
+    end
+
+    it "still comes back, without a link, when FanDuel prices the legs but none can be linked, so the page can say why" do
+      alt = leg(fd: nil, fd_price: -110)
+      alt.update!(is_alternate: true)
+      target = targets.sole
+      expect([ target.url, target.included, target.total ]).to eq([ nil, 0, 1 ])
+      expect(target.skipped.map { |s| [ s.market_id, s.reason ] }).to eq([ [ alt.id, :alternate ] ])
+    end
+
+    it "has nothing to say when the only trouble is that every game has started" do
+      leg(fd: fd_link("42.1", "11"), game: create(:game, starts_at: 1.hour.ago))
       expect(targets).to eq([])
+    end
+
+    describe ".for_saved" do
+      let(:saved) { user.slips.create!(name: "Saved", stake: 10, decimal_odds: 2) }
+
+      def save_leg(market, side = "over") = saved.legs.create!(market: market, bookmaker: fd, side: side, line: market.line, american_odds: -110, decimal_odds: BigDecimal("1.9091"))
+      def saved_targets(region = ontario) = described_class.for_saved(slip: saved.reload, region: region)
+
+      it "builds the link from FanDuel's current ids for the saved legs, in the viewer's region" do
+        a = leg(fd: fd_link("42.1", "11"))
+        b = leg(fd: fd_link("42.2", "22"))
+        [ a, b ].each { |m| save_leg(m) }
+        target = saved_targets.sole
+        expect(target.url).to eq("https://on.sportsbook.fanduel.ca/addToBetslip?marketId[0]=42.1&selectionId[0]=11&marketId[1]=42.2&selectionId[1]=22")
+        expect([ target.included, target.total, target.skipped ]).to eq([ 2, 2, [] ])
+      end
+
+      it "uses the side the leg was saved with, and leaves out games already under way" do
+        under_market = leg(fd: fd_link("42.1", "11"))
+        create(:odds_snapshot, market: under_market, bookmaker: fd, outcome: "under", american_odds: -105, decimal_odds: OddsMath.american_to_decimal(-105), deeplink: fd_link("42.1", "99"))
+        started = leg(fd: fd_link("42.5", "55"), game: create(:game, starts_at: 1.hour.ago))
+        save_leg(under_market, "under")
+        save_leg(started)
+        target = saved_targets.sole
+        expect(target.url).to eq("https://on.sportsbook.fanduel.ca/addToBetslip?marketId[0]=42.1&selectionId[0]=99")
+        expect(target.skipped.map { |s| [ s.market_id, s.reason ] }).to eq([ [ started.id, :started ] ])
+      end
+
+      it "explains an all-alternate-lines slip, and has nothing for a slip whose games have all started" do
+        alt = leg(fd: nil, fd_price: -110)
+        alt.update!(is_alternate: true)
+        save_leg(alt)
+        expect(saved_targets.sole.skipped.map(&:reason)).to eq([ :alternate ])
+
+        past = leg(fd: fd_link("42.7", "77"), game: create(:game, starts_at: 2.hours.ago))
+        saved.legs.destroy_all
+        save_leg(past)
+        expect(saved_targets).to eq([])
+      end
+
+      it "offers nothing for a slip with no legs" do
+        expect(saved_targets).to eq([])
+      end
     end
 
     it "gives a leg link for FanDuel prices only" do

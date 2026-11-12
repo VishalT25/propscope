@@ -36,4 +36,7 @@ module SlipsHelper
 
   # Where the whole slip can be sent, with a link for each.
   def slip_handoffs(slip) = Slips::Handoff.call(slip: slip, region: current_region)
+
+  # The same for a saved slip, for the legs still to play.
+  def saved_handoffs(slip) = Slips::Handoff.for_saved(slip: slip, region: current_region)
 end
