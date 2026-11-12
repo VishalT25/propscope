@@ -15,9 +15,9 @@
           <button type="button" class="btn btn-outline btn-sm" data-action="clipboard#copy"><span data-clipboard-target="label">Copy link</span></button>
         </div>
       </div>
-      <% { started: "Already started", not_offered: "Not offered at #{t.bookmaker.name} right now", no_link: "No link for" }.each do |reason, label| %>
+      <% { started: "Already started", not_offered: "Not offered at #{t.bookmaker.name} right now", alternate: "Alternate lines have no link", no_link: "No link for" }.each do |reason, label| %>
         <% legs = t.skipped.select { |_, r| r == reason }.map { |leg, _| leg.player.full_name } %>
-        <% if legs.any? %><p class="mt-1.5 text-xs text-miss"><%= label %>: <%= legs.uniq.to_sentence %>.<%= " Add them in the #{t.bookmaker.name} app yourself." if reason == :no_link %></p><% end %>
+        <% if legs.any? %><p class="mt-1.5 text-xs text-miss"><%= label %>: <%= legs.uniq.to_sentence %>.<%= " Add them in the #{t.bookmaker.name} app yourself." if %i[no_link alternate].include?(reason) %></p><% end %>
       <% end %>
 
       <details class="mt-3">

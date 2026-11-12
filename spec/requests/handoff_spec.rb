@@ -63,6 +63,15 @@ RSpec.describe "Sending the slip to a sportsbook" do
     expect(slip_html).not_to include("Not offered at FanDuel")
   end
 
+  it "explains that alternate lines have no link" do
+    leg(fd_ids: [ "42.1", "11" ])
+    alt = leg(fd_ids: nil)
+    Market.find_by!(player: alt).update!(is_alternate: true)
+    create(:odds_snapshot, market: Market.find_by!(player: alt), bookmaker: fd, outcome: "over", american_odds: 250, decimal_odds: OddsMath.american_to_decimal(250), line: 24.5, deeplink: nil)
+    get "/nba/props"
+    expect(slip_html).to include("1 of 2 legs can be added", "Alternate lines have no link: #{alt.full_name}", "Add them in the FanDuel app yourself")
+  end
+
   it "never shows DraftKings links, even when DraftKings has the best price for a leg" do
     leg(fd_ids: [ "42.1", "11" ], dk_better: true)
     get "/nba/props"
