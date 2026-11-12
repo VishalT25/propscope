@@ -120,6 +120,14 @@ RSpec.describe "Sending a slip to a sportsbook" do
       expect(target.skipped.map { |l, reason| [ l.market.id, reason ] }).to eq([ [ unlinked.id, :no_link ] ])
     end
 
+    it "says an alternate line has no link (SportsGameOdds gives none for those), rather than blaming the book" do
+      leg(fd: fd_link("42.1", "11"))
+      alt = leg(fd: nil, fd_price: -110)
+      alt.update!(is_alternate: true)
+      target = targets.sole
+      expect(target.skipped.map { |l, reason| [ l.market.id, reason ] }).to eq([ [ alt.id, :alternate ] ])
+    end
+
     it "leaves out a leg whose game has already started, and says so, instead of sending something FanDuel cannot add" do
       leg(fd: fd_link("42.1", "11"))
       past = leg(fd: fd_link("42.2", "22"), game: create(:game, starts_at: 2.hours.ago))

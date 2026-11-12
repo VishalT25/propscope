@@ -4,7 +4,7 @@ module Slips
   # offering nothing. See docs/providers/sportsbook_links.md.
   class Handoff
     # skipped: [[leg, reason]] for every leg that is not in the link. Reasons: :started (its game has begun), :not_offered (the book has no
-    # price for it) or :no_link (the book has a price but we have no usable link for it).
+    # price for it), :alternate (an alternate line: SportsGameOdds gives no link for those) or :no_link (a price with no usable link).
     Target = Data.define(:bookmaker, :url, :included, :total, :skipped, :american)
 
     VERIFIED = { "fanduel" => FanDuelLink }.freeze
@@ -49,7 +49,7 @@ module Slips
     def reason_skipped(leg, snapshot, linked)
       if started?(leg) then :started
       elsif snapshot.nil? then :not_offered
-      elsif !linked.include?(snapshot.id) then :no_link
+      elsif !linked.include?(snapshot.id) then leg.market.is_alternate ? :alternate : :no_link
       end
     end
   end
