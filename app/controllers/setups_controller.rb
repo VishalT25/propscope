@@ -20,7 +20,7 @@ class SetupsController < ApplicationController
     case params[:mode]
     when "sample"
       Setup.use_sample
-      redirect_to root_path, notice: "Sample data loaded. It is made up, so use it to look around. Switch to your own data any time in Settings."
+      redirect_to url_from(params[:back]) || root_path, notice: "Sample data loaded. It is made up, so use it to look around. Switch to your own data any time in Settings."
     when "live"
       Setup.choose_live
       redirect_to setup_path

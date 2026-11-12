@@ -16,13 +16,14 @@
 
 <% show_model = result.rows.any?(&:prediction) %>
 <% if result.rows.empty? %>
-  <div class="card mt-3 grid place-items-center px-6 py-14 text-center">
-    <h2 class="text-lg font-bold">No props match</h2>
-    <p class="mt-1 max-w-md text-sm text-muted">
-      <% if filters.active_count.positive? %>Loosen a filter or <%= link_to "reset them all", league_props_path(current_league), class: "text-accent underline", data: { turbo: false } %>.
-      <% else %>No upcoming games have odds yet. In development run <code class="rounded bg-surface-2 px-1">bin/rails db:seed</code> on a game day.<% end %>
-    </p>
-  </div>
+  <% if filters.active_count.positive? %>
+    <div class="card mt-3 grid place-items-center px-6 py-14 text-center">
+      <h2 class="text-lg font-bold">No props match</h2>
+      <p class="mt-1 max-w-md text-sm text-muted">Loosen a filter or <%= link_to "reset them all", league_props_path(current_league), class: "text-accent underline", data: { turbo: false } %>.</p>
+    </div>
+  <% else %>
+    <%= render "props/no_odds" %>
+  <% end %>
 <% else %>
   <div class="card mt-3 hidden overflow-x-auto md:block">
     <table class="w-full min-w-[56rem] text-sm">
