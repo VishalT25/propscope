@@ -126,6 +126,10 @@
 @layer components {
   /* daisyUI's .card, restyled as a flat surface. No shadows, no glow. */
   .card { background: var(--color-base-200); border: 1px solid var(--line); }
+  /* Filter bar buttons: rectangular, a size up from .chip. data-active marks a filter that has something selected. */
+  .fbtn { @apply inline-flex h-10 shrink-0 cursor-pointer items-center gap-2 rounded-xl border border-line bg-surface px-3.5 text-sm font-semibold text-muted transition-colors duration-150 ease-out hover:border-accent/60 hover:text-fg; }
+  .fbtn[data-active="true"] { @apply border-accent text-fg; }
+  .fbtn-solid { @apply border-fg bg-fg text-canvas hover:border-fg hover:text-canvas; }
   .chip { @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-medium text-fg transition-colors duration-150 ease-out hover:bg-surface-2; }
   .chip-active { @apply border-transparent bg-accent text-on-accent hover:bg-accent; }
   .chip-disabled { @apply cursor-not-allowed opacity-45 hover:bg-surface; }

@@ -1,5 +1,5 @@
 <div data-sheet-target="backdrop" data-action="click->sheet#close" class="fixed inset-0 z-40 bg-canvas/75" hidden></div>
-<aside data-sheet-target="panel" role="dialog" aria-label="Sportsbooks" hidden
+<aside data-sheet-target="panel" role="dialog" aria-label="Sportsbooks" hidden data-controller="checklist" data-checklist-minimum-value="1" data-checklist-noun-value="books on"
        class="fixed inset-x-0 bottom-0 z-50 flex max-h-[85dvh] flex-col rounded-t-2xl border border-line bg-surface shadow-2xl md:inset-y-0 md:left-auto md:right-0 md:max-h-none md:w-[24rem] md:rounded-none md:rounded-l-2xl">
   <div class="border-b border-line px-4 py-3">
     <h2 class="font-bold">Books</h2>
@@ -11,6 +11,13 @@
         <button type="button" class="chip <%= 'chip-disabled' unless kinds.include?(kind) %>" data-sheet-target="tab" data-sheet-kind-param="<%= kind %>" data-action="sheet#filterKind" <%= "disabled" unless kinds.include?(kind) %>><%= label %></button>
       <% end %>
     </div>
+    <div class="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm">
+      <p class="text-muted tabular-nums" aria-live="polite" data-checklist-target="count"></p>
+      <div class="flex gap-3 font-semibold">
+        <button type="button" class="text-accent hover:underline" data-action="checklist#all">Select all</button>
+        <button type="button" class="text-accent hover:underline" data-action="checklist#none">Deselect all</button>
+      </div>
+    </div>
   </div>
   <%= form_with url: books_path, method: :patch, class: "flex min-h-0 flex-1 flex-col" do %>
     <ul class="min-h-0 flex-1 divide-y divide-line overflow-y-auto px-4">
@@ -21,11 +28,11 @@
               <%= book_badge(b) %>
               <span class="font-medium"><%= b.name %></span>
             </span>
-            <%= check_box_tag "keys[]", b.key, enabled_book_keys.nil? || enabled_book_keys.include?(b.key), id: nil, class: "size-5 accent-[var(--accent)]" %>
+            <%= check_box_tag "keys[]", b.key, enabled_book_keys.nil? || enabled_book_keys.include?(b.key), id: nil, class: "size-5 accent-[var(--accent)]", data: { checklist_target: "box", action: "change->checklist#update" } %>
           </label>
         </li>
       <% end %>
     </ul>
-    <div class="border-t border-line px-4 py-3"><button type="submit" class="btn btn-primary w-full">Done</button></div>
+    <div class="border-t border-line px-4 py-3"><button type="submit" class="btn btn-primary w-full disabled:cursor-not-allowed disabled:opacity-50" data-checklist-target="submit">Done</button></div>
   <% end %>
 </aside>

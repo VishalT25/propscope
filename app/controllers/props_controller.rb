@@ -1,15 +1,9 @@
 class PropsController < PublicController
-  before_action :load_filters, only: %i[index count]
+  before_action :load_filters, only: :index
 
   def index
     @result = PropsQuery.call(filters: @filters, bookmaker_ids: enabled_bookmaker_ids)
     @games = PropsQuery.upcoming_games
-  end
-
-  # Live "Show N props" label for the filter drawer, as a Turbo Stream.
-  def count
-    total = PropsQuery.call(filters: @filters, bookmaker_ids: enabled_bookmaker_ids, paginate: false).total
-    render turbo_stream: turbo_stream.update("apply_label", helpers.props_count_label(total))
   end
 
   def show

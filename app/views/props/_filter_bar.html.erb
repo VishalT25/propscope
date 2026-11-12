@@ -1,0 +1,78 @@
+<%# The filters toolbar. One form: the dropdowns here and the side panel's fields (form="filters_form") all feed it, and any change applies at once. %>
+<% count = @filters.active_count %>
+<%= form_with url: league_props_path(current_league), method: :get, id: "filters_form",
+      data: { turbo_frame: "props_results", turbo_action: "advance", action: "formdata->filters#strip" },
+      class: "rounded-2xl border border-line bg-surface p-2.5", "aria-label": "Filters" do %>
+  <%= hidden_field_tag :sort, @filters.sort, id: nil %>
+  <%= hidden_field_tag :dir, @filters.dir, id: nil %>
+
+  <div class="flex flex-wrap items-center gap-x-4 gap-y-2.5 md:flex-nowrap">
+    <div class="no-scrollbar flex min-w-0 flex-1 items-center gap-2 overflow-x-auto py-0.5">
+      <div class="flex shrink-0">
+        <button type="button" class="fbtn fbtn-solid rounded-r-none" data-action="sheet#open" aria-haspopup="dialog">
+          <%= icon :sliders, css: "size-[18px]" %>Filters
+          <span class="grid min-w-6 place-items-center rounded-full bg-canvas px-1.5 text-xs font-extrabold tabular-nums text-fg" data-filters-target="badge" <%= "hidden" if count.zero? %>><%= count if count.positive? %></span>
+        </button>
+        <%= link_to league_props_path(current_league), class: "fbtn fbtn-solid -ml-px rounded-l-none px-2.5", "aria-label": "Clear all filters", title: "Clear all filters",
+              data: { turbo_frame: "_top", filters_target: "clear" }, hidden: count.zero? do %><%= icon :close, css: "size-4" %><% end %>
+      </div>
+
+      <button type="button" class="fbtn" data-action="sheet#open" data-sheet-tab-param="templates" aria-haspopup="dialog"><%= icon :bookmark, css: "size-[18px]" %>Saved</button>
+
+      <%= render layout: "props/chip_dropdown", locals: { id: "propositions", group: "propositions", label: "Propositions", icon_name: :list, width: "w-64",
+                                                          active: @filters.market_types.any?, count: @filters.market_types.size } do %>
+        <fieldset data-filters-target="group" data-group="propositions">
+          <legend class="sr-only">Propositions</legend>
+          <div class="space-y-2">
+            <% StatCatalog::ALL.each do |stat| %>
+              <label class="flex cursor-pointer items-center gap-2.5"><%= check_box_tag "market_types[]", stat.market_type, @filters.market_types.include?(stat.market_type), id: nil, class: "size-4 accent-[var(--accent)]" %> <%= stat.label %></label>
+            <% end %>
+          </div>
+        </fieldset>
+      <% end %>
+
+      <%= render layout: "props/chip_dropdown", locals: { id: "players", group: "q", label: "Players", icon_name: :search, width: "w-72", active: @filters.q.present?, count: 0 } do %>
+        <div data-filters-target="group" data-group="q">
+          <label class="mb-1.5 block text-xs font-semibold text-muted" for="f_q">Player name</label>
+          <%= search_field_tag :q, @filters.q, id: "f_q", placeholder: "Search players", class: "field", autocomplete: "off" %>
+          <p class="mt-1.5 text-xs text-muted">Results update as you type.</p>
+        </div>
+      <% end %>
+
+      <%= render layout: "props/chip_dropdown", locals: { id: "games", group: "games", label: "Games", icon_name: :calendar, width: "w-80",
+                                                          active: @filters.game_ids.any?, count: @filters.game_ids.size } do %>
+        <fieldset data-filters-target="group" data-group="games">
+          <legend class="sr-only">Games</legend>
+          <% if @games.empty? %>
+            <p class="text-muted">No upcoming games.</p>
+          <% else %>
+            <div class="max-h-72 space-y-2 overflow-y-auto pr-1">
+              <% @games.each do |g| %>
+                <label class="flex cursor-pointer items-center gap-2.5"><%= check_box_tag "game_ids[]", g.id, @filters.game_ids.include?(g.id), id: nil, class: "size-4 accent-[var(--accent)]" %>
+                  <span><%= g.away_team.abbreviation %> @ <%= g.home_team.abbreviation %> <span class="text-xs text-muted"><%= local_day(g.starts_at) %>, <%= local_time(g.starts_at) %></span></span></label>
+              <% end %>
+            </div>
+          <% end %>
+        </fieldset>
+      <% end %>
+
+      <%= render layout: "props/chip_dropdown", locals: { id: "side", group: "side", label: "Over / Under", icon_name: :updown, width: "w-64", active: @filters.side.present?, count: 0 } do %>
+        <fieldset data-filters-target="group" data-group="side">
+          <legend class="sr-only">Over or under</legend>
+          <div class="grid grid-cols-3 gap-1 rounded-xl bg-surface-2 p-1 text-center font-semibold">
+            <% [ [ "", "Both" ], [ "over", "Over" ], [ "under", "Under" ] ].each do |value, label| %>
+              <label class="cursor-pointer rounded-lg px-2 py-1.5 has-[:checked]:bg-accent has-[:checked]:text-on-accent"><%= radio_button_tag :side, value, @filters.side.to_s == value, id: nil, class: "sr-only" %><%= label %></label>
+            <% end %>
+          </div>
+        </fieldset>
+      <% end %>
+    </div>
+
+    <div class="flex shrink-0 items-center gap-4 md:border-l md:border-line md:pl-4">
+      <label class="flex cursor-pointer items-center gap-2.5 text-sm font-semibold" data-filters-target="group" data-group="alt">
+        <%= check_box_tag :alt, "1", @filters.alt, id: nil, class: "toggle toggle-primary toggle-sm" %>Show alt lines
+      </label>
+      <p class="text-sm font-semibold tabular-nums" aria-live="polite" data-filters-target="count"><%= number_with_delimiter(@result.total) %> <%= "prop".pluralize(@result.total) %></p>
+    </div>
+  </div>
+<% end %>

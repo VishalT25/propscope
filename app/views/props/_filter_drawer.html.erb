@@ -1,3 +1,5 @@
+<%# The side panel: the less common filters (the common ones are the toolbar's dropdowns), and saved filters. Its fields belong to #filters_form
+    through the form attribute, so they apply live like the rest. The Saved tab has forms of its own, which is why this is not inside that form. %>
 <div data-sheet-target="backdrop" data-action="click->sheet#close" class="fixed inset-0 z-40 bg-canvas/75" hidden></div>
 <aside data-sheet-target="panel" role="dialog" aria-label="Filters" hidden
        class="fixed inset-x-0 bottom-0 z-50 flex max-h-[88dvh] flex-col rounded-t-2xl border border-line bg-surface shadow-2xl md:inset-y-0 md:left-auto md:right-0 md:max-h-none md:w-[26rem] md:rounded-none md:rounded-l-2xl">
@@ -10,89 +12,52 @@
   </div>
 
   <div data-sheet-target="pane" data-pane="filters" class="flex min-h-0 flex-1 flex-col">
-    <%= form_with url: league_props_path(current_league), method: :get, id: "filters_form", class: "flex min-h-0 flex-1 flex-col",
-          data: { turbo_frame: "props_results", turbo_action: "advance", controller: "filters", filters_count_url_value: count_league_props_path(current_league),
-                  action: "input->filters#changed change->filters#changed formdata->filters#strip submit->sheet#close" } do %>
-      <div class="min-h-0 flex-1 space-y-5 overflow-y-auto px-4 py-4 text-sm">
-        <%= hidden_field_tag :sort, @filters.sort, id: nil %>
-        <%= hidden_field_tag :dir, @filters.dir, id: nil %>
+    <div class="min-h-0 flex-1 space-y-5 overflow-y-auto px-4 py-4 text-sm">
+      <p class="text-xs text-muted">Games, propositions, players and over / under are in the bar above. Changes here apply as you make them.</p>
 
-        <fieldset>
-          <legend class="mb-1.5 text-xs font-semibold text-muted">Games</legend>
-          <div class="space-y-1">
-            <% @games.each do |g| %>
-              <label class="flex items-center gap-2"><%= check_box_tag "game_ids[]", g.id, @filters.game_ids.include?(g.id), id: nil, class: "accent-[var(--accent)]" %>
-                <%= g.away_team.abbreviation %> @ <%= g.home_team.abbreviation %> <span class="text-xs text-muted"><%= local_day(g.starts_at) %>, <%= local_time(g.starts_at) %></span></label>
-            <% end %>
-          </div>
-        </fieldset>
-
-        <fieldset>
-          <legend class="mb-1.5 text-xs font-semibold text-muted">Propositions</legend>
-          <div class="grid grid-cols-2 gap-1">
-            <% StatCatalog::ALL.each do |stat| %>
-              <label class="flex items-center gap-2"><%= check_box_tag "market_types[]", stat.market_type, @filters.market_types.include?(stat.market_type), id: nil, class: "accent-[var(--accent)]" %> <%= stat.label %></label>
-            <% end %>
-          </div>
-        </fieldset>
-
-        <div>
-          <label class="mb-1.5 block text-xs font-semibold text-muted" for="f_q">Player</label>
-          <%= search_field_tag :q, @filters.q, id: "f_q", placeholder: "Search players", class: "field", autocomplete: "off" %>
+      <fieldset data-filters-target="group" data-group="odds">
+        <legend class="mb-1.5 text-xs font-semibold text-muted">Odds range <span class="font-normal normal-case">(American, e.g. -200 to +150)</span></legend>
+        <div class="grid grid-cols-2 gap-2">
+          <%= number_field_tag :odds_min, @filters.odds_min, id: nil, form: "filters_form", placeholder: "Min", class: "field", "aria-label": "Minimum odds" %>
+          <%= number_field_tag :odds_max, @filters.odds_max, id: nil, form: "filters_form", placeholder: "Max", class: "field", "aria-label": "Maximum odds" %>
         </div>
+      </fieldset>
 
-        <fieldset>
-          <legend class="mb-1.5 text-xs font-semibold text-muted">Over / Under</legend>
-          <div class="grid grid-cols-3 gap-1 rounded-xl bg-surface-2 p-1 text-center font-semibold">
-            <% [["", "Both"], ["over", "Over"], ["under", "Under"]].each do |value, label| %>
-              <label class="cursor-pointer rounded-lg px-2 py-1.5 has-[:checked]:bg-accent has-[:checked]:text-on-accent"><%= radio_button_tag :side, value, @filters.side.to_s == value, id: nil, class: "sr-only" %><%= label %></label>
-            <% end %>
-          </div>
-        </fieldset>
-
-        <fieldset>
-          <legend class="mb-1.5 text-xs font-semibold text-muted">Odds range <span class="font-normal normal-case">(American, e.g. -200 to +150)</span></legend>
-          <div class="grid grid-cols-2 gap-2">
-            <%= number_field_tag :odds_min, @filters.odds_min, id: nil, placeholder: "Min", class: "field", "aria-label": "Minimum odds" %>
-            <%= number_field_tag :odds_max, @filters.odds_max, id: nil, placeholder: "Max", class: "field", "aria-label": "Maximum odds" %>
-          </div>
-        </fieldset>
-
-        <fieldset>
-          <legend class="mb-1.5 text-xs font-semibold text-muted">Min hit rate</legend>
-          <div class="grid grid-cols-2 gap-2">
-            <%= number_field_tag :min_hit_rate, @filters.min_hit_rate, id: nil, min: 0, max: 100, placeholder: "e.g. 70", class: "field", "aria-label": "Minimum hit rate percent" %>
-            <%= select_tag :hit_window, options_for_select(PropsHelper::HIT_COLUMNS.map { |k, l, _| [ l, k ] }, @filters.hit_window), id: nil, class: "field", "aria-label": "Hit rate window" %>
-          </div>
-          <p class="mt-1 text-xs text-muted">Needs at least <%= ApplicationHelper::MIN_SAMPLE %> games in that window (1 for H2H).</p>
-        </fieldset>
-
-        <div>
-          <label class="mb-1.5 block text-xs font-semibold text-muted" for="f_tier">Opponent matchup</label>
-          <%= select_tag :tier, options_for_select([ [ "Any", "" ], %w[Favorable favorable], %w[Neutral neutral], %w[Unfavorable unfavorable] ], @filters.tier), id: "f_tier", class: "field" %>
+      <fieldset data-filters-target="group" data-group="hit">
+        <legend class="mb-1.5 text-xs font-semibold text-muted">Min hit rate</legend>
+        <div class="grid grid-cols-2 gap-2">
+          <%= number_field_tag :min_hit_rate, @filters.min_hit_rate, id: nil, form: "filters_form", min: 0, max: 100, placeholder: "e.g. 70", class: "field", "aria-label": "Minimum hit rate percent" %>
+          <%= select_tag :hit_window, options_for_select(PropsHelper::HIT_COLUMNS.map { |k, l, _| [ l, k ] }, @filters.hit_window), id: nil, form: "filters_form", class: "field", "aria-label": "Hit rate window", data: { ignore: "" } %>
         </div>
+        <p class="mt-1 text-xs text-muted">Needs at least <%= ApplicationHelper::MIN_SAMPLE %> games in that window (1 for H2H).</p>
+      </fieldset>
 
-        <fieldset>
-          <legend class="mb-1.5 text-xs font-semibold text-muted">Books <span class="font-normal normal-case">(within your enabled books)</span></legend>
-          <div class="grid grid-cols-2 gap-1">
-            <% all_bookmakers.each do |b| %>
-              <label class="flex items-center gap-2"><%= check_box_tag "book_keys[]", b.key, @filters.book_keys.include?(b.key), id: nil, class: "accent-[var(--accent)]" %> <%= book_badge(b) %> <%= b.name %></label>
-            <% end %>
-          </div>
-        </fieldset>
-
-        <label class="flex items-center gap-2 font-medium"><%= check_box_tag :alt, "1", @filters.alt, id: nil, class: "accent-[var(--accent)]" %> Show alt lines</label>
+      <div data-filters-target="group" data-group="tier">
+        <label class="mb-1.5 block text-xs font-semibold text-muted" for="f_tier">Opponent matchup</label>
+        <%= select_tag :tier, options_for_select([ [ "Any", "" ], %w[Favorable favorable], %w[Neutral neutral], %w[Unfavorable unfavorable] ], @filters.tier), id: "f_tier", form: "filters_form", class: "field" %>
       </div>
 
-      <div class="space-y-2 border-t border-line px-4 py-3">
-        <button type="submit" class="btn btn-primary w-full"><span id="apply_label"><%= props_count_label(@result.total) %></span></button>
-        <%= link_to "Reset", league_props_path(current_league), class: "btn btn-outline w-full", data: { turbo_frame: "_top" } %>
-      </div>
-    <% end %>
+      <fieldset data-filters-target="group" data-group="books" data-controller="checklist">
+        <legend class="mb-1.5 flex w-full items-baseline justify-between text-xs font-semibold text-muted">
+          <span>Books <span class="font-normal normal-case">(within your enabled books)</span></span>
+          <button type="button" class="font-semibold text-accent hover:underline" data-action="checklist#none">Clear</button>
+        </legend>
+        <div class="grid grid-cols-2 gap-1">
+          <% all_bookmakers.each do |b| %>
+            <label class="flex items-center gap-2"><%= check_box_tag "book_keys[]", b.key, @filters.book_keys.include?(b.key), id: nil, form: "filters_form", class: "accent-[var(--accent)]", data: { checklist_target: "box", action: "change->checklist#update" } %> <%= book_badge(b) %> <%= b.name %></label>
+          <% end %>
+        </div>
+      </fieldset>
+    </div>
+
+    <div class="space-y-2 border-t border-line px-4 py-3">
+      <button type="submit" form="filters_form" class="btn btn-primary w-full" data-action="click->sheet#close"><span id="apply_label" data-filters-target="applyLabel"><%= props_count_label(@result.total) %></span></button>
+      <%= link_to "Reset", league_props_path(current_league), class: "btn btn-outline w-full", data: { turbo_frame: "_top" } %>
+    </div>
 
     <div class="border-t border-line px-4 py-3">
       <% if current_user %>
-        <%= form_with url: saved_filters_path, class: "flex gap-2" do %>
+        <%= form_with url: saved_filters_path, class: "flex gap-2", data: { action: "formdata->filters#fillSaved" } do %>
           <%= hidden_filter_fields(@filters) %>
           <%= text_field_tag :name, nil, placeholder: "Name these filters", class: "field", "aria-label": "Saved filter name", required: true %>
           <button type="submit" class="btn btn-outline shrink-0">Save</button>
