@@ -1,5 +1,7 @@
 <%# No prop has odds right now, and no filter is the reason. One sentence of what to expect, the one action, and the detail only if wanted. %>
 <% next_game = Game.where(starts_at: Time.current..).minimum(:starts_at) %>
+<% coming = Game.where(starts_at: Time.current..36.hours.from_now).count %>
+<% budget = BudgetGuard.report("sports_game_odds") %>
 <div class="card mt-3 px-6 py-12">
   <div class="mx-auto max-w-md text-center">
     <h2 class="text-lg font-bold">No props to show yet</h2>
@@ -10,7 +12,10 @@
 
       <% if current_user&.admin? %>
         <%= button_to "Refresh odds now", refresh_odds_setup_path, method: :post, class: "btn btn-primary btn-sm mt-5", form: { class: "contents", data: { turbo: false } } %>
-        <p class="mt-2 text-xs text-muted">Uses a few events of your SportsGameOdds allowance.</p>
+        <p class="mt-2 text-xs text-muted">
+          Uses roughly one SportsGameOdds event per game coming up<%= " (#{coming} now)" if coming.positive? %>.
+          <%= "#{number_with_delimiter(budget.used)} of #{number_with_delimiter(budget.limit)} used this month." if budget.limit %>
+        </p>
       <% end %>
 
       <details class="mt-6 text-left text-sm">

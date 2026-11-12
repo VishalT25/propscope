@@ -21,7 +21,7 @@ RSpec.describe "Props explorer with nothing to show" do
       create(:game, starts_at: 30.hours.from_now)
       get "/nba/props"
       body = response.body
-      expect(body).to include("No props to show yet", "usually post player props on the day of the game", "Next game:", "How odds arrive", "background worker", "Refresh odds now", "allowance")
+      expect(body).to include("No props to show yet", "usually post player props on the day of the game", "Next game:", "How odds arrive", "background worker", "Refresh odds now", "roughly one SportsGameOdds event per game coming up", "(1 now)", "used this month")
       expect(body).to include(refresh_odds_setup_path)
       expect(body).not_to include("db:seed")
     end
