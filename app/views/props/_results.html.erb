@@ -3,7 +3,7 @@
   <span hidden data-total="<%= result.total %>" data-count-label="<%= number_with_delimiter(result.total) %> <%= "prop".pluralize(result.total) %>" data-apply-label="<%= props_count_label(result.total) %>"></span>
   <p><%= updated_ago(result.updated_at).capitalize %><% if result.prices_at %> · prices <%= time_ago_in_words(result.prices_at) %> ago<% end %></p>
   <details class="relative">
-    <summary class="cursor-pointer select-none font-medium hover:text-fg">Legend</summary>
+    <summary class="-my-1.5 cursor-pointer select-none py-1.5 font-medium hover:text-fg">Legend</summary>
     <div class="absolute right-0 z-20 mt-2 w-80 space-y-1.5 rounded-xl border border-line bg-surface p-3 text-xs shadow-xl">
       <p><b class="text-fg">Best price</b>: highest price across your enabled books, with the book's code. <b class="text-fg">Only EV+</b> keeps the props whose best price beats the market's fair price by 1% or more, the same maths as the EV+ page, and shows that edge under the price.</p>
       <p><b class="text-fg">IP</b>: implied probability of that price (it includes the book's margin).</p>
@@ -31,13 +31,13 @@
         <tr>
           <th class="px-3 py-2.5">Player</th>
           <th class="px-3 py-2.5">Matchup</th>
-          <th class="px-3 py-2.5"><%= link_to "Pick#{sort_arrow(filters, 'line')}", league_props_path(current_league, sort_link_params(filters, "line")), title: "Sort by line" %></th>
-          <th class="px-3 py-2.5"><%= link_to "Best price#{sort_arrow(filters, 'best_odds')}", league_props_path(current_league, sort_link_params(filters, "best_odds")), title: "Sort by best price" %></th>
-          <th class="px-3 py-2.5 text-right"><%= link_to "IP#{sort_arrow(filters, 'ip')}", league_props_path(current_league, sort_link_params(filters, "ip")), title: "Implied probability of the best price" %></th>
-          <th class="px-3 py-2.5 text-center"><%= link_to "Opp#{sort_arrow(filters, 'opp_rank')}", league_props_path(current_league, sort_link_params(filters, "opp_rank")), title: "Opponent rank vs this position (1 = toughest)" %></th>
-          <% if show_model %><th class="px-1 py-2.5 text-center"><%= link_to "Model#{sort_arrow(filters, 'model')}", league_props_path(current_league, sort_link_params(filters, "model")), title: "Model: chance this side wins, from the optional model service. Click to sort." %></th><% end %>
+          <th class="p-0"><%= link_to "Pick#{sort_arrow(filters, 'line')}", league_props_path(current_league, sort_link_params(filters, "line")), class: "sort-link block px-3 py-2.5", title: "Sort by line" %></th>
+          <th class="p-0"><%= link_to "Best price#{sort_arrow(filters, 'best_odds')}", league_props_path(current_league, sort_link_params(filters, "best_odds")), class: "sort-link block px-3 py-2.5", title: "Sort by best price" %></th>
+          <th class="p-0 text-right"><%= link_to "IP#{sort_arrow(filters, 'ip')}", league_props_path(current_league, sort_link_params(filters, "ip")), class: "sort-link block px-3 py-2.5", title: "Implied probability of the best price" %></th>
+          <th class="p-0 text-center"><%= link_to "Opp#{sort_arrow(filters, 'opp_rank')}", league_props_path(current_league, sort_link_params(filters, "opp_rank")), class: "sort-link block px-3 py-2.5", title: "Opponent rank vs this position (1 = toughest)" %></th>
+          <% if show_model %><th class="p-0 text-center"><%= link_to "Model#{sort_arrow(filters, 'model')}", league_props_path(current_league, sort_link_params(filters, "model")), class: "sort-link block px-1 py-2.5", title: "Model: chance this side wins, from the optional model service. Click to sort." %></th><% end %>
           <% PropsHelper::HIT_COLUMNS.each do |key, label, tip| %>
-            <th class="px-1 py-2.5 text-center"><%= link_to "#{label}#{sort_arrow(filters, key)}", league_props_path(current_league, sort_link_params(filters, key)), title: "#{tip}. Click to sort." %></th>
+            <th class="p-0 text-center"><%= link_to "#{label}#{sort_arrow(filters, key)}", league_props_path(current_league, sort_link_params(filters, key)), class: "sort-link block px-1 py-2.5", title: "#{tip}. Click to sort." %></th>
           <% end %>
           <th class="w-12"></th>
         </tr>
