@@ -8,7 +8,7 @@ class PropsQuery
   TIERS = %w[favorable neutral unfavorable].freeze
   INVERT = { "favorable" => "unfavorable", "unfavorable" => "favorable", "neutral" => "neutral" }.freeze
 
-  Filters = Data.define(:game_ids, :market_types, :q, :side, :odds_min, :odds_max, :min_hit_rate, :hit_window, :tier, :book_keys, :alt, :sort, :dir, :page) do
+  Filters = Data.define(:game_ids, :market_types, :q, :side, :odds_min, :odds_max, :min_hit_rate, :hit_window, :tier, :book_keys, :alt, :ev, :sort, :dir, :page) do
     def self.from_params(params)
       p = params.respond_to?(:to_unsafe_h) ? params.to_unsafe_h : params.to_h
       list = ->(k) { Array(p[k]).map(&:to_s).reject(&:blank?) }
@@ -24,6 +24,7 @@ class PropsQuery
         tier: TIERS.include?(p["tier"]) ? p["tier"] : nil,
         book_keys: list.("book_keys"),
         alt: p["alt"] == "1",
+        ev: p["ev"] == "1",
         sort: SORTS.include?(p["sort"]) ? p["sort"] : "l10",
         dir: p["dir"] == "asc" ? "asc" : "desc",
         page: [ int.("page") || 1, 1 ].max
@@ -32,19 +33,19 @@ class PropsQuery
 
     # Number of filters the user has set (the "Current filters" badge). Sort and page do not count.
     def active_count
-      [ game_ids.any?, market_types.any?, q, side, odds_min || odds_max, min_hit_rate, tier, book_keys.any?, alt ].count { |v| v }
+      [ game_ids.any?, market_types.any?, q, side, odds_min || odds_max, min_hit_rate, tier, book_keys.any?, alt, ev ].count { |v| v }
     end
 
     # Params that survive a link (used for sort and pagination links).
     def to_query(**overrides)
       h = { game_ids: game_ids.presence, market_types: market_types.presence, q: q, side: side, odds_min: odds_min, odds_max: odds_max,
             min_hit_rate: min_hit_rate, hit_window: (hit_window unless hit_window == "l10" && min_hit_rate.nil?), tier: tier,
-            book_keys: book_keys.presence, alt: ("1" if alt), sort: sort, dir: dir }.merge(overrides)
+            book_keys: book_keys.presence, alt: ("1" if alt), ev: ("1" if ev), sort: sort, dir: dir }.merge(overrides)
       h.compact
     end
   end
 
-  Row = Data.define(:market, :side, :player, :game, :line, :price, :implied, :hit, :opp_rank, :tier, :prediction) do
+  Row = Data.define(:market, :side, :player, :game, :line, :price, :implied, :hit, :opp_rank, :tier, :prediction, :ev) do # ev: the edge over the fair price, set by "Only EV+"
     def team = player.team
     def opponent = game.home_team_id == player.team_id ? game.away_team : game.home_team
     def home? = game.home_team_id == player.team_id
@@ -73,6 +74,7 @@ class PropsQuery
     ranks = defense_ranks(markets)
 
     rows = markets.flat_map { |m| sides.filter_map { |side| build_row(m, side, prices, hits, ranks, predictions) } }
+    rows = only_ev(rows) if @f.ev
     rows = filter(rows)
     rows = sort(rows)
     total = rows.size
@@ -131,7 +133,18 @@ class PropsQuery
     tier = rank && (side == "under" ? INVERT.fetch(rank.tier) : rank.tier)
     Row.new(market: market, side: side, player: player, game: game, line: market.line, price: price,
             implied: OddsMath.american_to_implied(price.american_odds), hit: hits[[ market.id, side ]], opp_rank: rank, tier: tier,
-            prediction: predictions[[ market.id, side ]])
+            prediction: predictions[[ market.id, side ]], ev: nil)
+  end
+
+  # "Only EV+": the props the EV+ page lists with its default minimum edge (same fair price, same books), with that edge on the row.
+  def only_ev(rows)
+    edges = ev_edges
+    rows.filter_map { |row| (edge = edges[[ row.market.id, row.side ]]) && row.with(ev: edge) }
+  end
+
+  def ev_edges
+    filters = Ev::Opportunities::Filters.from_params({})
+    Ev::Opportunities.call(filters: filters, bookmaker_ids: effective_book_ids, now: @now, paginate: false).rows.to_h { |r| [ [ r.market.id, r.outcome ], r.ev ] }
   end
 
   def filter(rows)

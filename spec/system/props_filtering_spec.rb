@@ -6,6 +6,10 @@ RSpec.describe "Filtering props", type: :system do
   seed_fixtures_once
 
   # The count in the toolbar. Waits for it, so it is never read from a page that has not loaded.
+  # These wait, instead of reading once: the URL changes a moment before the toolbar count follows.
+  def expect_count(value) = expect(page).to have_css("[data-filters-target=count]", text: /\A#{Regexp.escape(value)} props?\z/, wait: 5)
+  def expect_count_not(value) = expect(page).to have_no_css("[data-filters-target=count]", text: /\A#{Regexp.escape(value)} props?\z/, wait: 5)
+
   def total
     number = nil
     page.document.synchronize do
@@ -38,7 +42,7 @@ RSpec.describe "Filtering props", type: :system do
       expect(total).to eq(before)
     end
 
-    it "takes the side panel's fields into the same filter" do
+    it "takes the toolbar's odds, hit rate and matchup fields into the same filter" do
       visit "/nba/props"
       fill_in "min_hit_rate", with: "90", visible: :all
       click_button "Show", match: :first, visible: :all
@@ -70,8 +74,7 @@ RSpec.describe "Filtering props", type: :system do
       click_button "Propositions"
       check "3-Pointers Made"
       expect(page).to have_current_path(/market_types/, wait: 5)
-      expect(page).to have_css("[data-filters-target=count]", text: /props?\z/)
-      expect(page).to have_no_css("[data-filters-target=count]", text: before, wait: 5)
+      expect_count_not(before)
       expect(page).to have_css("[data-filters-target=badge]", text: "1")
       expect(page).to have_css("button[data-group=propositions][data-active=true] [data-chip-count]", text: "1")
       expect(page).to have_css("a[aria-label='Clear all filters']")
@@ -88,7 +91,7 @@ RSpec.describe "Filtering props", type: :system do
 
       find("a[aria-label='Clear all filters']").click
       expect(page).to have_no_current_path(/side=over/, wait: 5)
-      expect(total).to eq(before)
+      expect_count(before)
       expect(page).to have_css("[data-filters-target=badge][hidden]", visible: :all)
     end
 
@@ -119,11 +122,62 @@ RSpec.describe "Filtering props", type: :system do
       expect(page).to have_current_path(/q=zzzznobody/)
     end
 
-    it "applies the side panel's filters live as well, and its button closes the panel" do
+    it "applies Only EV+ at once, shows each prop's edge, and turns it off again" do
       visit "/nba/props"
-      click_button "Filters"
+      before = total
+      find("label", text: "Only EV+").click
+      expect(page).to have_current_path(/ev=1/, wait: 5)
+      expect(page).to have_css("button[data-group=ev][data-active=true], label[data-group=ev][data-active=true]")
+      expect(page).to have_css("[data-filters-target=badge]", text: "1")
+      expect(page).to have_content(/EV \+\d+\.\d%/)
+      expect_count_not(before)
+
+      find("label", text: "Only EV+").click
+      expect(page).to have_no_current_path(/ev=1/, wait: 5)
+      expect_count(before)
+    end
+
+    it "has dropdowns for odds, hit rate and opponent matchup that apply as you go" do
+      visit "/nba/props"
+      before = total
+
+      click_button "Odds"
+      fill_in "odds_min", with: "100"
+      expect(page).to have_current_path(/odds_min=100/, wait: 5)
+      expect(page).to have_css("button[data-group=odds][data-active=true]")
+      page.send_keys(:escape)
+
+      click_button "Hit rate"
       fill_in "min_hit_rate", with: "100"
       expect(page).to have_current_path(/min_hit_rate=100/, wait: 5)
+      expect(page).to have_css("button[data-group=hit][data-active=true]")
+      page.send_keys(:escape)
+
+      click_button "Opponent matchup"
+      choose "Favorable", allow_label_click: true
+      expect(page).to have_current_path(/tier=favorable/, wait: 5)
+      expect(page).to have_css("button[data-group=tier][data-active=true]")
+      expect(page).to have_css("[data-filters-target=badge]", text: "3")
+      expect_count_not(before)
+
+      find("a[aria-label='Clear all filters']").click
+      expect(page).to have_no_current_path(/tier=favorable/, wait: 5)
+      expect_count(before)
+    end
+
+    it "does not count the hit-rate window on its own as a filter" do
+      visit "/nba/props"
+      click_button "Hit rate"
+      select "L5", from: "hit_window"
+      expect(page).to have_css("[data-filters-target=badge][hidden]", visible: :all)
+      expect(page).to have_css("button[data-group=hit][data-active=false]")
+    end
+
+    it "applies the books filter in the side panel live too, and its button closes the panel" do
+      visit "/nba/props"
+      click_button "Filters"
+      find("label", text: "Caesars").click
+      expect(page).to have_current_path(/book_keys/, wait: 5)
       label = find("#apply_label").text
       expect(label).to match(/Show [\d,]+ props?/)
       click_button label

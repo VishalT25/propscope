@@ -70,10 +70,30 @@ RSpec.describe "Props explorer" do
       expect(body).to match(%r{data-filters-target="count"[^>]*>[\d,]+ props?<})
     end
 
-    it "keeps the less common filters in the side panel, tied to the same form" do
+    it "has a dropdown or toggle for every filter, inside the one form: Only EV+, odds, hit rate and opponent matchup too" do
       get "/nba/props"
-      %w[odds_min odds_max min_hit_rate hit_window tier].each { |name| expect(response.body).to match(/name="#{name}"[^>]*form="filters_form"|form="filters_form"[^>]*name="#{name}"/) }
-      expect(response.body).to match(/name="book_keys\[\]"[^>]*form="filters_form"|form="filters_form"[^>]*name="book_keys\[\]"/)
+      form = response.body[%r{<form[^>]*id="filters_form".*?</form>}m]
+      expect(form).to include("Only EV+", "Odds", "Hit rate", "Opponent matchup")
+      %w[ev odds_min odds_max min_hit_rate hit_window tier alt side q].each { |name| expect(form).to match(/name="#{name}"/) }
+      expect(form).to match(/name="market_types\[\]"/)
+      expect(form).to match(/name="game_ids\[\]"/)
+    end
+
+    it "keeps only the books filter in the side panel, tied to the same form" do
+      get "/nba/props"
+      panel = response.body[%r{<aside[^>]*aria-label="Filters".*?</aside>}m]
+      expect(panel).to match(/name="book_keys\[\]"[^>]*form="filters_form"|form="filters_form"[^>]*name="book_keys\[\]"/)
+      %w[odds_min min_hit_rate tier].each { |name| expect(panel).not_to include(%(name="#{name}")) } # no second copy to fall out of step
+    end
+
+    it "marks Only EV+, and shows each prop's edge under its price, when it is on" do
+      get "/nba/props", params: { ev: "1" }
+      expect(response.body).to match(/data-group="ev" data-active="true"/)
+      expect(response.body).to match(/checked="checked"[^>]*name="ev"|name="ev"[^>]*checked="checked"/)
+      expect(response.body).to match(/EV \+\d+\.\d%/) # the edge under the price
+      get "/nba/props"
+      expect(response.body).to match(/data-group="ev" data-active="false"/)
+      expect(response.body).not_to include("EV +")
     end
 
     it "shows no badge or clear button until a filter is set, and both once one is" do

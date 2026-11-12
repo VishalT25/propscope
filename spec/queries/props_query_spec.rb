@@ -176,4 +176,68 @@ RSpec.describe PropsQuery do
     f = filters(game_ids: [ "1", "2" ], market_types: [ "player_points" ], side: "over", min_hit_rate: "70", hit_window: "l5", sort: "l5", dir: "asc")
     expect(filters(**f.to_query)).to eq(f)
   end
+
+  describe "only EV+" do
+    let(:mgm) { create(:bookmaker, key: "mgm", code: "MGM") }
+
+    def quote(market, book, outcome, american)
+      create(:odds_snapshot, market: market, bookmaker: book, outcome: outcome, american_odds: american, decimal_odds: OddsMath.american_to_decimal(american), line: market.line)
+    end
+
+    # Three books quote the market; one hangs a long over, so the best over price beats the books' consensus.
+    def edge_case(name: "Edge Case")
+      market = prop(name: name, over: -110, under: -110, book: dk)
+      quote(market, fd, "over", -110)
+      quote(market, fd, "under", -110)
+      quote(market, mgm, "over", 130)
+      quote(market, mgm, "under", -170)
+      market
+    end
+
+    def ev_page_rows(**params) = Ev::Opportunities.call(filters: Ev::Opportunities::Filters.from_params(params), paginate: false).rows
+
+    it "keeps the props whose best price beats the fair price, with the edge on the row" do
+      edge_case
+      prop(name: "Fair Game", over: -110, under: -110) # one book: no consensus, so no edge to speak of
+      rows = run(ev: "1").rows
+      expect(rows.map { |r| r.player.last_name }.uniq).to eq([ "Case" ])
+      over = rows.find { |r| r.side == "over" }
+      expect(over.ev).to be > BigDecimal("0.05")
+      expect(over.price.american_odds).to eq(130)
+      expect(run.rows.map(&:ev).uniq).to eq([ nil ]) # without the filter there is no edge to show
+    end
+
+    it "is exactly what the EV+ page lists, so the two can never disagree" do
+      edge_case
+      edge_case(name: "Second Edge")
+      prop(name: "Fair Game", over: -110, under: -110)
+      explorer = run(ev: "1").rows.map { |r| [ r.market.id, r.side ] }
+      ev_page = ev_page_rows.map { |r| [ r.market.id, r.outcome ] }
+      expect(explorer).to match_array(ev_page)
+      expect(explorer).not_to be_empty
+    end
+
+    it "uses only the books the viewer has enabled for the price, but all of them for the fair price" do
+      edge_case
+      expect(described_class.call(filters: filters(ev: "1"), bookmaker_ids: [ dk.id, fd.id, mgm.id ]).rows).not_to be_empty
+      without_mgm = described_class.call(filters: filters(ev: "1"), bookmaker_ids: [ dk.id, fd.id ]).rows
+      expect(without_mgm.select { |r| r.side == "over" }).to be_empty # the +130 is no longer on offer to this viewer
+    end
+
+    it "combines with the other filters" do
+      edge_case
+      expect(run(ev: "1", side: "under").rows.map(&:side).uniq).to all(eq("under"))
+      expect(run(ev: "1", side: "over", market_types: [ "player_rebounds" ]).rows).to be_empty
+      expect(run(ev: "1", side: "over", odds_min: "120").rows.size).to eq(1)
+      expect(run(ev: "1", side: "over", odds_max: "100").rows).to be_empty
+    end
+
+    it "is a filter like the others: parsed, counted, and kept in shareable links" do
+      expect(filters.ev).to be(false)
+      f = filters(ev: "1", min_hit_rate: "60")
+      expect([ f.ev, f.active_count, f.to_query[:ev] ]).to eq([ true, 2, "1" ])
+      expect(filters(**f.to_query)).to eq(f)
+      expect(filters(ev: "yes").ev).to be(false) # only "1" turns it on
+    end
+  end
 end

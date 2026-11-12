@@ -1,4 +1,4 @@
-<%# The side panel: the less common filters (the common ones are the toolbar's dropdowns), and saved filters. Its fields belong to #filters_form
+<%# The side panel: the books filter (everything else is a toolbar dropdown), and saved filters. Its fields belong to #filters_form
     through the form attribute, so they apply live like the rest. The Saved tab has forms of its own, which is why this is not inside that form. %>
 <div data-sheet-target="backdrop" data-action="click->sheet#close" class="fixed inset-0 z-40 bg-canvas/75" hidden></div>
 <aside data-sheet-target="panel" role="dialog" aria-label="Filters" hidden
@@ -13,29 +13,7 @@
 
   <div data-sheet-target="pane" data-pane="filters" class="flex min-h-0 flex-1 flex-col">
     <div class="min-h-0 flex-1 space-y-5 overflow-y-auto px-4 py-4 text-sm">
-      <p class="text-xs text-muted">Games, propositions, players and over / under are in the bar above. Changes here apply as you make them.</p>
-
-      <fieldset data-filters-target="group" data-group="odds">
-        <legend class="mb-1.5 text-xs font-semibold text-muted">Odds range <span class="font-normal normal-case">(American, e.g. -200 to +150)</span></legend>
-        <div class="grid grid-cols-2 gap-2">
-          <%= number_field_tag :odds_min, @filters.odds_min, id: nil, form: "filters_form", placeholder: "Min", class: "field", "aria-label": "Minimum odds" %>
-          <%= number_field_tag :odds_max, @filters.odds_max, id: nil, form: "filters_form", placeholder: "Max", class: "field", "aria-label": "Maximum odds" %>
-        </div>
-      </fieldset>
-
-      <fieldset data-filters-target="group" data-group="hit">
-        <legend class="mb-1.5 text-xs font-semibold text-muted">Min hit rate</legend>
-        <div class="grid grid-cols-2 gap-2">
-          <%= number_field_tag :min_hit_rate, @filters.min_hit_rate, id: nil, form: "filters_form", min: 0, max: 100, placeholder: "e.g. 70", class: "field", "aria-label": "Minimum hit rate percent" %>
-          <%= select_tag :hit_window, options_for_select(PropsHelper::HIT_COLUMNS.map { |k, l, _| [ l, k ] }, @filters.hit_window), id: nil, form: "filters_form", class: "field", "aria-label": "Hit rate window", data: { ignore: "" } %>
-        </div>
-        <p class="mt-1 text-xs text-muted">Needs at least <%= ApplicationHelper::MIN_SAMPLE %> games in that window (1 for H2H).</p>
-      </fieldset>
-
-      <div data-filters-target="group" data-group="tier">
-        <label class="mb-1.5 block text-xs font-semibold text-muted" for="f_tier">Opponent matchup</label>
-        <%= select_tag :tier, options_for_select([ [ "Any", "" ], %w[Favorable favorable], %w[Neutral neutral], %w[Unfavorable unfavorable] ], @filters.tier), id: "f_tier", form: "filters_form", class: "field" %>
-      </div>
+      <p class="text-xs text-muted">The other filters (propositions, players, games, over / under, Only EV+, odds, hit rate and matchup) are in the bar above. Changes here apply as you make them.</p>
 
       <fieldset data-filters-target="group" data-group="books" data-controller="checklist">
         <legend class="mb-1.5 flex w-full items-baseline justify-between text-xs font-semibold text-muted">
@@ -52,7 +30,7 @@
 
     <div class="space-y-2 border-t border-line px-4 py-3">
       <button type="submit" form="filters_form" class="btn btn-primary w-full" data-action="click->sheet#close"><span id="apply_label" data-filters-target="applyLabel"><%= props_count_label(@result.total) %></span></button>
-      <%= link_to "Reset", league_props_path(current_league), class: "btn btn-outline w-full", data: { turbo_frame: "_top" } %>
+      <%= link_to "Reset", league_props_path(current_league), class: "btn btn-outline w-full", data: { turbo: false } %>
     </div>
 
     <div class="border-t border-line px-4 py-3">
@@ -80,7 +58,7 @@
       <ul class="space-y-2">
         <% saved.each do |filter| %>
           <li class="flex items-center justify-between gap-2 rounded-xl border border-line px-3 py-2.5">
-            <%= link_to filter.name, league_props_path(current_league, filter.params.symbolize_keys), class: "font-semibold hover:text-accent", data: { turbo_frame: "_top" } %>
+            <%= link_to filter.name, league_props_path(current_league, filter.params.symbolize_keys), class: "font-semibold hover:text-accent", data: { turbo: false } %>
             <%= button_to "Delete", saved_filter_path(filter), method: :delete, class: "text-xs text-muted hover:text-miss", form: { class: "contents" } %>
           </li>
         <% end %>
