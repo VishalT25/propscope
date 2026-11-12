@@ -15,8 +15,12 @@ RSpec.describe "Game services" do
   end
 
   def final(team_home, team_away, hs, as, days_ago)
-    create(:game, sport: sport, home_team: team_home, away_team: team_away, home_score: hs, away_score: as, status: "final", season: 2026, starts_at: days_ago.days.ago)
+    create(:game, sport: sport, home_team: team_home, away_team: team_away, home_score: hs, away_score: as, status: "final", season: 2026, starts_at: game_time(days_ago))
   end
+
+  # Midday Eastern, N days back: the same hour every day, so two different days can never land on one slate date (a clock change or the
+  # time of day the suite runs at used to be able to do that).
+  def game_time(days_ago) = (Time.current.in_time_zone(Game::SLATE_ZONE).to_date - days_ago).in_time_zone(Game::SLATE_ZONE).change(hour: 12)
 
   describe Games::Lines do
     it "picks, per side, the line most books agree on, with its best price" do

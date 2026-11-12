@@ -6,6 +6,6 @@ class ReseedSampleJob < ApplicationJob
   def perform
     return unless Setting.get("data_mode") == "sample"
 
-    Ingest::SeedFixtures.call
+    Setup.load_sample
   end
 end

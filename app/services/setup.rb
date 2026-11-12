@@ -68,8 +68,15 @@ module Setup
 
     def finish_live = Setting.delete("setup_intent")
 
+    # Loads (or re-dates) the sample world to today. Late in the evening every game of today's slate is already under way, so when
+    # nothing is left ahead it slides on to tomorrow's slate instead of showing an empty explorer until midnight.
+    def load_sample(today: Date.current, seeder: ->(day) { Ingest::SeedFixtures.call(today: day) })
+      seeder.call(today)
+      seeder.call(today + 1) unless sample_fresh?
+    end
+
     # Sample data: loads it when there is none, or its slate has gone by, so there is something to look at.
-    def use_sample(seeder: -> { Ingest::SeedFixtures.call })
+    def use_sample(seeder: -> { load_sample })
       Setting.set("data_mode", "sample")
       Setting.delete("setup_intent")
       seeder.call unless sample_fresh?

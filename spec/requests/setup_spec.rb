@@ -59,6 +59,14 @@ RSpec.describe "Setup" do
       expect(response).to have_http_status(:ok)
     end
 
+    it "returns you to the page you came from after loading sample data, never to another site" do
+      allow(Ingest::SeedFixtures).to receive(:call) { create(:game) }
+      post "/setup/choose", params: { mode: "sample", back: "/nba/props" }
+      expect(response).to redirect_to("/nba/props")
+      post "/setup/choose", params: { mode: "sample", back: "https://evil.example/phish" }
+      expect(response).to redirect_to(root_path)
+    end
+
     it "takes you to the keys for your own data, and back" do
       post "/setup/choose", params: { mode: "live" }
       follow_redirect!

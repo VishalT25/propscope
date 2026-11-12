@@ -15,7 +15,7 @@ RSpec.describe "Keeping sample data current" do
 
       Setting.set("data_mode", "sample")
       described_class.perform_now
-      expect(Ingest::SeedFixtures).to have_received(:call).once
+      expect(Ingest::SeedFixtures).to have_received(:call).with(today: Date.current)
     end
 
     it "slides the same sample world forward to a later day, without piling up duplicates" do
@@ -61,6 +61,20 @@ RSpec.describe "Keeping sample data current" do
       Setting.delete("data_mode")
       create(:game) # inferred sample, as an older install would be
       expect { described_class.refresh_sample_if_stale }.not_to have_enqueued_job(ReseedSampleJob)
+    end
+
+    it "loads today's slate, and slides on to tomorrow's only when every game of today is already under way" do
+      days = []
+      ahead_tonight = ->(day) { days << day; create(:market).game.update!(starts_at: 3.hours.from_now) }
+      described_class.load_sample(seeder: ahead_tonight)
+      expect(days).to eq([ Date.current ]) # something is still to come tonight
+
+      Market.destroy_all
+      days.clear
+      all_started = ->(day) { days << day; (create(:market).game.update!(starts_at: 3.hours.from_now) if day == Date.current + 1) }
+      described_class.load_sample(seeder: all_started)
+      expect(days).to eq([ Date.current, Date.current + 1 ])
+      expect(described_class.sample_fresh?).to be(true)
     end
 
     it "re-loads when sample data is chosen again and its slate has gone by" do

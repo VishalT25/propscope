@@ -1,0 +1,28 @@
+<%# No prop has odds right now, and no filter is the reason. What to expect depends on where the data comes from. %>
+<% next_game = Game.where(starts_at: Time.current..).minimum(:starts_at) %>
+<div class="card mt-3 grid place-items-center px-6 py-14 text-center">
+  <h2 class="text-lg font-bold">No props to show yet</h2>
+  <div class="mt-1 max-w-lg space-y-2 text-sm text-muted">
+    <% if Setup.live? %>
+      <p>
+        No upcoming game has odds yet.<% if next_game %> The next game is <%= local_day(next_game) %>, <%= local_time(next_game) %>.<% end %>
+        Sportsbooks usually post player props on the day of the game.
+      </p>
+      <p>
+        Odds are fetched for you on a schedule (10 AM and 3 PM Eastern, then every few minutes close to tip-off) whenever the app's background worker is running, as it is in the Docker install.
+        If you started it with <code class="rounded bg-surface-2 px-1">bin/rails server</code> there is no worker, so fetch them yourself when the lines are up.
+      </p>
+      <% if current_user&.admin? %>
+        <%= button_to "Refresh odds now", refresh_odds_setup_path, method: :post, class: "btn btn-primary btn-sm mx-auto mt-2", form: { class: "contents", data: { turbo: false } } %>
+        <p class="text-xs">It uses a few events of your SportsGameOdds allowance.</p>
+      <% end %>
+    <% else %>
+      <p>
+        Sample data is made up, and it is re-dated automatically: every morning, and when you open this page after its slate has passed (give it a minute).
+      </p>
+      <% if current_user&.admin? %>
+        <%= button_to "Refresh sample data", choose_setup_path(mode: "sample", back: league_props_path(current_league)), method: :post, class: "btn btn-primary btn-sm mx-auto mt-2", form: { class: "contents", data: { turbo: false } } %>
+      <% end %>
+    <% end %>
+  </div>
+</div>
