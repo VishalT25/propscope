@@ -4,8 +4,6 @@ module Providers
     CONFIG = Rails.application.config_for(:providers)
 
     # What LIVE_DATA=true switches every capability to, whatever the environment (see docs/operations.md).
-    FREE_BALLDONTLIE_INTERVAL = 12.5 # 5 requests a minute
-
     LIVE = { odds: "sports_game_odds", props: "sports_game_odds", reference: "balldontlie", stats: "balldontlie" }.freeze
 
     class << self
@@ -23,11 +21,8 @@ module Providers
 
       def budget_config(provider) = CONFIG.fetch(:budgets).fetch(provider.to_sym, {})
 
-      # Seconds between calls. The free BallDontLie plan allows 5 requests a minute, the paid one 60; Settings records which one this is.
-      def min_interval(provider)
-        base = budget_config(provider)[:min_interval]
-        provider.to_s == "balldontlie" && Setting.get("balldontlie_plan") == "free" ? [ base.to_f, FREE_BALLDONTLIE_INTERVAL ].max : base
-      end
+      # Seconds between calls: the pace the provider's plan allows (see config/providers.yml).
+      def min_interval(provider) = budget_config(provider)[:min_interval]
 
       # A real HTTP transport for a provider, whatever LIVE_DATA says. Used to check a key; the key is read when a call is made.
       def live_transport(provider)

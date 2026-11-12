@@ -75,10 +75,8 @@ RSpec.describe LiveData do
 end
 
 RSpec.describe Providers::Registry do
-  it "paces BallDontLie by plan: the free plan allows 5 requests a minute, the paid plan 60" do
+  it "paces each provider as its plan allows (config/providers.yml): 60 requests a minute on BallDontLie's paid plan, 10 on SportsGameOdds'" do
     expect(described_class.min_interval("balldontlie")).to eq(1.1)
-    Setting.set("balldontlie_plan", "free")
-    expect(described_class.min_interval("balldontlie")).to eq(12.5)
     expect(described_class.min_interval("sports_game_odds")).to eq(6.5)
   end
 

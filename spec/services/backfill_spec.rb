@@ -27,10 +27,9 @@ RSpec.describe "Backfill" do
       expect([ free.requests, free.minutes ]).to eq([ 80, 20 ])
     end
 
-    it "follows the plan chosen in Settings by default" do
+    it "uses BallDontLie's paid-plan pace by default" do
       expect(described_class.call(seasons: 1, today: late_season).minutes).to be < 20
-      Setting.set("balldontlie_plan", "free")
-      expect(described_class.call(seasons: 1, today: late_season).minutes).to be > 100
+      expect(described_class.call(seasons: 2, today: late_season).minutes).to be < 30
     end
   end
 

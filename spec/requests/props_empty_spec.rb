@@ -21,14 +21,23 @@ RSpec.describe "Props explorer with nothing to show" do
       create(:game, starts_at: 30.hours.from_now)
       get "/nba/props"
       body = response.body
-      expect(body).to include("No props to show yet", "usually post player props on the day of the game", "The next game is", "background worker", "Refresh odds now", "allowance")
+      expect(body).to include("No props to show yet", "usually post player props on the day of the game", "Next game:", "How odds arrive", "background worker", "Refresh odds now", "allowance")
       expect(body).to include(refresh_odds_setup_path)
       expect(body).not_to include("db:seed")
     end
 
+    it "puts the action before the explanation, and keeps the explanation out of the way until asked for" do
+      create(:game, starts_at: 30.hours.from_now)
+      get "/nba/props"
+      body = response.body
+      expect(body.index("Next game:")).to be < body.index("Refresh odds now")
+      expect(body.index("Refresh odds now")).to be < body.index("How odds arrive")
+      expect(body).to match(%r{<details[^>]*>\s*<summary[^>]*>How odds arrive})
+    end
+
     it "does not promise a next game when there is none" do
       get "/nba/props"
-      expect(response.body).not_to include("The next game is")
+      expect(response.body).not_to include("Next game:")
     end
 
     it "does not offer the button to someone who cannot use it" do
