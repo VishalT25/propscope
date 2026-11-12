@@ -17,7 +17,7 @@ class ApplicationController < ActionController::Base
 
   helper_method :single_user?, :slip
 
-  helper_method :current_user, :current_league
+  helper_method :current_user, :current_league, :current_region
 
   private
 
@@ -42,6 +42,9 @@ class ApplicationController < ActionController::Base
     @slip ||= current_user && PickSlip.call(user: current_user, book_key: cookies[:slip_book].presence, stake: cookies[:slip_stake])
   end
     def current_user = Current.user
+
+    # Where this person bets (sportsbook links depend on it). Guests have no slip, so the default is only ever shown, never used.
+    def current_region = current_user&.region_record || Region.default
 
     def current_league
       @current_league ||= League.find(params[:league]) || League.default

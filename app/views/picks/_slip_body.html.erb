@@ -28,7 +28,7 @@
           <% if l.chosen %>
             <% if slip.book.nil? %><span class="mr-1 text-xs text-muted"><%= l.chosen.bookmaker.code %></span><% end %>
             <b class="<%= { 1 => 'text-hit', -1 => 'text-miss', 0 => '' }[l.moved] %>" title="You added it at <%= format_price(l.price_at_add) %>"><%= format_price(l.chosen.american_odds) %></b>
-            <% if l.chosen.deeplink.present? %><%= link_to "Open", l.chosen.deeplink, target: "_blank", rel: "noopener noreferrer", class: "ml-2 text-xs font-semibold text-accent hover:underline", title: "Open this leg in #{l.chosen.bookmaker.name} (opens the book's own betslip link)" %><% end %>
+            <% if (open_url = slip_leg_link(l)) %><%= link_to "Open", open_url, target: "_blank", rel: "noopener noreferrer", class: "ml-2 text-xs font-semibold text-accent hover:underline", title: "Open this leg in #{l.chosen.bookmaker.name} (opens the book in a new tab; check the slip before you bet)" %><% end %>
           <% else %>
             <span class="text-xs text-miss" title="This book is not offering this line right now">Not at <%= slip.book&.code || "any book" %></span>
           <% end %>
@@ -58,6 +58,9 @@
   <% if slip.same_game && slip.legs.size > 1 %>
     <p class="mt-2 text-xs text-push">Some legs are from the same game. Books price same-game parlays differently (often lower than the product of the legs) or refuse some combinations, so confirm the final price at the book.</p>
   <% end %>
+
+  <% targets = slip_handoffs(slip) %>
+  <%= render "picks/handoff", targets: targets, region: current_region if targets.any? %>
 
   <div class="mt-4 flex flex-wrap gap-2" data-controller="clipboard" data-clipboard-text-value="<%= slip_text(slip) %>">
     <button type="button" class="btn btn-primary btn-sm" data-action="clipboard#copy"><span data-clipboard-target="label">Copy slip</span></button>
