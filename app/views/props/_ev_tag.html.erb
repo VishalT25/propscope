@@ -1,0 +1,4 @@
+<%# locals: row. Shown only under "Only EV+": how far the best price beats the market's fair price. %>
+<% if row.ev %>
+  <span class="mt-1 block text-xs font-semibold tabular-nums text-ev" title="Expected value: how far this price beats the market's fair price (no-vig consensus of the books), as a share of the stake">EV +<%= number_with_precision(row.ev * 100, precision: 1) %>%</span>
+<% end %>

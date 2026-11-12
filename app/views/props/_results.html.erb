@@ -5,7 +5,7 @@
   <details class="relative">
     <summary class="cursor-pointer select-none font-medium hover:text-fg">Legend</summary>
     <div class="absolute right-0 z-20 mt-2 w-80 space-y-1.5 rounded-xl border border-line bg-surface p-3 text-xs shadow-xl">
-      <p><b class="text-fg">Best price</b>: highest price across your enabled books, with the book's code.</p>
+      <p><b class="text-fg">Best price</b>: highest price across your enabled books, with the book's code. <b class="text-fg">Only EV+</b> keeps the props whose best price beats the market's fair price by 1% or more, the same maths as the EV+ page, and shows that edge under the price.</p>
       <p><b class="text-fg">IP</b>: implied probability of that price (it includes the book's margin).</p>
       <p><b class="text-fg">Opp</b>: the opponent's overall rank for this stat, all positions (1 = toughest defence; position splits are on the prop page). <span class="text-hit">Favorable</span> / <span class="text-miss">Unfavorable</span> are from this bet's side.</p>
       <p><b class="text-fg">L5 / L10 / L20</b>: share of the last N games that cleared the line. <b class="text-fg">H2H</b>: vs this opponent, this and last season. <b class="text-fg">Prev</b>: last season.</p>
@@ -19,7 +19,7 @@
   <div class="card mt-3 grid place-items-center px-6 py-14 text-center">
     <h2 class="text-lg font-bold">No props match</h2>
     <p class="mt-1 max-w-md text-sm text-muted">
-      <% if filters.active_count.positive? %>Loosen a filter or <%= link_to "reset them all", league_props_path(current_league), class: "text-accent underline", data: { turbo_frame: "_top" } %>.
+      <% if filters.active_count.positive? %>Loosen a filter or <%= link_to "reset them all", league_props_path(current_league), class: "text-accent underline", data: { turbo: false } %>.
       <% else %>No upcoming games have odds yet. In development run <code class="rounded bg-surface-2 px-1">bin/rails db:seed</code> on a game day.<% end %>
     </p>
   </div>

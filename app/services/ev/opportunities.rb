@@ -32,8 +32,8 @@ module Ev
 
     def self.call(**) = new(**).call
 
-    def initialize(filters:, bookmaker_ids: nil, now: Time.current)
-      @f, @bookmaker_ids, @now = filters, bookmaker_ids, now
+    def initialize(filters:, bookmaker_ids: nil, now: Time.current, paginate: true)
+      @f, @bookmaker_ids, @now, @paginate = filters, bookmaker_ids, now, paginate
     end
 
     def call
@@ -47,7 +47,7 @@ module Ev
       end
       rows = rows.select { |r| r.outcome == @f.side } if @f.side
       rows = rows.sort_by { |r| [ -r.public_send(@f.sort), r.market.id ] }
-      paginate(rows)
+      @paginate ? paginate(rows) : Result.new(rows: rows, total: rows.size, page: 1, pages: 1)
     end
 
     private

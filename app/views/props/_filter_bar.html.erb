@@ -7,14 +7,14 @@
   <%= hidden_field_tag :dir, @filters.dir, id: nil %>
 
   <div class="flex flex-wrap items-center gap-x-4 gap-y-2.5 md:flex-nowrap">
-    <div class="no-scrollbar flex min-w-0 flex-1 items-center gap-2 overflow-x-auto py-0.5">
+    <div class="no-scrollbar flex min-w-0 flex-1 items-center gap-2 overflow-x-auto py-0.5 md:flex-wrap md:overflow-visible"><%# scrolls sideways on a phone; wraps on a desktop so nothing is hidden %>
       <div class="flex shrink-0">
         <button type="button" class="fbtn fbtn-solid rounded-r-none" data-action="sheet#open" aria-haspopup="dialog">
           <%= icon :sliders, css: "size-[18px]" %>Filters
           <span class="grid min-w-6 place-items-center rounded-full bg-canvas px-1.5 text-xs font-extrabold tabular-nums text-fg" data-filters-target="badge" <%= "hidden" if count.zero? %>><%= count if count.positive? %></span>
         </button>
         <%= link_to league_props_path(current_league), class: "fbtn fbtn-solid -ml-px rounded-l-none px-2.5", "aria-label": "Clear all filters", title: "Clear all filters",
-              data: { turbo_frame: "_top", filters_target: "clear" }, hidden: count.zero? do %><%= icon :close, css: "size-4" %><% end %>
+              data: { turbo: false, filters_target: "clear" }, hidden: count.zero? do %><%= icon :close, css: "size-4" %><% end %>
       </div>
 
       <button type="button" class="fbtn" data-action="sheet#open" data-sheet-tab-param="templates" aria-haspopup="dialog"><%= icon :bookmark, css: "size-[18px]" %>Saved</button>
@@ -62,6 +62,45 @@
           <div class="grid grid-cols-3 gap-1 rounded-xl bg-surface-2 p-1 text-center font-semibold">
             <% [ [ "", "Both" ], [ "over", "Over" ], [ "under", "Under" ] ].each do |value, label| %>
               <label class="cursor-pointer rounded-lg px-2 py-1.5 has-[:checked]:bg-accent has-[:checked]:text-on-accent"><%= radio_button_tag :side, value, @filters.side.to_s == value, id: nil, class: "sr-only" %><%= label %></label>
+            <% end %>
+          </div>
+        </fieldset>
+      <% end %>
+
+      <label class="fbtn has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-primary" data-filters-target="group chip" data-group="ev" data-active="<%= @filters.ev %>"
+             title="Only props whose best price beats the market's fair price by 1% or more (the same maths as the EV+ page)">
+        <%= check_box_tag :ev, "1", @filters.ev, id: nil, class: "sr-only" %>
+        <%= icon :trend, css: "size-[18px]" %>Only EV+
+      </label>
+
+      <%= render layout: "props/chip_dropdown", locals: { id: "odds", group: "odds", label: "Odds", icon_name: :dollar, width: "w-72",
+                                                          active: (@filters.odds_min || @filters.odds_max).present?, count: 0 } do %>
+        <fieldset data-filters-target="group" data-group="odds">
+          <legend class="mb-1.5 text-xs font-semibold text-muted">Best price, American odds <span class="font-normal">(e.g. -200 to +150)</span></legend>
+          <div class="grid grid-cols-2 gap-2">
+            <%= number_field_tag :odds_min, @filters.odds_min, id: nil, placeholder: "Min", class: "field", "aria-label": "Minimum odds" %>
+            <%= number_field_tag :odds_max, @filters.odds_max, id: nil, placeholder: "Max", class: "field", "aria-label": "Maximum odds" %>
+          </div>
+        </fieldset>
+      <% end %>
+
+      <%= render layout: "props/chip_dropdown", locals: { id: "hit", group: "hit", label: "Hit rate", icon_name: :bars, width: "w-72", active: @filters.min_hit_rate.present?, count: 0 } do %>
+        <fieldset data-filters-target="group" data-group="hit">
+          <legend class="mb-1.5 text-xs font-semibold text-muted">At least this share of games cleared the line</legend>
+          <div class="grid grid-cols-2 gap-2">
+            <%= number_field_tag :min_hit_rate, @filters.min_hit_rate, id: nil, min: 0, max: 100, placeholder: "e.g. 70 (%)", class: "field", "aria-label": "Minimum hit rate percent" %>
+            <%= select_tag :hit_window, options_for_select(PropsHelper::HIT_COLUMNS.map { |k, l, _| [ l, k ] }, @filters.hit_window), id: nil, class: "field", "aria-label": "Hit rate window", data: { ignore: "" } %>
+          </div>
+          <p class="mt-1.5 text-xs text-muted">Needs at least <%= ApplicationHelper::MIN_SAMPLE %> games in that window (1 for H2H).</p>
+        </fieldset>
+      <% end %>
+
+      <%= render layout: "props/chip_dropdown", locals: { id: "tier", group: "tier", label: "Opponent matchup", icon_name: :shield, width: "w-64", active: @filters.tier.present?, count: 0 } do %>
+        <fieldset data-filters-target="group" data-group="tier">
+          <legend class="mb-1.5 text-xs font-semibold text-muted">How the opponent defends this stat, from the bet's side</legend>
+          <div class="space-y-2">
+            <% [ [ "", "Any" ], %w[favorable Favorable], %w[neutral Neutral], %w[unfavorable Unfavorable] ].each do |value, label| %>
+              <label class="flex cursor-pointer items-center gap-2.5"><%= radio_button_tag :tier, value, @filters.tier.to_s == value, id: nil, class: "radio radio-sm" %> <%= label %></label>
             <% end %>
           </div>
         </fieldset>

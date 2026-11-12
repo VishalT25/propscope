@@ -13,7 +13,7 @@
     <div><%= local_day(row.game.starts_at) %>, <%= local_time(row.game.starts_at) %></div>
   </td>
   <td class="px-3 py-2.5 font-semibold"><%= link_to pick_title(row), league_prop_path(current_league, row.market, row.side), class: "hover:text-accent", data: { turbo_frame: "_top" } %></td>
-  <td class="px-3 py-2.5"><%= render "shared/price_chip", american: row.price.american_odds, bookmaker: row.price.bookmaker, book_name: "#{row.price.bookmaker.name} (#{pluralize(row.price.books_count, 'book')} offering this line)" %></td>
+  <td class="px-3 py-2.5"><%= render "shared/price_chip", american: row.price.american_odds, bookmaker: row.price.bookmaker, book_name: "#{row.price.bookmaker.name} (#{pluralize(row.price.books_count, 'book')} offering this line)" %><%= render "props/ev_tag", row: row %></td>
   <td class="px-3 py-2.5 text-right tabular-nums text-muted" title="Implied probability of the best price"><%= number_with_precision(row.implied * 100, precision: 1) %>%</td>
   <td class="px-3 py-2.5 text-center">
     <% if row.opp_rank %>

@@ -15,7 +15,10 @@ module IconsHelper
     updown: "M7 20V4M7 4L4 7M7 4l3 3M17 4v16M17 20l-3-3M17 20l3-3",
     list: "M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01",
     sliders: "M4 8h9M17 8h3M4 16h3M11 16h9M15 8a2 2 0 1 0 .001 0M9 16a2 2 0 1 0 .001 0",
-    bookmark: "M7 4h10a1 1 0 0 1 1 1v15l-6-4-6 4V5a1 1 0 0 1 1-1z"
+    bookmark: "M7 4h10a1 1 0 0 1 1 1v15l-6-4-6 4V5a1 1 0 0 1 1-1z",
+    trend: "M4 17l6-6 4 4 6-8M15 7h5v5",
+    dollar: "M12 3v18M16 7.5c0-1.7-1.8-3-4-3s-4 1.3-4 3 1.8 3 4 3 4 1.3 4 3-1.8 3-4 3-4-1.3-4-3",
+    shield: "M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6l7-3z"
   }.freeze
 
   def icon(name, css: "size-5")
