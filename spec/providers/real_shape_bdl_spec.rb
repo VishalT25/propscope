@@ -1,10 +1,10 @@
 require "rails_helper"
 
-# Contract tests against hand-trimmed samples of REAL BallDontLie responses (captured 2026-11-09 with an ALL-STAR key).
+# Contract tests against synthetic samples shaped like BallDontLie responses (invented players and ids, no recorded provider data).
 RSpec.describe "BallDontLie real response shape" do
   let(:provider) { Providers::BallDontLie.new(transport: Providers::NullTransport.new) }
-  let(:stats) { JSON.parse(Rails.root.join("spec/fixtures/providers/balldontlie/real_shape_stats_sample.json").read) }
-  let(:players) { JSON.parse(Rails.root.join("spec/fixtures/providers/balldontlie/real_shape_players_sample.json").read) }
+  let(:stats) { JSON.parse(Rails.root.join("spec/fixtures/providers/balldontlie/synthetic_shape_stats_sample.json").read) }
+  let(:players) { JSON.parse(Rails.root.join("spec/fixtures/providers/balldontlie/synthetic_shape_players_sample.json").read) }
 
   it "maps a real box-score row" do
     log = provider.parse_game_logs(stats).first
@@ -28,7 +28,7 @@ RSpec.describe "BallDontLie real response shape" do
 
   it "maps /players/active with team refs" do
     player = provider.parse_players(players).first
-    expect(player).to have_attributes(provider: "balldontlie", first_name: "Steven", last_name: "Adams", position: "C")
+    expect(player).to have_attributes(provider: "balldontlie", first_name: "Warren", last_name: "Pellegrini", position: "C")
     expect(player.team).to have_attributes(abbreviation: "HOU", name: "Houston Rockets")
   end
 end

@@ -1,0 +1,347 @@
+{
+ "success": true,
+ "data": [
+  {
+   "eventID": "evt_synth_0001",
+   "sportID": "BASKETBALL",
+   "leagueID": "NBA",
+   "type": "match",
+   "teams": {
+    "home": {
+     "teamID": "ATLANTA_HAWKS_NBA",
+     "names": {
+      "long": "Atlanta Hawks",
+      "medium": "Hawks",
+      "short": "ATL",
+      "location": "Atlanta"
+     }
+    },
+    "away": {
+     "teamID": "LOS_ANGELES_LAKERS_NBA",
+     "names": {
+      "long": "Los Angeles Lakers",
+      "medium": "Lakers",
+      "short": "LAL",
+      "location": "Los Angeles"
+     }
+    }
+   },
+   "status": {
+    "startsAt": "2026-11-10T00:00:00.000Z",
+    "started": false,
+    "ended": false,
+    "oddsAvailable": true,
+    "finalized": false
+   },
+   "players": {
+    "MARCUS_VELLACOTT_1_NBA": {
+     "playerID": "MARCUS_VELLACOTT_1_NBA",
+     "name": "Marcus Vellacott",
+     "firstName": "Marcus",
+     "lastName": "Vellacott",
+     "teamID": "LOS_ANGELES_LAKERS_NBA"
+    }
+   },
+   "odds": {
+    "points-home-game-ml-home": {
+     "oddID": "points-home-game-ml-home",
+     "byBookmaker": {
+      "fanduel": {
+       "lastUpdatedAt": "2026-11-09T21:35:18.227Z",
+       "available": true,
+       "odds": "-130"
+      },
+      "unibet": {
+       "lastUpdatedAt": "2026-11-09T21:36:15.000Z",
+       "available": true,
+       "odds": "-130"
+      },
+      "williamhill": {
+       "lastUpdatedAt": "2026-11-09T21:35:40.000Z",
+       "available": true,
+       "odds": "-125"
+      }
+     }
+    },
+    "points-away-game-ml-away": {
+     "oddID": "points-away-game-ml-away",
+     "byBookmaker": {
+      "fanduel": {
+       "lastUpdatedAt": "2026-11-09T21:35:18.227Z",
+       "available": true,
+       "odds": "+110"
+      },
+      "unibet": {
+       "lastUpdatedAt": "2026-11-09T21:36:15.000Z",
+       "available": true,
+       "odds": "+108"
+      },
+      "williamhill": {
+       "lastUpdatedAt": "2026-11-09T21:35:40.000Z",
+       "available": true,
+       "odds": "+100"
+      }
+     }
+    },
+    "points-home-game-sp-home": {
+     "oddID": "points-home-game-sp-home",
+     "byBookmaker": {
+      "fanduel": {
+       "lastUpdatedAt": "2026-11-09T21:35:18.227Z",
+       "available": true,
+       "odds": "-105",
+       "spread": "-2.5"
+      },
+      "draftkings": {
+       "lastUpdatedAt": "2026-11-09T21:36:28.377Z",
+       "available": true,
+       "odds": "-110",
+       "spread": "-1.5"
+      },
+      "pointsbet": {
+       "lastUpdatedAt": "2026-11-09T21:35:42.000Z",
+       "available": true,
+       "odds": "-111",
+       "spread": "-1.5"
+      }
+     }
+    },
+    "points-away-game-sp-away": {
+     "oddID": "points-away-game-sp-away",
+     "byBookmaker": {
+      "fanduel": {
+       "lastUpdatedAt": "2026-11-09T21:35:18.227Z",
+       "available": true,
+       "odds": "-115",
+       "spread": "+2.5"
+      },
+      "draftkings": {
+       "lastUpdatedAt": "2026-11-09T21:36:28.377Z",
+       "available": true,
+       "odds": "-110",
+       "spread": "+1.5"
+      },
+      "pointsbet": {
+       "lastUpdatedAt": "2026-11-09T21:35:42.000Z",
+       "available": true,
+       "odds": "-111",
+       "spread": "+1.5"
+      }
+     }
+    },
+    "points-all-game-ou-over": {
+     "oddID": "points-all-game-ou-over",
+     "byBookmaker": {
+      "fanduel": {
+       "lastUpdatedAt": "2026-11-09T21:35:18.227Z",
+       "available": true,
+       "odds": "-114",
+       "overUnder": "235.5"
+      },
+      "draftkings": {
+       "lastUpdatedAt": "2026-11-09T21:36:28.377Z",
+       "available": true,
+       "odds": "-114",
+       "overUnder": "236.5"
+      },
+      "pointsbet": {
+       "lastUpdatedAt": "2026-11-09T21:35:42.000Z",
+       "available": true,
+       "odds": "-111",
+       "overUnder": "236.5"
+      }
+     }
+    },
+    "points-all-game-ou-under": {
+     "oddID": "points-all-game-ou-under",
+     "byBookmaker": {
+      "fanduel": {
+       "lastUpdatedAt": "2026-11-09T21:35:18.227Z",
+       "available": true,
+       "odds": "-106",
+       "overUnder": "235.5"
+      },
+      "draftkings": {
+       "lastUpdatedAt": "2026-11-09T21:36:28.377Z",
+       "available": true,
+       "odds": "-106",
+       "overUnder": "236.5"
+      },
+      "pointsbet": {
+       "lastUpdatedAt": "2026-11-09T21:35:42.000Z",
+       "available": true,
+       "odds": "-111",
+       "overUnder": "236.5"
+      }
+     }
+    },
+    "points-MARCUS_VELLACOTT_1_NBA-game-ou-over": {
+     "oddID": "points-MARCUS_VELLACOTT_1_NBA-game-ou-over",
+     "byBookmaker": {
+      "fanduel": {
+       "lastUpdatedAt": "2026-11-09T21:35:18.227Z",
+       "available": true,
+       "odds": "-102",
+       "overUnder": "36.5"
+      },
+      "draftkings": {
+       "lastUpdatedAt": "2026-11-09T19:07:30.223Z",
+       "available": false,
+       "odds": "-120",
+       "overUnder": "35.5"
+      },
+      "caesars": {
+       "lastUpdatedAt": "2026-11-09T21:36:04.000Z",
+       "available": true,
+       "odds": "-110",
+       "overUnder": "36.5"
+      }
+     }
+    },
+    "points-MARCUS_VELLACOTT_1_NBA-game-ou-under": {
+     "oddID": "points-MARCUS_VELLACOTT_1_NBA-game-ou-under",
+     "byBookmaker": {
+      "fanduel": {
+       "lastUpdatedAt": "2026-11-09T21:35:18.227Z",
+       "available": true,
+       "odds": "-125",
+       "overUnder": "36.5"
+      },
+      "draftkings": {
+       "lastUpdatedAt": "2026-11-09T21:36:28.377Z",
+       "available": true,
+       "odds": "-113",
+       "overUnder": "36.5"
+      },
+      "caesars": {
+       "lastUpdatedAt": "2026-11-09T21:36:04.000Z",
+       "available": true,
+       "odds": "-122",
+       "overUnder": "36.5"
+      }
+     }
+    },
+    "points+rebounds+assists-MARCUS_VELLACOTT_1_NBA-game-ou-over": {
+     "oddID": "points+rebounds+assists-MARCUS_VELLACOTT_1_NBA-game-ou-over",
+     "byBookmaker": {
+      "fanduel": {
+       "lastUpdatedAt": "2026-11-09T21:35:18.227Z",
+       "available": true,
+       "odds": "-115",
+       "overUnder": "52.5"
+      },
+      "espnbet": {
+       "lastUpdatedAt": "2026-11-09T21:35:27.000Z",
+       "available": true,
+       "odds": "-115",
+       "overUnder": "52.5"
+      },
+      "caesars": {
+       "lastUpdatedAt": "2026-11-09T21:29:44.000Z",
+       "available": true,
+       "odds": "-118",
+       "overUnder": "52.5"
+      }
+     }
+    },
+    "points+rebounds+assists-MARCUS_VELLACOTT_1_NBA-game-ou-under": {
+     "oddID": "points+rebounds+assists-MARCUS_VELLACOTT_1_NBA-game-ou-under",
+     "byBookmaker": {
+      "fanduel": {
+       "lastUpdatedAt": "2026-11-09T21:35:18.227Z",
+       "available": true,
+       "odds": "-111",
+       "overUnder": "52.5"
+      },
+      "espnbet": {
+       "lastUpdatedAt": "2026-11-09T21:35:27.000Z",
+       "available": true,
+       "odds": "-115",
+       "overUnder": "52.5"
+      },
+      "caesars": {
+       "lastUpdatedAt": "2026-11-09T21:29:44.000Z",
+       "available": true,
+       "odds": "-113",
+       "overUnder": "52.5"
+      }
+     }
+    },
+    "threePointersMade-MARCUS_VELLACOTT_1_NBA-game-ou-over": {
+     "oddID": "threePointersMade-MARCUS_VELLACOTT_1_NBA-game-ou-over",
+     "byBookmaker": {
+      "fanduel": {
+       "lastUpdatedAt": "2026-11-09T21:35:18.227Z",
+       "available": true,
+       "odds": "-118",
+       "overUnder": "4.5"
+      },
+      "draftkings": {
+       "lastUpdatedAt": "2026-11-09T21:36:28.377Z",
+       "available": true,
+       "odds": "-127",
+       "overUnder": "4.5"
+      },
+      "caesars": {
+       "lastUpdatedAt": "2026-11-09T21:36:04.000Z",
+       "available": true,
+       "odds": "-120",
+       "overUnder": "4.5"
+      }
+     }
+    },
+    "threePointersMade-MARCUS_VELLACOTT_1_NBA-game-ou-under": {
+     "oddID": "threePointersMade-MARCUS_VELLACOTT_1_NBA-game-ou-under",
+     "byBookmaker": {
+      "fanduel": {
+       "lastUpdatedAt": "2026-11-09T21:35:18.227Z",
+       "available": true,
+       "odds": "-108",
+       "overUnder": "4.5"
+      },
+      "draftkings": {
+       "lastUpdatedAt": "2026-11-09T21:36:28.377Z",
+       "available": true,
+       "odds": "-104",
+       "overUnder": "4.5"
+      },
+      "caesars": {
+       "lastUpdatedAt": "2026-11-09T21:36:04.000Z",
+       "available": true,
+       "odds": "-112",
+       "overUnder": "4.5"
+      }
+     }
+    },
+    "points-home-1h-ml-home": {
+     "oddID": "points-home-1h-ml-home",
+     "byBookmaker": {
+      "fanduel": {
+       "lastUpdatedAt": "2026-11-09T21:35:18.227Z",
+       "available": true,
+       "odds": "-130"
+      },
+      "espnbet": {
+       "lastUpdatedAt": "2026-11-09T21:35:27.000Z",
+       "available": true,
+       "odds": "-130"
+      },
+      "bovada": {
+       "lastUpdatedAt": "2026-11-09T21:35:14.000Z",
+       "available": true,
+       "odds": "-125"
+      }
+     }
+    },
+    "firstBasket-TOBIAS_QUINLAN_1_NBA-game-yn-no": {
+     "oddID": "firstBasket-TOBIAS_QUINLAN_1_NBA-game-yn-no",
+     "byBookmaker": {}
+    },
+    "blocks+steals-MARCUS_VELLACOTT_1_NBA-game-ou-over": {
+     "oddID": "blocks+steals-MARCUS_VELLACOTT_1_NBA-game-ou-over",
+     "byBookmaker": {}
+    }
+   }
+  }
+ ]
+}

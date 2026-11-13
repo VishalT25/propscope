@@ -1,8 +1,8 @@
 require "rails_helper"
 
-# Alternate lines and betslip deeplinks, against a trimmed copy of a REAL SportsGameOdds response (includeAltLines=true).
+# Alternate lines and betslip deeplinks, against a synthetic sample shaped like a SportsGameOdds response (includeAltLines=true).
 RSpec.describe "SportsGameOdds alternate lines and deeplinks" do
-  let(:body) { JSON.parse(Rails.root.join("spec/fixtures/providers/sports_game_odds/real_shape_alt_lines_sample.json").read) }
+  let(:body) { JSON.parse(Rails.root.join("spec/fixtures/providers/sports_game_odds/synthetic_shape_alt_lines_sample.json").read) }
   let(:provider) { Providers::SportsGameOdds.new(transport: Providers::NullTransport.new, clock: -> { Time.utc(2026, 11, 10, 20) }) }
   let(:quotes) { provider.parse_events(body) }
   let(:alts) { quotes.select(&:is_alternate) }
