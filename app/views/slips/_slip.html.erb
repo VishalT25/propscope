@@ -33,12 +33,7 @@
     <% end %>
   </ul>
 
-  <% if settlement.status == :pending %>
-    <% targets = saved_handoffs(slip) %>
-    <%= render "picks/handoff", targets: targets, region: current_region, scope: "saved_#{slip.id}" if targets.any? %>
-  <% end %>
-
-  <footer class="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3 text-sm">
+  <footer class="mt-1 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3 text-sm">
     <p class="text-muted">
       <%= number_to_currency(slip.stake) %> stake
       <% if settlement.status == :pending %>would pay <b class="text-fg tabular-nums"><%= number_to_currency((slip.stake * slip.decimal_odds).round(2)) %></b>
