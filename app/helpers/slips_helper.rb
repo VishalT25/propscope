@@ -30,13 +30,4 @@ module SlipsHelper
   def slip_leg_label(leg)
     "#{leg.side.capitalize} #{number_with_precision(leg.line, precision: 1)} #{StatCatalog.for_market(leg.market.market_type).short}"
   end
-
-  # The one-tap link for a leg's price, or nil when its book is not one we can send people to (see Slips::Handoff).
-  def slip_leg_link(leg) = leg.chosen && Slips::Handoff.leg_url(leg.chosen, region: current_region)
-
-  # Where the whole slip can be sent, with a link for each.
-  def slip_handoffs(slip) = Slips::Handoff.call(slip: slip, region: current_region)
-
-  # The same for a saved slip, for the legs still to play.
-  def saved_handoffs(slip) = Slips::Handoff.for_saved(slip: slip, region: current_region)
 end

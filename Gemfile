@@ -78,6 +78,3 @@ group :test do
   gem "capybara"
   gem "selenium-webdriver"
 end
-
-# QR codes (as SVG: no image libraries) to open a slip at a sportsbook from a phone. Approved in the Phase 12 request.
-gem "rqrcode", "~> 3.2"

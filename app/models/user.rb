@@ -10,9 +10,6 @@ class User < ApplicationRecord
   validates :email_address, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :password, length: { minimum: 8 }, allow_nil: true
   validates :odds_format, inclusion: { in: ->(_) { Rails.configuration.x.odds_formats } }
-  validates :region, inclusion: { in: ->(_) { Region.keys } }
-
-  def region_record = Region.find(region) || Region.default
 
   def initial = email_address.first.upcase
 
