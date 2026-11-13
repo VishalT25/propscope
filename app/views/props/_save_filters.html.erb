@@ -1,0 +1,10 @@
+<% if current_user %>
+<%= form_with url: saved_filters_path, class: "flex gap-2", data: { action: "formdata->filters#fillSaved" } do %>
+  <%= hidden_filter_fields(@filters) %>
+  <%= text_field_tag :name, nil, placeholder: "Name these filters", class: "field", "aria-label": "Saved filter name", required: true %>
+  <button type="submit" class="btn btn-outline shrink-0">Save</button>
+<% end %>
+<p class="mt-1 text-xs text-muted">Saves the filters currently applied.</p>
+<% else %>
+<p class="text-xs text-muted"><%= link_to "Sign in", new_session_path, class: "text-accent underline" %> to save filters.</p>
+<% end %>
