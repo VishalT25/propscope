@@ -48,3 +48,12 @@
 /tmp/model/
 /model_service/models/*
 !/model_service/models/.gitkeep
+
+# macOS and local-only files
+.DS_Store
+
+# Local planning notes and editor-plugin files (not part of the project)
+/.github/agents/
+/.github/hooks/
+/.github/skills/
+/legacy-next/

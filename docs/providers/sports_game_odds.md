@@ -20,7 +20,7 @@ Researched 2026-11-09 from sportsgameodds.com (pricing, docs, terms). Re-check b
 - `players[playerID] = { teamID, name, firstName, lastName }`, `teams.{home,away} = { teamID, names: { long, medium, short } }`, `status.startsAt`.
 
 ## Verified against a real response (2026-11-09, free key)
-Confirmed by capturing two real NBA events (`spec/fixtures/providers/sports_game_odds/real_shape_sample.json` is a ~9KB hand-trimmed copy used by the contract spec):
+Shape confirmed against real NBA events; the contract spec uses a synthetic stand-in (`spec/fixtures/providers/sports_game_odds/synthetic_shape_sample.json` is a synthetic sample (invented players, no recorded provider data) used by the contract spec):
 - statIDs `points`, `rebounds`, `assists`, `threePointersMade`, `points+rebounds+assists` are exactly right. The feed also has `blocks`, `steals`, `turnovers`, `points+rebounds`, `points+assists`, `rebounds+assists`, `doubleDouble`, `firstBasket`, etc. (not modeled yet).
 - Prices, `overUnder` and `spread` are strings. Spread lines are in `byBookmaker[...].spread`, totals and props in `.overUnder`.
 - `byBookmaker[...].lastUpdatedAt` exists (we store it as `captured_at`), as do `available` and a `deeplink` (we drop deep links).

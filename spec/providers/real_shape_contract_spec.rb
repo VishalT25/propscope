@@ -1,9 +1,9 @@
 require "rails_helper"
 
-# Contract tests against a hand-trimmed sample of a REAL SportsGameOdds response (captured 2026-11-09, ~9KB,
-# deep links removed). If the vendor changes its format, these fail first.
+# Contract tests against a synthetic sample shaped like a SportsGameOdds response (invented players and ids, no recorded
+# provider data). If the vendor changes its format, update the sample and these fail first.
 RSpec.describe "SportsGameOdds real response shape" do
-  let(:body) { JSON.parse(Rails.root.join("spec/fixtures/providers/sports_game_odds/real_shape_sample.json").read) }
+  let(:body) { JSON.parse(Rails.root.join("spec/fixtures/providers/sports_game_odds/synthetic_shape_sample.json").read) }
   let(:provider) { Providers::SportsGameOdds.new(transport: Providers::NullTransport.new, clock: -> { Time.utc(2026, 11, 9, 22) }) }
   let(:quotes) { provider.parse_events(body) }
 
@@ -22,7 +22,7 @@ RSpec.describe "SportsGameOdds real response shape" do
   it "reads string prices and lines into integers and BigDecimal, with the player and team" do
     over = quotes.find { |q| q.market_type == "player_points" && q.outcome == "over" && q.bookmaker_key == "fanduel" }
     expect(over).to have_attributes(american_odds: -102, line: BigDecimal("36.5"))
-    expect(over.player).to have_attributes(external_id: "LUKA_DONCIC_1_NBA", name: "Luka Dončić")
+    expect(over.player).to have_attributes(external_id: "MARCUS_VELLACOTT_1_NBA", name: "Marcus Vellacott")
     expect(over.player.team.external_id).to eq("LOS_ANGELES_LAKERS_NBA")
     expect(over.captured_at).to eq(Time.utc(2026, 11, 9, 21, 35, 18, 227_000))
   end
@@ -52,7 +52,7 @@ RSpec.describe "SportsGameOdds real response shape" do
     it "drops unmodeled markets and deep links" do
       odds = slim["data"].first["odds"]
       expect(odds.keys).to all(satisfy { |id| id.split("-", 5)[2] == "game" })
-      expect(odds.keys).not_to include("firstBasket-AUSTIN_REAVES_1_NBA-game-yn-no")
+      expect(odds.keys).not_to include("firstBasket-TOBIAS_QUINLAN_1_NBA-game-yn-no")
       expect(slim.to_json).not_to include("deeplink")
     end
 

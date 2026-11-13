@@ -1,0 +1,159 @@
+{
+ "data": [
+  {
+   "id": 9200001,
+   "min": "32:47",
+   "fgm": 4,
+   "fga": 9,
+   "fg3m": 3,
+   "fg3a": 6,
+   "ftm": 0,
+   "fta": 0,
+   "oreb": 0,
+   "dreb": 4,
+   "reb": 4,
+   "ast": 4,
+   "stl": 2,
+   "blk": 0,
+   "turnover": 0,
+   "pf": 0,
+   "pts": 11,
+   "plus_minus": 18,
+   "player": {
+    "id": 9000001,
+    "first_name": "Corbin",
+    "last_name": "Hartwell",
+    "position": "G"
+   },
+   "team": {
+    "id": 4
+   },
+   "game": {
+    "id": 9100001,
+    "date": "2026-11-09",
+    "season": 2026,
+    "status": "Final",
+    "home_team_id": 4,
+    "visitor_team_id": 6,
+    "datetime": "2026-11-10T00:00:00.000Z"
+   }
+  },
+  {
+   "id": 9200002,
+   "min": "32:29",
+   "fgm": 10,
+   "fga": 26,
+   "fg3m": 4,
+   "fg3a": 9,
+   "ftm": 1,
+   "fta": 2,
+   "oreb": 1,
+   "dreb": 12,
+   "reb": 13,
+   "ast": 4,
+   "stl": 1,
+   "blk": 0,
+   "turnover": 3,
+   "pf": 3,
+   "pts": 25,
+   "plus_minus": 16,
+   "player": {
+    "id": 9000003,
+    "first_name": "Idris",
+    "last_name": "Okafor-Lane",
+    "position": "F-C"
+   },
+   "team": {
+    "id": 4
+   },
+   "game": {
+    "id": 9100001,
+    "date": "2026-11-09",
+    "season": 2026,
+    "status": "Final",
+    "home_team_id": 4,
+    "visitor_team_id": 6,
+    "datetime": "2026-11-10T00:00:00.000Z"
+   }
+  },
+  {
+   "id": 9200003,
+   "min": "34:31",
+   "fgm": 4,
+   "fga": 7,
+   "fg3m": 0,
+   "fg3a": 0,
+   "ftm": 0,
+   "fta": 0,
+   "oreb": 10,
+   "dreb": 5,
+   "reb": 15,
+   "ast": 3,
+   "stl": 2,
+   "blk": 3,
+   "turnover": 2,
+   "pf": 3,
+   "pts": 8,
+   "plus_minus": 20,
+   "player": {
+    "id": 9000002,
+    "first_name": "Lars",
+    "last_name": "Brandvold",
+    "position": "C"
+   },
+   "team": {
+    "id": 4
+   },
+   "game": {
+    "id": 9100001,
+    "date": "2026-11-09",
+    "season": 2026,
+    "status": "Final",
+    "home_team_id": 4,
+    "visitor_team_id": 6,
+    "datetime": "2026-11-10T00:00:00.000Z"
+   }
+  },
+  {
+   "id": 1,
+   "min": "00",
+   "fgm": 0,
+   "fga": 0,
+   "fg3m": 0,
+   "fg3a": 0,
+   "ftm": 0,
+   "fta": 0,
+   "oreb": 0,
+   "dreb": 0,
+   "reb": 0,
+   "ast": 0,
+   "stl": 0,
+   "blk": 0,
+   "turnover": 0,
+   "pf": 0,
+   "pts": 0,
+   "plus_minus": 0,
+   "player": {
+    "id": 2,
+    "first_name": "Bench",
+    "last_name": "Warmer",
+    "position": "G"
+   },
+   "team": {
+    "id": 4
+   },
+   "game": {
+    "id": 9100001,
+    "date": "2026-11-09",
+    "season": 2026,
+    "status": "Final",
+    "home_team_id": 4,
+    "visitor_team_id": 6,
+    "datetime": "2026-11-10T00:00:00.000Z"
+   }
+  }
+ ],
+ "meta": {
+  "per_page": 4
+ }
+}

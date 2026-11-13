@@ -1,0 +1,38 @@
+{
+ "data": [
+  {
+   "id": 9300001,
+   "first_name": "Warren",
+   "last_name": "Pellegrini",
+   "position": "C",
+   "team": {
+    "id": 11,
+    "conference": "West",
+    "division": "Southwest",
+    "city": "Houston",
+    "name": "Rockets",
+    "full_name": "Houston Rockets",
+    "abbreviation": "HOU"
+   }
+  },
+  {
+   "id": 9300002,
+   "first_name": "Kofi",
+   "last_name": "Mensah-Dale",
+   "position": "C-F",
+   "team": {
+    "id": 16,
+    "conference": "East",
+    "division": "Southeast",
+    "city": "Miami",
+    "name": "Heat",
+    "full_name": "Miami Heat",
+    "abbreviation": "MIA"
+   }
+  }
+ ],
+ "meta": {
+  "next_cursor": 8,
+  "per_page": 3
+ }
+}
