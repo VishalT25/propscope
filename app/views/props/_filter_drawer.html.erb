@@ -33,26 +33,16 @@
       <%= link_to "Reset", league_props_path(current_league), class: "btn btn-outline w-full", data: { turbo: false } %>
     </div>
 
-    <div class="border-t border-line px-4 py-3">
-      <% if current_user %>
-        <%= form_with url: saved_filters_path, class: "flex gap-2", data: { action: "formdata->filters#fillSaved" } do %>
-          <%= hidden_filter_fields(@filters) %>
-          <%= text_field_tag :name, nil, placeholder: "Name these filters", class: "field", "aria-label": "Saved filter name", required: true %>
-          <button type="submit" class="btn btn-outline shrink-0">Save</button>
-        <% end %>
-        <p class="mt-1 text-xs text-muted">Saves the filters currently applied.</p>
-      <% else %>
-        <p class="text-xs text-muted"><%= link_to "Sign in", new_session_path, class: "text-accent underline" %> to save filters.</p>
-      <% end %>
-    </div>
+    <div class="border-t border-line px-4 py-3"><%= render "props/save_filters" %></div>
   </div>
 
   <div data-sheet-target="pane" data-pane="templates" class="min-h-0 flex-1 overflow-y-auto px-4 py-4" hidden>
+    <div class="mb-4 border-b border-line pb-4"><%= render "props/save_filters" %></div>
     <% saved = current_user ? current_user.saved_filters.where(scope: "props").order(:name) : [] %>
     <% if saved.empty? %>
       <div class="grid place-items-center py-10 text-center text-sm text-muted">
         <p class="font-semibold text-fg">No saved filters yet</p>
-        <p class="mt-1 max-w-xs"><%= current_user ? "Set some filters, then use Save under Filters." : "Sign in to save filters as reusable templates." %></p>
+        <p class="mt-1 max-w-xs"><%= current_user ? "Set some filters, name them above and press Save." : "Sign in to save filters as reusable templates." %></p>
       </div>
     <% else %>
       <ul class="space-y-2">
