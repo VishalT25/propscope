@@ -166,6 +166,8 @@ RSpec.describe "Setup" do
       get "/setup/progress"
       expect(response.body).to include("Box scores", "step 2 of 4", "50 of 200 game days (25%)", 'data-controller="poll"', "Stop", "done around")
       expect(response.body).to match(/(less than a minute|about [\d a-z]+) left/i)
+      # Turbo reloads a frame from its src; without one the polling timer fires and nothing happens.
+      expect(response.body).to include('id="backfill_progress"', 'src="/setup/progress"')
 
       run.update!(state: "paused", message: "balldontlie budget exhausted (500/500 this month). Start it again next month.")
       get "/setup/progress"

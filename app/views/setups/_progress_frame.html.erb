@@ -1,1 +1,2 @@
-<%= turbo_frame_tag "backfill_progress" do %><%= render "setups/progress", run: run %><% end %>
+<%# The src is what lets poll_controller's frame.reload() fetch anything: Turbo reloads a frame from its src, and with none it does nothing. %>
+<%= turbo_frame_tag "backfill_progress", src: progress_setup_path do %><%= render "setups/progress", run: run %><% end %>
